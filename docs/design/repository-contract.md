@@ -32,7 +32,7 @@ analysis dependencies and must be installed through repository-owned metadata.
 
 ## Legacy Evidence
 
-Current versioned runner scripts and tracked data files are frozen historical
+Current versioned runner scripts and tracked `data/` files are frozen historical
 evidence. The current versioned experiment runners are `runner/run_pmu*.sh`.
 Verify them with `make legacy-check`. Do not change them for v1.0 features.
 Later migration requires an explicit compatibility plan.
