@@ -1,0 +1,256 @@
+# GB10 PMU Cache Validation v2.7.10-section9
+# Phase        : 2B-4 DRAM HP cold baseline
+# Date         : Thu Jun 11 06:57:32 PM CST 2026
+# PWD          : ~/gb10-arch/runner
+# CHASE_BIN    : ../tools/bin/chase_pmu
+# EVICT_BIN    : ../tools/bin/evict_slc
+# OUTFILE      : ../data/20260611_v2.7.10_section9_dram/raw/run_20260611_185732.txt
+# SUMMARY_FILE : ../data/20260611_v2.7.10_section9_dram/raw/summary_20260611_185732.txt
+# ERROR_FILE   : ../data/20260611_v2.7.10_section9_dram/raw/error_20260611_185732.txt
+# ------------------------------------------------------------
+# HugePages    : nr_hugepages=128
+# MaxSizeKB    : 131072
+# Required HP  : >= 64 x 2MB hugepages for max chain
+
+# CPU frequency snapshot:
+  cpu0 2808000
+  cpu5 3900000
+  cpu10 2808000
+  cpu15 3900000
+
+# MEDIAN_RUNS  : 7
+# SEED         : 42
+# WARM_PASSES  : 5
+# EVICT_MB     : 64
+# SIZES_KB     : 32768 49152 65536 98304 131072
+# WARM_ONLY    : 1
+# COLD_ONLY    : 0
+# force_rounds : 1 for all DRAM baseline sizes
+============================================================
+
+============================================================
+# Section 9.2: DRAM HP warm large working-set baseline
+#   chase_pmu warm=5 fr=1
+============================================================
+
+  --- [C0-A725-DRAMwarm 32768KB] cpu=0 size=32768KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x58ca9b400000  alloc=32768 KB  chain=32768 KB
+=== chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=40264640 ns  accesses=524288
+>>> latency = 76.80 ns/access  (sink=0x58ca9b400000)
+  [median/7] latency = 69.67 ns/access
+
+  --- [C1-A725-DRAMwarm 32768KB] cpu=10 size=32768KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4c29eb400000  alloc=32768 KB  chain=32768 KB
+=== chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=30459840 ns  accesses=524288
+>>> latency = 58.10 ns/access  (sink=0x4c29eb400000)
+  [median/7] latency = 57.92 ns/access
+
+  --- [C0-X925-DRAMwarm 32768KB] cpu=5 size=32768KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4b7c26800000  alloc=32768 KB  chain=32768 KB
+=== chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2579088 ns  accesses=524288
+>>> latency = 4.92 ns/access  (sink=0x4b7c26800000)
+  [median/7] latency = 4.84 ns/access
+
+  --- [C1-X925-DRAMwarm 32768KB] cpu=15 size=32768KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x51b20e600000  alloc=32768 KB  chain=32768 KB
+=== chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2504880 ns  accesses=524288
+>>> latency = 4.78 ns/access  (sink=0x51b20e600000)
+  [median/7] latency = 4.28 ns/access
+
+  --- [C0-A725-DRAMwarm 49152KB] cpu=0 size=49152KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x5c264ea00000  alloc=49152 KB  chain=49152 KB
+=== chase_pmu v2.7.3 ===
+size=49152 KB  n_lines=786432  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=71217632 ns  accesses=786432
+>>> latency = 90.56 ns/access  (sink=0x5c264ea00000)
+  [median/7] latency = 89.47 ns/access
+
+  --- [C1-A725-DRAMwarm 49152KB] cpu=10 size=49152KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x56d80f000000  alloc=49152 KB  chain=49152 KB
+=== chase_pmu v2.7.3 ===
+size=49152 KB  n_lines=786432  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=61709456 ns  accesses=786432
+>>> latency = 78.47 ns/access  (sink=0x56d80f000000)
+  [median/7] latency = 81.51 ns/access
+
+  --- [C0-X925-DRAMwarm 49152KB] cpu=5 size=49152KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x5dc58c000000  alloc=49152 KB  chain=49152 KB
+=== chase_pmu v2.7.3 ===
+size=49152 KB  n_lines=786432  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=20552464 ns  accesses=786432
+>>> latency = 26.13 ns/access  (sink=0x5dc58c000000)
+  [median/7] latency = 27.08 ns/access
+
+  --- [C1-X925-DRAMwarm 49152KB] cpu=15 size=49152KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4cb798800000  alloc=49152 KB  chain=49152 KB
+=== chase_pmu v2.7.3 ===
+size=49152 KB  n_lines=786432  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=16348432 ns  accesses=786432
+>>> latency = 20.79 ns/access  (sink=0x4cb798800000)
+  [median/7] latency = 27.35 ns/access
+
+  --- [C0-A725-DRAMwarm 65536KB] cpu=0 size=65536KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x489f0d800000  alloc=65536 KB  chain=65536 KB
+=== chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=105159840 ns  accesses=1048576
+>>> latency = 100.29 ns/access  (sink=0x489f0d800000)
+  [median/7] latency = 98.05 ns/access
+
+  --- [C1-A725-DRAMwarm 65536KB] cpu=10 size=65536KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x5fe1e5200000  alloc=65536 KB  chain=65536 KB
+=== chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=94074272 ns  accesses=1048576
+>>> latency = 89.72 ns/access  (sink=0x5fe1e5200000)
+  [median/7] latency = 92.15 ns/access
+
+  --- [C0-X925-DRAMwarm 65536KB] cpu=5 size=65536KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x54247ae00000  alloc=65536 KB  chain=65536 KB
+=== chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=58120144 ns  accesses=1048576
+>>> latency = 55.43 ns/access  (sink=0x54247ae00000)
+  [median/7] latency = 55.99 ns/access
+
+  --- [C1-X925-DRAMwarm 65536KB] cpu=15 size=65536KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x526287400000  alloc=65536 KB  chain=65536 KB
+=== chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=46059312 ns  accesses=1048576
+>>> latency = 43.93 ns/access  (sink=0x526287400000)
+  [median/7] latency = 49.44 ns/access
+
+  --- [C0-A725-DRAMwarm 98304KB] cpu=0 size=98304KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x50873e600000  alloc=98304 KB  chain=98304 KB
+=== chase_pmu v2.7.3 ===
+size=98304 KB  n_lines=1572864  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=176875648 ns  accesses=1572864
+>>> latency = 112.45 ns/access  (sink=0x50873e600000)
+  [median/7] latency = 109.76 ns/access
+
+  --- [C1-A725-DRAMwarm 98304KB] cpu=10 size=98304KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4fa8dcc00000  alloc=98304 KB  chain=98304 KB
+=== chase_pmu v2.7.3 ===
+size=98304 KB  n_lines=1572864  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=170626288 ns  accesses=1572864
+>>> latency = 108.48 ns/access  (sink=0x4fa8dcc00000)
+  [median/7] latency = 104.17 ns/access
+
+  --- [C0-X925-DRAMwarm 98304KB] cpu=5 size=98304KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4338f3600000  alloc=98304 KB  chain=98304 KB
+=== chase_pmu v2.7.3 ===
+size=98304 KB  n_lines=1572864  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=115257872 ns  accesses=1572864
+>>> latency = 73.28 ns/access  (sink=0x4338f3600000)
+  [median/7] latency = 73.66 ns/access
+
+  --- [C1-X925-DRAMwarm 98304KB] cpu=15 size=98304KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4a694ba00000  alloc=98304 KB  chain=98304 KB
+=== chase_pmu v2.7.3 ===
+size=98304 KB  n_lines=1572864  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=106559184 ns  accesses=1572864
+>>> latency = 67.75 ns/access  (sink=0x4a694ba00000)
+  [median/7] latency = 70.22 ns/access
+
+  --- [C0-A725-DRAMwarm 131072KB] cpu=0 size=131072KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4da1d6400000  alloc=131072 KB  chain=131072 KB
+=== chase_pmu v2.7.3 ===
+size=131072 KB  n_lines=2097152  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=242427600 ns  accesses=2097152
+>>> latency = 115.60 ns/access  (sink=0x4da1d6400000)
+  [median/7] latency = 115.24 ns/access
+
+  --- [C1-A725-DRAMwarm 131072KB] cpu=10 size=131072KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x417ddf600000  alloc=131072 KB  chain=131072 KB
+=== chase_pmu v2.7.3 ===
+size=131072 KB  n_lines=2097152  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=232301344 ns  accesses=2097152
+>>> latency = 110.77 ns/access  (sink=0x417ddf600000)
+  [median/7] latency = 110.26 ns/access
+
+  --- [C0-X925-DRAMwarm 131072KB] cpu=5 size=131072KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x579e13c00000  alloc=131072 KB  chain=131072 KB
+=== chase_pmu v2.7.3 ===
+size=131072 KB  n_lines=2097152  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=178915952 ns  accesses=2097152
+>>> latency = 85.31 ns/access  (sink=0x579e13c00000)
+  [median/7] latency = 85.36 ns/access
+
+  --- [C1-X925-DRAMwarm 131072KB] cpu=15 size=131072KB mode=warm/hugepage warm=5 fr=1 ---
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4b085fa00000  alloc=131072 KB  chain=131072 KB
+=== chase_pmu v2.7.3 ===
+size=131072 KB  n_lines=2097152  warm=5  meas_rounds=1  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=171076816 ns  accesses=2097152
+>>> latency = 81.58 ns/access  (sink=0x4b085fa00000)
+  [median/7] latency = 81.58 ns/access
+
+============================================================
+=== Done ===
+OUTFILE      : ../data/20260611_v2.7.10_section9_dram/raw/run_20260611_185732.txt
+SUMMARY_FILE : ../data/20260611_v2.7.10_section9_dram/raw/summary_20260611_185732.txt
+ERROR_FILE   : ../data/20260611_v2.7.10_section9_dram/raw/error_20260611_185732.txt
+============================================================
+
+Quick Summary (median values):
+  (HP)=hugepage
+  (WARM)=warm=5 steady-state large working set
+  (COLD)=evict_slc random + warm=0 single-pass
+
+  Label                                                 Size  Mode                    Latency
+  ------------------------------------------------ ---------  -------------------- ----------
+  C0-A725-DRAMwarm 32768KB                           32768KB  warm/hugepage           69.67 ns
+  C1-A725-DRAMwarm 32768KB                           32768KB  warm/hugepage           57.92 ns
+  C0-X925-DRAMwarm 32768KB                           32768KB  warm/hugepage            4.84 ns
+  C1-X925-DRAMwarm 32768KB                           32768KB  warm/hugepage            4.28 ns
+  C0-A725-DRAMwarm 49152KB                           49152KB  warm/hugepage           89.47 ns
+  C1-A725-DRAMwarm 49152KB                           49152KB  warm/hugepage           81.51 ns
+  C0-X925-DRAMwarm 49152KB                           49152KB  warm/hugepage           27.08 ns
+  C1-X925-DRAMwarm 49152KB                           49152KB  warm/hugepage           27.35 ns
+  C0-A725-DRAMwarm 65536KB                           65536KB  warm/hugepage           98.05 ns
+  C1-A725-DRAMwarm 65536KB                           65536KB  warm/hugepage           92.15 ns
+  C0-X925-DRAMwarm 65536KB                           65536KB  warm/hugepage           55.99 ns
+  C1-X925-DRAMwarm 65536KB                           65536KB  warm/hugepage           49.44 ns
+  C0-A725-DRAMwarm 98304KB                           98304KB  warm/hugepage          109.76 ns
+  C1-A725-DRAMwarm 98304KB                           98304KB  warm/hugepage          104.17 ns
+  C0-X925-DRAMwarm 98304KB                           98304KB  warm/hugepage           73.66 ns
+  C1-X925-DRAMwarm 98304KB                           98304KB  warm/hugepage           70.22 ns
+  C0-A725-DRAMwarm 131072KB                         131072KB  warm/hugepage          115.24 ns
+  C1-A725-DRAMwarm 131072KB                         131072KB  warm/hugepage          110.26 ns
+  C0-X925-DRAMwarm 131072KB                         131072KB  warm/hugepage           85.36 ns
+  C1-X925-DRAMwarm 131072KB                         131072KB  warm/hugepage           81.58 ns
+
+# File check:
+-rw-r--r-- 1 michaelyao1 eng    0 Jun 11 18:57 ../data/20260611_v2.7.10_section9_dram/raw/error_20260611_185732.txt
+-rw-r--r-- 1 michaelyao1 eng  13K Jun 11 18:59 ../data/20260611_v2.7.10_section9_dram/raw/run_20260611_185732.txt
+-rw-r--r-- 1 michaelyao1 eng 2.2K Jun 11 18:59 ../data/20260611_v2.7.10_section9_dram/raw/summary_20260611_185732.txt
+
+[OK] No command-level errors recorded.
