@@ -279,7 +279,40 @@ migration-latency/same-cluster
 migration-latency/cross-cluster
 ```
 
-### 7.2 Discovery and Planning
+### 7.2 Quick Usage and Help
+
+The control surface must provide fast, conventional usage information without
+requiring platform discovery, privileged access, a valid experiment
+configuration, or environment mutation:
+
+```text
+probe --help
+probe help
+probe run --help
+probe plan --help
+probe analyze --help
+```
+
+Top-level help summarizes the workflow, operations, target types, and common
+examples. Subcommand help documents accepted targets, selectors, inputs,
+outputs, exit behavior, and examples relevant to that operation.
+
+Invoking `probe` without arguments prints a concise usage summary and points to
+`probe --help`, `probe list scenarios`, and the smoke-profile workflow.
+Invalid commands or options print a short actionable error plus the relevant
+help command; they must not dump a long help page by default.
+
+Help output must:
+
+- Be available on both Mac and GB10 immediately after checkout.
+- Complete without reading GB10-specific `/sys` or `/proc` state.
+- Never request privileges, create run directories, or alter the environment.
+- Use examples that remain checked by automated documentation tests.
+
+`--help` answers how to use the interface. `list` and `show` answer what
+experiments, scenarios, profiles, and selectors are available.
+
+### 7.3 Discovery and Planning
 
 Users must be able to discover the available interface before running tests:
 
@@ -304,7 +337,7 @@ probe plan migration-latency/cross-cluster
 probe plan --profile v1.0-baseline
 ```
 
-### 7.3 Individual and Combined Execution
+### 7.4 Individual and Combined Execution
 
 The same invocation model supports one scenario, arbitrary scenario
 combinations, a complete experiment, or a committed profile:
@@ -340,13 +373,14 @@ removed. Conflicting environment policies produce separate visible transaction
 phases. Unsupported cases are reported during planning rather than silently
 omitted.
 
-### 7.4 Operations
+### 7.5 Operations
 
 The conceptual operations are:
 
 ```text
 probe list         discover experiments, scenarios, profiles, and prior runs
 probe show         inspect one target or profile
+probe help         show quick usage and operation-specific help
 probe doctor       inspect dependencies, capabilities, and recovery journals
 probe plan         expand selected targets and show environment changes
 probe run          execute selected targets inside environment transactions
@@ -358,6 +392,7 @@ probe restore      recover an interrupted environment transaction
 
 Rules:
 
+- Help operations are fast, read-only, and independent of platform probing.
 - `plan` is read-only and reviewable before execution.
 - `plan` and `run` accept the same target and selector model.
 - Formal runs reference a committed profile; CLI overrides are recorded.
@@ -491,6 +526,7 @@ The Apple M4 Pro Mac validates engineering behavior, not GB10 performance:
 - Report generation.
 - Backend contract tests using GB10 and M4 fixtures.
 - Probe parameter validation, pointer-chain logic, and safe portable subsets.
+- Top-level and subcommand help output, including no-side-effect guarantees.
 - Makefile, configuration, and documentation examples.
 
 The implementation must separate generic ARM64 code from Linux-specific
@@ -585,6 +621,8 @@ v1.0 is ready when:
 - Environment restoration is verified and recorded.
 - Individual and combined scenarios, profiles, resume, and failed-case reruns
   work through the stable control surface.
+- `probe --help`, subcommand help, `list`, and `show` provide actionable usage
+  and discovery information without platform probing or side effects.
 - A fresh GB10 checkout can follow README instructions through a smoke run.
 - Published figures and conclusions trace to structured cases, raw evidence,
   and a Git commit.
