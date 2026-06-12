@@ -118,31 +118,45 @@ class LegacyManifestTest(unittest.TestCase):
         self.assertEqual(sorted(manifest["files"]), sorted(tracked))
 
     def test_changed_digest_fails_verification(self):
-        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        changed_path = next(iter(manifest["files"]))
-        manifest["files"][changed_path] = "0" * 64
-
         with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_root = Path(temporary_directory)
+            changed_path = temporary_root / "changed.sh"
+            changed_path.write_text("#!/bin/sh\n# mutation\n", encoding="utf-8")
+            manifest = {
+                "source_commit": "test",
+                "files": {str(changed_path.resolve()): "0" * 64},
+            }
             changed_manifest = Path(temporary_directory) / "manifest.json"
             changed_manifest.write_text(json.dumps(manifest), encoding="utf-8")
             result = self.run_script(
                 "verify",
                 "--manifest",
                 str(changed_manifest.resolve()),
-                "--allow-custom-manifest",
             )
 
         self.assert_concise_failure(result, "digest mismatch")
 
-    def test_custom_manifest_requires_explicit_opt_in(self):
+    def test_external_manifest_verifies_absolute_path_digest(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
-            custom_manifest = Path(temporary_directory) / "manifest.json"
-            shutil.copy2(MANIFEST, custom_manifest)
-            result = self.run_script("verify", "--manifest", str(custom_manifest))
+            temporary_root = Path(temporary_directory)
+            checked_path = temporary_root / "checked.txt"
+            checked_path.write_text("checked\n", encoding="utf-8")
+            payload = {
+                "source_commit": "ad-hoc",
+                "files": {
+                    str(checked_path.resolve()): hashlib.sha256(
+                        checked_path.read_bytes()
+                    ).hexdigest()
+                },
+            }
+            external_manifest = temporary_root / "manifest.json"
+            external_manifest.write_text(json.dumps(payload), encoding="utf-8")
+            result = self.run_script(
+                "verify", "--manifest", str(external_manifest.resolve())
+            )
 
-        self.assert_concise_failure(
-            result, "custom manifest requires --allow-custom-manifest"
-        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("external manifest digests verified", result.stdout)
 
     def test_canonical_manifest_rejects_missing_inventory_entry(self):
         payload = copy.deepcopy(self.fixture_payload)
@@ -249,30 +263,18 @@ class LegacyManifestTest(unittest.TestCase):
                     result, "invalid manifest: path must be normalized repo-relative:"
                 )
 
-    def test_custom_manifest_rejects_unsafe_and_untracked_paths(self):
-        tracked_path = "runner/run_pmu_v1.sh"
-        digest = self.fixture_files[tracked_path]
-        unsafe_paths = (
-            str((self.fixture_root / tracked_path).resolve()),
-            "data/../runner/run_pmu_v1.sh",
-            "README.md",
-        )
-        for unsafe_path in unsafe_paths:
-            with self.subTest(path=unsafe_path):
-                payload = {
-                    "source_commit": self.fixture_commit,
-                    "files": {unsafe_path: digest},
-                }
-                with tempfile.TemporaryDirectory() as temporary_directory:
-                    custom_manifest = Path(temporary_directory) / "manifest.json"
-                    custom_manifest.write_text(json.dumps(payload), encoding="utf-8")
-                    result = self.run_fixture_script(
-                        "verify",
-                        "--manifest",
-                        str(custom_manifest),
-                        "--allow-custom-manifest",
-                    )
-                self.assert_concise_failure(result, "invalid manifest:")
+    def test_external_manifest_schema_error_is_concise(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            external_manifest = Path(temporary_directory) / "manifest.json"
+            external_manifest.write_text(
+                json.dumps({"source_commit": "ad-hoc", "files": []}),
+                encoding="utf-8",
+            )
+            result = self.run_script(
+                "verify", "--manifest", str(external_manifest.resolve())
+            )
+
+        self.assert_concise_failure(result, "invalid manifest:")
 
 
 if __name__ == "__main__":

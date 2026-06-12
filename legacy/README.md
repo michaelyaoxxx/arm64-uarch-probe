@@ -15,15 +15,17 @@ baseline and must remain an ancestor of the current checkout. Its hashes cover
 the preserved files in the current working tree.
 
 Canonical verification proves schema, provenance, exact tracked inventory,
-path scope, and file digests. For a review-only mutation check, an external
-manifest may be verified explicitly:
+normalized repo-relative path scope, and file digests. It is the repository
+integrity contract.
+
+A caller-supplied external manifest is instead an ad hoc digest-check input. It
+may reference absolute paths and does not certify repository inventory or
+provenance:
 
 ```sh
 python3 scripts/legacy_manifest.py verify \
-  --manifest /absolute/path/to/manifest.json \
-  --allow-custom-manifest
+  --manifest /absolute/path/to/manifest.json
 ```
 
-Custom verification accepts only a non-empty subset of normalized, tracked
-legacy paths. It checks their digests but does not certify canonical inventory
-completeness or provenance.
+External verification still validates the manifest schema and checks every
+listed file digest.

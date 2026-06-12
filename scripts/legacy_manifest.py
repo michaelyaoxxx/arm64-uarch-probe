@@ -95,7 +95,7 @@ def is_normalized_repo_relative(raw_path: str) -> bool:
     )
 
 
-def load_manifest(manifest_path: Path) -> dict:
+def load_manifest(manifest_path: Path, canonical: bool) -> dict:
     try:
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     except OSError as error:
@@ -116,9 +116,13 @@ def load_manifest(manifest_path: Path) -> dict:
         raise ManifestError("invalid manifest: source_commit must be a non-empty string")
     if not isinstance(files, dict):
         raise ManifestError("invalid manifest: files must be an object")
+    if not canonical and not files:
+        raise ManifestError("invalid manifest: external manifest must contain files")
 
     for raw_path, expected in files.items():
-        if not is_normalized_repo_relative(raw_path):
+        if not isinstance(raw_path, str) or not raw_path or "\x00" in raw_path:
+            raise ManifestError("invalid manifest: file paths must be non-empty strings")
+        if canonical and not is_normalized_repo_relative(raw_path):
             raise ManifestError(
                 f"invalid manifest: path must be normalized repo-relative: {raw_path!r}"
             )
@@ -155,17 +159,6 @@ def require_complete_inventory(files: dict, tracked: list[str]) -> None:
         raise ManifestError(f"inventory mismatch: {'; '.join(failures)}")
 
 
-def require_safe_custom_scope(files: dict, tracked: list[str]) -> None:
-    if not files:
-        raise ManifestError("invalid manifest: custom manifest must contain files")
-    untracked = sorted(set(files) - set(tracked))
-    if untracked:
-        raise ManifestError(
-            "invalid manifest: custom paths must be tracked legacy files: "
-            f"{summarize_paths(untracked)}"
-        )
-
-
 def write_manifest(manifest_path: Path, source_commit: str) -> None:
     resolved_commit = resolve_commit(source_commit)
     files = {
@@ -188,24 +181,21 @@ def write_manifest(manifest_path: Path, source_commit: str) -> None:
     print(f"wrote {manifest_path} ({len(files)} files)")
 
 
-def verify_manifest(manifest_path: Path, allow_custom_manifest: bool) -> None:
+def verify_manifest(manifest_path: Path) -> None:
     canonical = is_canonical_manifest(manifest_path)
-    if not canonical and not allow_custom_manifest:
-        raise ManifestError("custom manifest requires --allow-custom-manifest")
-
-    payload = load_manifest(manifest_path)
+    payload = load_manifest(manifest_path, canonical)
     files = payload["files"]
-    tracked = tracked_legacy_paths()
     if canonical:
+        tracked = tracked_legacy_paths()
         require_complete_inventory(files, tracked)
         source_commit = resolve_commit(payload["source_commit"])
         require_ancestor(source_commit)
-    else:
-        require_safe_custom_scope(files, tracked)
 
     failures = []
     for raw_path, expected in files.items():
-        path = ROOT / raw_path
+        path = Path(raw_path)
+        if canonical or not path.is_absolute():
+            path = ROOT / path
         if not path.is_file():
             failures.append(f"missing file: {raw_path}")
         elif digest(path) != expected:
@@ -213,8 +203,10 @@ def verify_manifest(manifest_path: Path, allow_custom_manifest: bool) -> None:
     if failures:
         raise ManifestError("\n".join(failures))
 
-    qualifier = "" if canonical else "custom "
-    print(f"{qualifier}legacy manifest verified ({len(files)} files)")
+    if canonical:
+        print(f"legacy manifest verified ({len(files)} files)")
+    else:
+        print(f"external manifest digests verified ({len(files)} files)")
 
 
 def main() -> int:
@@ -225,12 +217,18 @@ def main() -> int:
     write.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     write.add_argument("--source-commit", required=True)
 
-    verify = subcommands.add_parser("verify")
-    verify.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    verify = subcommands.add_parser(
+        "verify",
+        description=(
+            "The default manifest is the repository integrity contract; "
+            "an external manifest is an ad hoc digest-check input."
+        ),
+    )
     verify.add_argument(
-        "--allow-custom-manifest",
-        action="store_true",
-        help="verify an external manifest limited to tracked legacy paths",
+        "--manifest",
+        type=Path,
+        default=DEFAULT_MANIFEST,
+        help="manifest to verify; external manifests may contain absolute file paths",
     )
 
     args = parser.parse_args()
@@ -239,7 +237,7 @@ def main() -> int:
         if args.command == "write":
             write_manifest(manifest_path, args.source_commit)
         else:
-            verify_manifest(manifest_path, args.allow_custom_manifest)
+            verify_manifest(manifest_path)
     except ManifestError as error:
         print(error, file=sys.stderr)
         return 1
