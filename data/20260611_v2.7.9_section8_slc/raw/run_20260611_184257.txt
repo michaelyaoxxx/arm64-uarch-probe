@@ -1,0 +1,506 @@
+# GB10 PMU Cache Validation v2.7.9-section8
+# Date         : Thu Jun 11 06:42:57 PM CST 2026
+# PWD          : ~/gb10-arch/runner
+# CHASE_BIN    : ../tools/bin/chase_pmu
+# EVICT_BIN    : ../tools/bin/evict_slc
+# OUTFILE      : ../data/20260611_v2.7.9_section8_slc/raw/run_20260611_184257.txt
+# SUMMARY_FILE : ../data/20260611_v2.7.9_section8_slc/raw/summary_20260611_184257.txt
+# ERROR_FILE   : ../data/20260611_v2.7.9_section8_slc/raw/error_20260611_184257.txt
+# ------------------------------------------------------------
+# HugePages    : nr_hugepages=32
+
+# CPU frequency snapshot:
+  cpu0 2808000
+  cpu10 2808000
+
+# MEDIAN_RUNS  : 7
+# SEED         : 42
+# WARM_PASSES  : 5
+# EVICT_MB     : 64
+# WARM_ONLY    : 0
+# COLD_ONLY    : 1
+# force_rounds : <=8192KB -> 38, >8192KB -> 5
+============================================================
+
+============================================================
+# Section 8.2: A725 HP cold validation
+#   evict_slc random 64 MB + chase_pmu warm=0 fr=1
+============================================================
+
+  --- [C0-A725-SLCcold 12288KB] cpu=0 size=12288KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=20.550 evict_ms=25.484 approx_bw=2.45 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.931 evict_ms=25.210 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.275 evict_ms=24.985 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.266 evict_ms=25.016 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.961 evict_ms=25.007 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.169 evict_ms=25.423 approx_bw=2.46 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.517 evict_ms=25.208 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x5731d9e00000  alloc=12288 KB  chain=12288 KB
+=== chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=14236800 ns  accesses=196608
+>>> latency = 72.41 ns/access  (sink=0x5731d9e00000)
+  [median/7] latency = 70.90 ns/access
+
+  --- [C1-A725-SLCcold 12288KB] cpu=10 size=12288KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=17.214 evict_ms=24.640 approx_bw=2.54 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.932 evict_ms=24.154 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.057 evict_ms=24.419 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.001 evict_ms=24.568 approx_bw=2.54 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.822 evict_ms=24.269 approx_bw=2.58 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.858 evict_ms=24.730 approx_bw=2.53 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=17.992 evict_ms=24.433 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4dadce800000  alloc=12288 KB  chain=12288 KB
+=== chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=12833232 ns  accesses=196608
+>>> latency = 65.27 ns/access  (sink=0x4dadce800000)
+  [median/7] latency = 61.21 ns/access
+
+  --- [C0-A725-SLCcold 14336KB] cpu=0 size=14336KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.504 evict_ms=25.437 approx_bw=2.46 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.313 evict_ms=25.407 approx_bw=2.46 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.990 evict_ms=24.951 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.393 evict_ms=25.227 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.101 evict_ms=25.127 approx_bw=2.49 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.128 evict_ms=25.023 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.132 evict_ms=25.223 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4c0aa0c00000  alloc=14336 KB  chain=14336 KB
+=== chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=20030608 ns  accesses=229376
+>>> latency = 87.33 ns/access  (sink=0x4c0aa0c00000)
+  [median/7] latency = 79.73 ns/access
+
+  --- [C1-A725-SLCcold 14336KB] cpu=10 size=14336KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=17.369 evict_ms=24.493 approx_bw=2.55 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.539 evict_ms=24.669 approx_bw=2.53 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.172 evict_ms=24.507 approx_bw=2.55 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.136 evict_ms=24.470 approx_bw=2.55 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.709 evict_ms=24.435 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.075 evict_ms=24.483 approx_bw=2.55 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.354 evict_ms=24.021 approx_bw=2.60 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x427fe9600000  alloc=14336 KB  chain=14336 KB
+=== chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=16535648 ns  accesses=229376
+>>> latency = 72.09 ns/access  (sink=0x427fe9600000)
+  [median/7] latency = 69.28 ns/access
+
+  --- [C0-A725-SLCcold 16384KB] cpu=0 size=16384KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.257 evict_ms=24.985 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.548 evict_ms=25.154 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.973 evict_ms=25.285 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.658 evict_ms=25.304 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.429 evict_ms=25.357 approx_bw=2.46 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.198 evict_ms=25.047 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.568 evict_ms=25.440 approx_bw=2.46 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x495d94800000  alloc=16384 KB  chain=16384 KB
+=== chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=21157488 ns  accesses=262144
+>>> latency = 80.71 ns/access  (sink=0x495d94800000)
+  [median/7] latency = 80.48 ns/access
+
+  --- [C1-A725-SLCcold 16384KB] cpu=10 size=16384KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.017 evict_ms=23.852 approx_bw=2.62 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.062 evict_ms=23.445 approx_bw=2.67 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.539 evict_ms=23.596 approx_bw=2.65 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.033 evict_ms=23.716 approx_bw=2.64 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=13.891 evict_ms=23.726 approx_bw=2.63 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.666 evict_ms=24.178 approx_bw=2.58 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.115 evict_ms=23.919 approx_bw=2.61 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x5dfed2c00000  alloc=16384 KB  chain=16384 KB
+=== chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=20965280 ns  accesses=262144
+>>> latency = 79.98 ns/access  (sink=0x5dfed2c00000)
+  [median/7] latency = 67.61 ns/access
+
+  --- [C0-A725-SLCcold 18432KB] cpu=0 size=18432KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.004 evict_ms=25.337 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.920 evict_ms=25.317 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.037 evict_ms=25.209 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.043 evict_ms=25.336 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.343 evict_ms=25.202 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.948 evict_ms=25.212 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.158 evict_ms=25.340 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4b4003800000  alloc=18432 KB  chain=18432 KB
+=== chase_pmu v2.7.3 ===
+size=18432 KB  n_lines=294912  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=29331712 ns  accesses=294912
+>>> latency = 99.46 ns/access  (sink=0x4b4003800000)
+  [median/7] latency = 86.45 ns/access
+
+  --- [C1-A725-SLCcold 18432KB] cpu=10 size=18432KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.487 evict_ms=24.441 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.073 evict_ms=24.151 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.251 evict_ms=24.151 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.835 evict_ms=24.390 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.894 evict_ms=24.125 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.843 evict_ms=24.352 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.338 evict_ms=24.344 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x444cf2600000  alloc=18432 KB  chain=18432 KB
+=== chase_pmu v2.7.3 ===
+size=18432 KB  n_lines=294912  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=24236880 ns  accesses=294912
+>>> latency = 82.18 ns/access  (sink=0x444cf2600000)
+  [median/7] latency = 76.46 ns/access
+
+  --- [C0-A725-SLCcold 20480KB] cpu=0 size=20480KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=20.394 evict_ms=25.747 approx_bw=2.43 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.450 evict_ms=25.296 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.408 evict_ms=25.250 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.262 evict_ms=25.295 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.004 evict_ms=25.281 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.193 evict_ms=25.210 approx_bw=2.48 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.638 evict_ms=25.001 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4b9a6c600000  alloc=20480 KB  chain=20480 KB
+=== chase_pmu v2.7.3 ===
+size=20480 KB  n_lines=327680  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=31077696 ns  accesses=327680
+>>> latency = 94.84 ns/access  (sink=0x4b9a6c600000)
+  [median/7] latency = 94.71 ns/access
+
+  --- [C1-A725-SLCcold 20480KB] cpu=10 size=20480KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=13.611 evict_ms=23.717 approx_bw=2.64 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.731 evict_ms=24.337 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=17.883 evict_ms=24.336 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.109 evict_ms=23.964 approx_bw=2.61 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.766 evict_ms=24.382 approx_bw=2.56 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.895 evict_ms=24.165 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.307 evict_ms=24.082 approx_bw=2.60 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x40b5ad000000  alloc=20480 KB  chain=20480 KB
+=== chase_pmu v2.7.3 ===
+size=20480 KB  n_lines=327680  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=30520352 ns  accesses=327680
+>>> latency = 93.14 ns/access  (sink=0x40b5ad000000)
+  [median/7] latency = 80.27 ns/access
+
+  --- [C0-A725-SLCcold 24576KB] cpu=0 size=24576KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.382 evict_ms=25.133 approx_bw=2.49 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=16.633 evict_ms=25.281 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.965 evict_ms=25.313 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.501 evict_ms=25.317 approx_bw=2.47 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.760 evict_ms=24.927 approx_bw=2.51 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.109 evict_ms=24.951 approx_bw=2.50 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 0 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=15.203 evict_ms=25.105 approx_bw=2.49 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x4010f3c00000  alloc=24576 KB  chain=24576 KB
+=== chase_pmu v2.7.3 ===
+size=24576 KB  n_lines=393216  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=44460448 ns  accesses=393216
+>>> latency = 113.07 ns/access  (sink=0x4010f3c00000)
+  [median/7] latency = 101.49 ns/access
+
+  --- [C1-A725-SLCcold 24576KB] cpu=10 size=24576KB mode=cold/random-evict+warm0 ---
+    [evict] run=1 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=17.424 evict_ms=23.839 approx_bw=2.62 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=2 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.411 evict_ms=24.547 approx_bw=2.55 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=3 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.792 evict_ms=24.287 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=4 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.579 evict_ms=24.244 approx_bw=2.58 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=5 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=19.519 evict_ms=24.289 approx_bw=2.57 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=6 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=18.225 evict_ms=24.156 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+    [evict] run=7 taskset -c 10 ../tools/bin/evict_slc --evict_mb=64 --verbose
+[evict_slc] version=v1.2 mode=random evict_mb=64 bytes=67108864 n_lines=1048576 seed=42 touch_init=1
+[evict_slc] touch_ms=14.292 evict_ms=24.169 approx_bw=2.59 GB/s sink=133693440
+[evict_slc] done
+  [lat] [hugepage] 2MB hugepage alloc OK: addr=0x48f90c000000  alloc=24576 KB  chain=24576 KB
+=== chase_pmu v2.7.3 ===
+size=24576 KB  n_lines=393216  warm=0  meas_rounds=1  seed=42  hugepage=1  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=37066016 ns  accesses=393216
+>>> latency = 94.26 ns/access  (sink=0x48f90c000000)
+  [median/7] latency = 90.43 ns/access
+
+============================================================
+=== Done ===
+OUTFILE      : ../data/20260611_v2.7.9_section8_slc/raw/run_20260611_184257.txt
+SUMMARY_FILE : ../data/20260611_v2.7.9_section8_slc/raw/summary_20260611_184257.txt
+ERROR_FILE   : ../data/20260611_v2.7.9_section8_slc/raw/error_20260611_184257.txt
+============================================================
+
+Quick Summary (median values):
+  (HP)=hugepage/ground-truth
+  (WARM)=warm=5 SLC/L3 steady-state
+  (COLD)=evict_slc + warm=0 single-pass
+
+  Label                                                Size  Mode                    Latency
+  ------------------------------------------------ --------  -------------------- ----------
+  C0-A725-SLCcold 12288KB                           12288KB  cold/rand+warm0         70.90 ns
+  C1-A725-SLCcold 12288KB                           12288KB  cold/rand+warm0         61.21 ns
+  C0-A725-SLCcold 14336KB                           14336KB  cold/rand+warm0         79.73 ns
+  C1-A725-SLCcold 14336KB                           14336KB  cold/rand+warm0         69.28 ns
+  C0-A725-SLCcold 16384KB                           16384KB  cold/rand+warm0         80.48 ns
+  C1-A725-SLCcold 16384KB                           16384KB  cold/rand+warm0         67.61 ns
+  C0-A725-SLCcold 18432KB                           18432KB  cold/rand+warm0         86.45 ns
+  C1-A725-SLCcold 18432KB                           18432KB  cold/rand+warm0         76.46 ns
+  C0-A725-SLCcold 20480KB                           20480KB  cold/rand+warm0         94.71 ns
+  C1-A725-SLCcold 20480KB                           20480KB  cold/rand+warm0         80.27 ns
+  C0-A725-SLCcold 24576KB                           24576KB  cold/rand+warm0        101.49 ns
+  C1-A725-SLCcold 24576KB                           24576KB  cold/rand+warm0         90.43 ns
+
+# File check:
+-rw-r--r-- 1 michaelyao1 eng    0 Jun 11 18:42 ../data/20260611_v2.7.9_section8_slc/raw/error_20260611_184257.txt
+-rw-r--r-- 1 michaelyao1 eng  32K Jun 11 18:43 ../data/20260611_v2.7.9_section8_slc/raw/run_20260611_184257.txt
+-rw-r--r-- 1 michaelyao1 eng 1.5K Jun 11 18:43 ../data/20260611_v2.7.9_section8_slc/raw/summary_20260611_184257.txt
+
+[OK] No command-level errors recorded.
