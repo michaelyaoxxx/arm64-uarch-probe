@@ -1,0 +1,22 @@
+{
+  "files": {
+    "data/20260611_v2.7.10_section9_dram/raw/run_20260611_185732.txt": "61bbda3398e73e60eacdde7274c9e4661ac78b2283ed241a6a13cdcd5f0070d2",
+    "data/20260611_v2.7.11_section10_migrate/raw/run_20260611_191852.txt": "1347b0474f95abfc25b795c273ac895a0c921417a4271432f553bc3b1c9caf42",
+    "data/20260611_v2.7.3/raw/run_20260611_123112.txt": "4417388a90a887ceff6f90c10ca190bfe2e966a0bb395545c29f446eed769f0f",
+    "data/20260611_v2.7.4/raw/run_20260611_133841.txt": "a3760696dca730ec982e43f5915671793780ba221ca4b82d9a365d0d40f2beb5",
+    "data/20260611_v2.7.5/raw/run_20260611_143122.txt": "bf70a24e18950537c7d130a9ac6d2cdb85ab7e43e1ab499b3c861b780b464ea0",
+    "data/20260611_v2.7.7/raw/run_20260611_173717.txt": "e4afe69848d73ebc4496493c48666b32de26e17bc889d992ac5ee5a7573cf880",
+    "data/20260611_v2.7.8_section7/raw/run_20260611_181246.txt": "f7c0c75885e05e75f603011f1f93e0253dbbe6e76f1e1725567ef68dae4aa0ef",
+    "data/20260611_v2.7.9_section8_slc/raw/run_20260611_184257.txt": "9f0ce09a64716c2e84176b5d4a17154e3631eb533d9c48c84023dcf5865edd77",
+    "runner/run_pmu_v2.7.10_section9_dram_cold.sh": "a5ca8f39753e81814105c1c04a59dcf21c5f5b724a824906253233dd2f64e8ec",
+    "runner/run_pmu_v2.7.11_section10_crosscluster_migrate.sh": "2661c47a2741a909719f747c1743d6a338b501d8d019d2e388b20d2669c61f4d",
+    "runner/run_pmu_v2.7.3.sh": "e327957edfa2ca70257b7826dfe90f0d3f7af34310b13e210ae43a9a675a48e2",
+    "runner/run_pmu_v2.7.4.sh": "f89c0e295aa26b25a48e96c2893c758eb2f2daa2dfca38dfd9574857528aae2e",
+    "runner/run_pmu_v2.7.5.sh": "93a67d652edcc989e6e25a4436a6e459ccf233a81dff9414d85cd91fe9cfc8aa",
+    "runner/run_pmu_v2.7.6.sh": "a941d2927cd258531486bce59c447c8b5ce0a7d644c45860497582ad91228f82",
+    "runner/run_pmu_v2.7.7.sh": "b6b4acd005c7e575a7dc01232a2fe8f87eab9321f9f1c8cbd599eeb4101a3533",
+    "runner/run_pmu_v2.7.8_section7.sh": "e815ddfd8b07a9ced8cdf9f0a1714055312c98289796df46566d62de9755dd51",
+    "runner/run_pmu_v2.7.9_section8_slc_capacity.sh": "6cb69b0a4b2c3d2533f73b864b75a48e73828452d1805d8380f61a96419a2343"
+  },
+  "source_commit": "bc6c1ef1e6187ddd239b6d3b78298d6fbe7a4bff"
+}
