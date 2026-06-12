@@ -1,0 +1,1355 @@
+# GB10 PMU Cache Validation v2.7.11-section10
+# Phase        : 2B-5 same-chain migration
+# Date         : Thu Jun 11 07:18:52 PM CST 2026
+# PWD          : ~/gb10-arch/runner
+# MIGRATE_BIN  : ../tools/bin/chase_migrate
+# OUTFILE      : ../data/20260611_v2.7.11_section10_migrate/raw/run_20260611_191852.txt
+# SUMMARY_FILE : ../data/20260611_v2.7.11_section10_migrate/raw/summary_20260611_191852.txt
+# ERROR_FILE   : ../data/20260611_v2.7.11_section10_migrate/raw/error_20260611_191852.txt
+# ------------------------------------------------------------
+# HugePages       : nr_hugepages=128
+# MaxSizeKB       : 65536
+# Required HP     : >= 32 x 2MB
+
+# CPU frequency snapshot:
+  cpu0 2808000
+  cpu5 3900000
+  cpu10 2808000
+  cpu15 3900000
+
+# MEDIAN_RUNS     : 7
+# SEED            : 42
+# WARM_SRC        : 5
+# MEASURE_ROUNDS  : 1
+# SLEEP_US        : 0
+# HUGEPAGE        : 1
+# STRICT_HUGEPAGE : 1
+# SIZES_KB        : 512 2048 8192 16384 32768 65536
+# LOCAL_ONLY      : 0
+# MIGRATE_ONLY    : 0
+============================================================
+
+============================================================
+# Section 10.1: Local same-core baseline src==dst
+============================================================
+
+  --- [C0-A725_local_512KB] src=0 dst=0 size=512KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_512KB
+src_cpu=0 dst_cpu=0 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=229056 ns accesses=40960 lat=5.59 ns/access cpu_before=0 cpu_after=0 sink=0x4165eca00000
+[src] measure elapsed=37552 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> src_latency = 4.58 ns/access  (sink=0x4165eca00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=45088 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> migrate_latency = 5.50 ns/access  (sink=0x4165eca00000)
+>>> migrate_penalty = 0.92 ns/access
+  [median/7] src_latency     = 4.45 ns/access
+  [median/7] migrate_latency = 5.41 ns/access
+  [median/7] migrate_penalty = 0.91 ns/access
+
+  --- [C0-X925_local_512KB] src=5 dst=5 size=512KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_512KB
+src_cpu=5 dst_cpu=5 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=76000 ns accesses=40960 lat=1.86 ns/access cpu_before=5 cpu_after=5 sink=0x4cc71b200000
+[src] measure elapsed=10928 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> src_latency = 1.33 ns/access  (sink=0x4cc71b200000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=11872 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> migrate_latency = 1.45 ns/access  (sink=0x4cc71b200000)
+>>> migrate_penalty = 0.12 ns/access
+  [median/7] src_latency     = 1.35 ns/access
+  [median/7] migrate_latency = 1.41 ns/access
+  [median/7] migrate_penalty = 0.04 ns/access
+
+  --- [C1-A725_local_512KB] src=10 dst=10 size=512KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_512KB
+src_cpu=10 dst_cpu=10 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=214096 ns accesses=40960 lat=5.23 ns/access cpu_before=10 cpu_after=10 sink=0x5d8e5d400000
+[src] measure elapsed=33888 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> src_latency = 4.14 ns/access  (sink=0x5d8e5d400000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=40480 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> migrate_latency = 4.94 ns/access  (sink=0x5d8e5d400000)
+>>> migrate_penalty = 0.80 ns/access
+  [median/7] src_latency     = 4.14 ns/access
+  [median/7] migrate_latency = 5.60 ns/access
+  [median/7] migrate_penalty = 0.73 ns/access
+
+  --- [C1-X925_local_512KB] src=15 dst=15 size=512KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_512KB
+src_cpu=15 dst_cpu=15 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=75840 ns accesses=40960 lat=1.85 ns/access cpu_before=15 cpu_after=15 sink=0x598f22000000
+[src] measure elapsed=11568 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> src_latency = 1.41 ns/access  (sink=0x598f22000000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=11968 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> migrate_latency = 1.46 ns/access  (sink=0x598f22000000)
+>>> migrate_penalty = 0.05 ns/access
+  [median/7] src_latency     = 1.37 ns/access
+  [median/7] migrate_latency = 1.41 ns/access
+  [median/7] migrate_penalty = 0.07 ns/access
+
+  --- [C0-A725_local_2048KB] src=0 dst=0 size=2048KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_2048KB
+src_cpu=0 dst_cpu=0 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=1725584 ns accesses=163840 lat=10.53 ns/access cpu_before=0 cpu_after=0 sink=0x46da1b800000
+[src] measure elapsed=117280 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> src_latency = 3.58 ns/access  (sink=0x46da1b800000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=117200 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> migrate_latency = 3.58 ns/access  (sink=0x46da1b800000)
+>>> migrate_penalty = -0.00 ns/access
+  [median/7] src_latency     = 3.58 ns/access
+  [median/7] migrate_latency = 3.59 ns/access
+  [median/7] migrate_penalty = 0.02 ns/access
+
+  --- [C0-X925_local_2048KB] src=5 dst=5 size=2048KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_2048KB
+src_cpu=5 dst_cpu=5 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=941056 ns accesses=163840 lat=5.74 ns/access cpu_before=5 cpu_after=5 sink=0x5aa350200000
+[src] measure elapsed=123584 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> src_latency = 3.77 ns/access  (sink=0x5aa350200000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=110832 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> migrate_latency = 3.38 ns/access  (sink=0x5aa350200000)
+>>> migrate_penalty = -0.39 ns/access
+  [median/7] src_latency     = 3.41 ns/access
+  [median/7] migrate_latency = 3.49 ns/access
+  [median/7] migrate_penalty = 0.10 ns/access
+
+  --- [C1-A725_local_2048KB] src=10 dst=10 size=2048KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_2048KB
+src_cpu=10 dst_cpu=10 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=1229408 ns accesses=163840 lat=7.50 ns/access cpu_before=10 cpu_after=10 sink=0x530e7d400000
+[src] measure elapsed=116032 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> src_latency = 3.54 ns/access  (sink=0x530e7d400000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=116816 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> migrate_latency = 3.56 ns/access  (sink=0x530e7d400000)
+>>> migrate_penalty = 0.02 ns/access
+  [median/7] src_latency     = 3.54 ns/access
+  [median/7] migrate_latency = 3.56 ns/access
+  [median/7] migrate_penalty = 0.01 ns/access
+
+  --- [C1-X925_local_2048KB] src=15 dst=15 size=2048KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_2048KB
+src_cpu=15 dst_cpu=15 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=895424 ns accesses=163840 lat=5.47 ns/access cpu_before=15 cpu_after=15 sink=0x5cbaf9e00000
+[src] measure elapsed=108976 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> src_latency = 3.33 ns/access  (sink=0x5cbaf9e00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=112432 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> migrate_latency = 3.43 ns/access  (sink=0x5cbaf9e00000)
+>>> migrate_penalty = 0.11 ns/access
+  [median/7] src_latency     = 3.35 ns/access
+  [median/7] migrate_latency = 3.44 ns/access
+  [median/7] migrate_penalty = 0.09 ns/access
+
+  --- [C0-A725_local_8192KB] src=0 dst=0 size=8192KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_8192KB
+src_cpu=0 dst_cpu=0 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=10917776 ns accesses=655360 lat=16.66 ns/access cpu_before=0 cpu_after=0 sink=0x5f1ca2400000
+[src] measure elapsed=511264 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> src_latency = 3.90 ns/access  (sink=0x5f1ca2400000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=503296 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> migrate_latency = 3.84 ns/access  (sink=0x5f1ca2400000)
+>>> migrate_penalty = -0.06 ns/access
+  [median/7] src_latency     = 3.85 ns/access
+  [median/7] migrate_latency = 3.84 ns/access
+  [median/7] migrate_penalty = -0.02 ns/access
+
+  --- [C0-X925_local_8192KB] src=5 dst=5 size=8192KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_8192KB
+src_cpu=5 dst_cpu=5 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=7750352 ns accesses=655360 lat=11.83 ns/access cpu_before=5 cpu_after=5 sink=0x4034bb800000
+[src] measure elapsed=678864 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> src_latency = 5.18 ns/access  (sink=0x4034bb800000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=661504 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> migrate_latency = 5.05 ns/access  (sink=0x4034bb800000)
+>>> migrate_penalty = -0.13 ns/access
+  [median/7] src_latency     = 5.38 ns/access
+  [median/7] migrate_latency = 5.24 ns/access
+  [median/7] migrate_penalty = -0.13 ns/access
+
+  --- [C1-A725_local_8192KB] src=10 dst=10 size=8192KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_8192KB
+src_cpu=10 dst_cpu=10 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=9379072 ns accesses=655360 lat=14.31 ns/access cpu_before=10 cpu_after=10 sink=0x4fcc1b000000
+[src] measure elapsed=497072 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> src_latency = 3.79 ns/access  (sink=0x4fcc1b000000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=512992 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> migrate_latency = 3.91 ns/access  (sink=0x4fcc1b000000)
+>>> migrate_penalty = 0.12 ns/access
+  [median/7] src_latency     = 3.77 ns/access
+  [median/7] migrate_latency = 3.77 ns/access
+  [median/7] migrate_penalty = 0.00 ns/access
+
+  --- [C1-X925_local_8192KB] src=15 dst=15 size=8192KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_8192KB
+src_cpu=15 dst_cpu=15 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=4772672 ns accesses=655360 lat=7.28 ns/access cpu_before=15 cpu_after=15 sink=0x5c4e2d000000
+[src] measure elapsed=651376 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> src_latency = 4.97 ns/access  (sink=0x5c4e2d000000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=623248 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> migrate_latency = 4.76 ns/access  (sink=0x5c4e2d000000)
+>>> migrate_penalty = -0.21 ns/access
+  [median/7] src_latency     = 5.08 ns/access
+  [median/7] migrate_latency = 4.91 ns/access
+  [median/7] migrate_penalty = -0.19 ns/access
+
+  --- [C0-A725_local_16384KB] src=0 dst=0 size=16384KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_16384KB
+src_cpu=0 dst_cpu=0 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=85516928 ns accesses=1310720 lat=65.24 ns/access cpu_before=0 cpu_after=0 sink=0x4bbad7600000
+[src] measure elapsed=7904752 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> src_latency = 30.15 ns/access  (sink=0x4bbad7600000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=7231664 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> migrate_latency = 27.59 ns/access  (sink=0x4bbad7600000)
+>>> migrate_penalty = -2.57 ns/access
+  [median/7] src_latency     = 25.07 ns/access
+  [median/7] migrate_latency = 22.02 ns/access
+  [median/7] migrate_penalty = -1.86 ns/access
+
+  --- [C0-X925_local_16384KB] src=5 dst=5 size=16384KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_16384KB
+src_cpu=5 dst_cpu=5 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=20971280 ns accesses=1310720 lat=16.00 ns/access cpu_before=5 cpu_after=5 sink=0x5ef390600000
+[src] measure elapsed=1136688 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> src_latency = 4.34 ns/access  (sink=0x5ef390600000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=1132304 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> migrate_latency = 4.32 ns/access  (sink=0x5ef390600000)
+>>> migrate_penalty = -0.02 ns/access
+  [median/7] src_latency     = 4.23 ns/access
+  [median/7] migrate_latency = 4.32 ns/access
+  [median/7] migrate_penalty = -0.00 ns/access
+
+  --- [C1-A725_local_16384KB] src=10 dst=10 size=16384KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_16384KB
+src_cpu=10 dst_cpu=10 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=45052336 ns accesses=1310720 lat=34.37 ns/access cpu_before=10 cpu_after=10 sink=0x555452000000
+[src] measure elapsed=2758016 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> src_latency = 10.52 ns/access  (sink=0x555452000000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=2742208 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> migrate_latency = 10.46 ns/access  (sink=0x555452000000)
+>>> migrate_penalty = -0.06 ns/access
+  [median/7] src_latency     = 10.44 ns/access
+  [median/7] migrate_latency = 10.48 ns/access
+  [median/7] migrate_penalty = -0.06 ns/access
+
+  --- [C1-X925_local_16384KB] src=15 dst=15 size=16384KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_16384KB
+src_cpu=15 dst_cpu=15 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=13749664 ns accesses=1310720 lat=10.49 ns/access cpu_before=15 cpu_after=15 sink=0x4d7cc4e00000
+[src] measure elapsed=1067856 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> src_latency = 4.07 ns/access  (sink=0x4d7cc4e00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=1062320 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> migrate_latency = 4.05 ns/access  (sink=0x4d7cc4e00000)
+>>> migrate_penalty = -0.02 ns/access
+  [median/7] src_latency     = 4.06 ns/access
+  [median/7] migrate_latency = 4.04 ns/access
+  [median/7] migrate_penalty = 0.02 ns/access
+
+  --- [C0-A725_local_32768KB] src=0 dst=0 size=32768KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_32768KB
+src_cpu=0 dst_cpu=0 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=254660704 ns accesses=2621440 lat=97.15 ns/access cpu_before=0 cpu_after=0 sink=0x543d77600000
+[src] measure elapsed=44524384 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> src_latency = 84.92 ns/access  (sink=0x543d77600000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=40612128 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> migrate_latency = 77.46 ns/access  (sink=0x543d77600000)
+>>> migrate_penalty = -7.46 ns/access
+  [median/7] src_latency     = 78.00 ns/access
+  [median/7] migrate_latency = 77.21 ns/access
+  [median/7] migrate_penalty = -0.87 ns/access
+
+  --- [C0-X925_local_32768KB] src=5 dst=5 size=32768KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_32768KB
+src_cpu=5 dst_cpu=5 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=99680544 ns accesses=2621440 lat=38.03 ns/access cpu_before=5 cpu_after=5 sink=0x423731a00000
+[src] measure elapsed=2525840 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> src_latency = 4.82 ns/access  (sink=0x423731a00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=2431184 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> migrate_latency = 4.64 ns/access  (sink=0x423731a00000)
+>>> migrate_penalty = -0.18 ns/access
+  [median/7] src_latency     = 4.82 ns/access
+  [median/7] migrate_latency = 4.67 ns/access
+  [median/7] migrate_penalty = -0.15 ns/access
+
+  --- [C1-A725_local_32768KB] src=10 dst=10 size=32768KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_32768KB
+src_cpu=10 dst_cpu=10 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=203665360 ns accesses=2621440 lat=77.69 ns/access cpu_before=10 cpu_after=10 sink=0x4e2c8fe00000
+[src] measure elapsed=30678224 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> src_latency = 58.51 ns/access  (sink=0x4e2c8fe00000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=30246592 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> migrate_latency = 57.69 ns/access  (sink=0x4e2c8fe00000)
+>>> migrate_penalty = -0.82 ns/access
+  [median/7] src_latency     = 63.97 ns/access
+  [median/7] migrate_latency = 62.46 ns/access
+  [median/7] migrate_penalty = -0.87 ns/access
+
+  --- [C1-X925_local_32768KB] src=15 dst=15 size=32768KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_32768KB
+src_cpu=15 dst_cpu=15 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=84822576 ns accesses=2621440 lat=32.36 ns/access cpu_before=15 cpu_after=15 sink=0x485383600000
+[src] measure elapsed=2552000 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> src_latency = 4.87 ns/access  (sink=0x485383600000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=2492672 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> migrate_latency = 4.75 ns/access  (sink=0x485383600000)
+>>> migrate_penalty = -0.11 ns/access
+  [median/7] src_latency     = 4.70 ns/access
+  [median/7] migrate_latency = 4.66 ns/access
+  [median/7] migrate_penalty = -0.09 ns/access
+
+  --- [C0-A725_local_65536KB] src=0 dst=0 size=65536KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-A725_local_65536KB
+src_cpu=0 dst_cpu=0 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=582803536 ns accesses=5242880 lat=111.16 ns/access cpu_before=0 cpu_after=0 sink=0x4aa335800000
+[src] measure elapsed=108590560 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> src_latency = 103.56 ns/access  (sink=0x4aa335800000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=107274032 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> migrate_latency = 102.30 ns/access  (sink=0x4aa335800000)
+>>> migrate_penalty = -1.26 ns/access
+  [median/7] src_latency     = 102.46 ns/access
+  [median/7] migrate_latency = 101.66 ns/access
+  [median/7] migrate_penalty = -1.12 ns/access
+
+  --- [C0-X925_local_65536KB] src=5 dst=5 size=65536KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0-X925_local_65536KB
+src_cpu=5 dst_cpu=5 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=418145760 ns accesses=5242880 lat=79.75 ns/access cpu_before=5 cpu_after=5 sink=0x485f1ca00000
+[src] measure elapsed=65453712 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> src_latency = 62.42 ns/access  (sink=0x485f1ca00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=65326992 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> migrate_latency = 62.30 ns/access  (sink=0x485f1ca00000)
+>>> migrate_penalty = -0.12 ns/access
+  [median/7] src_latency     = 56.63 ns/access
+  [median/7] migrate_latency = 56.51 ns/access
+  [median/7] migrate_penalty = -0.12 ns/access
+
+  --- [C1-A725_local_65536KB] src=10 dst=10 size=65536KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-A725_local_65536KB
+src_cpu=10 dst_cpu=10 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=547139040 ns accesses=5242880 lat=104.36 ns/access cpu_before=10 cpu_after=10 sink=0x522298200000
+[src] measure elapsed=97882720 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> src_latency = 93.35 ns/access  (sink=0x522298200000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=97048992 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> migrate_latency = 92.55 ns/access  (sink=0x522298200000)
+>>> migrate_penalty = -0.80 ns/access
+  [median/7] src_latency     = 97.82 ns/access
+  [median/7] migrate_latency = 96.41 ns/access
+  [median/7] migrate_penalty = -1.23 ns/access
+
+  --- [C1-X925_local_65536KB] src=15 dst=15 size=65536KB mode=local ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1-X925_local_65536KB
+src_cpu=15 dst_cpu=15 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=329337184 ns accesses=5242880 lat=62.82 ns/access cpu_before=15 cpu_after=15 sink=0x502236c00000
+[src] measure elapsed=51290496 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> src_latency = 48.91 ns/access  (sink=0x502236c00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=50631984 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> migrate_latency = 48.29 ns/access  (sink=0x502236c00000)
+>>> migrate_penalty = -0.63 ns/access
+  [median/7] src_latency     = 49.37 ns/access
+  [median/7] migrate_latency = 48.93 ns/access
+  [median/7] migrate_penalty = -0.76 ns/access
+
+============================================================
+# Section 10.2: Same-chain migration pairs
+============================================================
+
+  --- [C0A725_to_C1A725_512KB] src=0 dst=10 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_512KB
+src_cpu=0 dst_cpu=10 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=236880 ns accesses=40960 lat=5.78 ns/access cpu_before=0 cpu_after=0 sink=0x45f2c7000000
+[src] measure elapsed=36656 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> src_latency = 4.47 ns/access  (sink=0x45f2c7000000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=442752 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> migrate_latency = 54.05 ns/access  (sink=0x45f2c7000000)
+>>> migrate_penalty = 49.57 ns/access
+  [median/7] src_latency     = 4.46 ns/access
+  [median/7] migrate_latency = 55.52 ns/access
+  [median/7] migrate_penalty = 51.21 ns/access
+
+  --- [C1A725_to_C0A725_512KB] src=10 dst=0 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_512KB
+src_cpu=10 dst_cpu=0 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=209184 ns accesses=40960 lat=5.11 ns/access cpu_before=10 cpu_after=10 sink=0x52004d600000
+[src] measure elapsed=33456 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> src_latency = 4.08 ns/access  (sink=0x52004d600000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=523872 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> migrate_latency = 63.95 ns/access  (sink=0x52004d600000)
+>>> migrate_penalty = 59.87 ns/access
+  [median/7] src_latency     = 4.08 ns/access
+  [median/7] migrate_latency = 53.94 ns/access
+  [median/7] migrate_penalty = 49.92 ns/access
+
+  --- [C0X925_to_C1X925_512KB] src=5 dst=15 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_512KB
+src_cpu=5 dst_cpu=15 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=102384 ns accesses=40960 lat=2.50 ns/access cpu_before=5 cpu_after=5 sink=0x5e2e19000000
+[src] measure elapsed=11264 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> src_latency = 1.38 ns/access  (sink=0x5e2e19000000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=380112 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> migrate_latency = 46.40 ns/access  (sink=0x5e2e19000000)
+>>> migrate_penalty = 45.03 ns/access
+  [median/7] src_latency     = 1.34 ns/access
+  [median/7] migrate_latency = 52.46 ns/access
+  [median/7] migrate_penalty = 51.14 ns/access
+
+  --- [C1X925_to_C0X925_512KB] src=15 dst=5 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_512KB
+src_cpu=15 dst_cpu=5 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=92432 ns accesses=40960 lat=2.26 ns/access cpu_before=15 cpu_after=15 sink=0x5b8681400000
+[src] measure elapsed=10992 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> src_latency = 1.34 ns/access  (sink=0x5b8681400000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=409392 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> migrate_latency = 49.97 ns/access  (sink=0x5b8681400000)
+>>> migrate_penalty = 48.63 ns/access
+  [median/7] src_latency     = 1.37 ns/access
+  [median/7] migrate_latency = 49.14 ns/access
+  [median/7] migrate_penalty = 47.77 ns/access
+
+  --- [C0A725_to_C0X925_512KB] src=0 dst=5 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_512KB
+src_cpu=0 dst_cpu=5 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=227376 ns accesses=40960 lat=5.55 ns/access cpu_before=0 cpu_after=0 sink=0x48eed0e00000
+[src] measure elapsed=36288 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> src_latency = 4.43 ns/access  (sink=0x48eed0e00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=102576 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> migrate_latency = 12.52 ns/access  (sink=0x48eed0e00000)
+>>> migrate_penalty = 8.09 ns/access
+  [median/7] src_latency     = 4.43 ns/access
+  [median/7] migrate_latency = 12.49 ns/access
+  [median/7] migrate_penalty = 8.09 ns/access
+
+  --- [C0X925_to_C0A725_512KB] src=5 dst=0 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_512KB
+src_cpu=5 dst_cpu=0 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=68544 ns accesses=40960 lat=1.67 ns/access cpu_before=5 cpu_after=5 sink=0x4245a6200000
+[src] measure elapsed=10848 ns accesses=8192 cpu_before=5 cpu_after=5
+>>> src_latency = 1.32 ns/access  (sink=0x4245a6200000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=197200 ns accesses=8192 cpu_before=0 cpu_after=0
+>>> migrate_latency = 24.07 ns/access  (sink=0x4245a6200000)
+>>> migrate_penalty = 22.75 ns/access
+  [median/7] src_latency     = 1.34 ns/access
+  [median/7] migrate_latency = 24.32 ns/access
+  [median/7] migrate_penalty = 22.98 ns/access
+
+  --- [C1A725_to_C1X925_512KB] src=10 dst=15 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_512KB
+src_cpu=10 dst_cpu=15 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=321952 ns accesses=40960 lat=7.86 ns/access cpu_before=10 cpu_after=10 sink=0x4e7bb5a00000
+[src] measure elapsed=34064 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> src_latency = 4.16 ns/access  (sink=0x4e7bb5a00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=99920 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> migrate_latency = 12.20 ns/access  (sink=0x4e7bb5a00000)
+>>> migrate_penalty = 8.04 ns/access
+  [median/7] src_latency     = 4.16 ns/access
+  [median/7] migrate_latency = 11.42 ns/access
+  [median/7] migrate_penalty = 7.24 ns/access
+
+  --- [C1X925_to_C1A725_512KB] src=15 dst=10 size=512KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_512KB
+src_cpu=15 dst_cpu=10 size=512 KB n_lines=8192 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=106608 ns accesses=40960 lat=2.60 ns/access cpu_before=15 cpu_after=15 sink=0x5c7971a00000
+[src] measure elapsed=11552 ns accesses=8192 cpu_before=15 cpu_after=15
+>>> src_latency = 1.41 ns/access  (sink=0x5c7971a00000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=166768 ns accesses=8192 cpu_before=10 cpu_after=10
+>>> migrate_latency = 20.36 ns/access  (sink=0x5c7971a00000)
+>>> migrate_penalty = 18.95 ns/access
+  [median/7] src_latency     = 1.38 ns/access
+  [median/7] migrate_latency = 20.61 ns/access
+  [median/7] migrate_penalty = 19.27 ns/access
+
+  --- [C0A725_to_C1A725_2048KB] src=0 dst=10 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_2048KB
+src_cpu=0 dst_cpu=10 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=1426864 ns accesses=163840 lat=8.71 ns/access cpu_before=0 cpu_after=0 sink=0x4f7761c00000
+[src] measure elapsed=117440 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> src_latency = 3.58 ns/access  (sink=0x4f7761c00000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=2086000 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> migrate_latency = 63.66 ns/access  (sink=0x4f7761c00000)
+>>> migrate_penalty = 60.08 ns/access
+  [median/7] src_latency     = 3.57 ns/access
+  [median/7] migrate_latency = 63.66 ns/access
+  [median/7] migrate_penalty = 60.08 ns/access
+
+  --- [C1A725_to_C0A725_2048KB] src=10 dst=0 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_2048KB
+src_cpu=10 dst_cpu=0 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=1127056 ns accesses=163840 lat=6.88 ns/access cpu_before=10 cpu_after=10 sink=0x55259a200000
+[src] measure elapsed=116192 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> src_latency = 3.55 ns/access  (sink=0x55259a200000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=2372624 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> migrate_latency = 72.41 ns/access  (sink=0x55259a200000)
+>>> migrate_penalty = 68.86 ns/access
+  [median/7] src_latency     = 3.54 ns/access
+  [median/7] migrate_latency = 71.85 ns/access
+  [median/7] migrate_penalty = 68.32 ns/access
+
+  --- [C0X925_to_C1X925_2048KB] src=5 dst=15 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_2048KB
+src_cpu=5 dst_cpu=15 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=1012144 ns accesses=163840 lat=6.18 ns/access cpu_before=5 cpu_after=5 sink=0x519e67a00000
+[src] measure elapsed=110944 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> src_latency = 3.39 ns/access  (sink=0x519e67a00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=1931312 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> migrate_latency = 58.94 ns/access  (sink=0x519e67a00000)
+>>> migrate_penalty = 55.55 ns/access
+  [median/7] src_latency     = 3.67 ns/access
+  [median/7] migrate_latency = 66.28 ns/access
+  [median/7] migrate_penalty = 61.96 ns/access
+
+  --- [C1X925_to_C0X925_2048KB] src=15 dst=5 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_2048KB
+src_cpu=15 dst_cpu=5 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=741200 ns accesses=163840 lat=4.52 ns/access cpu_before=15 cpu_after=15 sink=0x551da4a00000
+[src] measure elapsed=115248 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> src_latency = 3.52 ns/access  (sink=0x551da4a00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=2231648 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> migrate_latency = 68.10 ns/access  (sink=0x551da4a00000)
+>>> migrate_penalty = 64.59 ns/access
+  [median/7] src_latency     = 3.33 ns/access
+  [median/7] migrate_latency = 68.10 ns/access
+  [median/7] migrate_penalty = 64.59 ns/access
+
+  --- [C0A725_to_C0X925_2048KB] src=0 dst=5 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_2048KB
+src_cpu=0 dst_cpu=5 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=1233072 ns accesses=163840 lat=7.53 ns/access cpu_before=0 cpu_after=0 sink=0x5eb02b800000
+[src] measure elapsed=116704 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> src_latency = 3.56 ns/access  (sink=0x5eb02b800000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=481088 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> migrate_latency = 14.68 ns/access  (sink=0x5eb02b800000)
+>>> migrate_penalty = 11.12 ns/access
+  [median/7] src_latency     = 3.62 ns/access
+  [median/7] migrate_latency = 13.49 ns/access
+  [median/7] migrate_penalty = 9.71 ns/access
+
+  --- [C0X925_to_C0A725_2048KB] src=5 dst=0 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_2048KB
+src_cpu=5 dst_cpu=0 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=821168 ns accesses=163840 lat=5.01 ns/access cpu_before=5 cpu_after=5 sink=0x5d6067e00000
+[src] measure elapsed=114240 ns accesses=32768 cpu_before=5 cpu_after=5
+>>> src_latency = 3.49 ns/access  (sink=0x5d6067e00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=1309520 ns accesses=32768 cpu_before=0 cpu_after=0
+>>> migrate_latency = 39.96 ns/access  (sink=0x5d6067e00000)
+>>> migrate_penalty = 36.48 ns/access
+  [median/7] src_latency     = 3.41 ns/access
+  [median/7] migrate_latency = 39.82 ns/access
+  [median/7] migrate_penalty = 36.48 ns/access
+
+  --- [C1A725_to_C1X925_2048KB] src=10 dst=15 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_2048KB
+src_cpu=10 dst_cpu=15 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=1173024 ns accesses=163840 lat=7.16 ns/access cpu_before=10 cpu_after=10 sink=0x452d68600000
+[src] measure elapsed=116656 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> src_latency = 3.56 ns/access  (sink=0x452d68600000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=400208 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> migrate_latency = 12.21 ns/access  (sink=0x452d68600000)
+>>> migrate_penalty = 8.65 ns/access
+  [median/7] src_latency     = 3.55 ns/access
+  [median/7] migrate_latency = 12.12 ns/access
+  [median/7] migrate_penalty = 8.58 ns/access
+
+  --- [C1X925_to_C1A725_2048KB] src=15 dst=10 size=2048KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_2048KB
+src_cpu=15 dst_cpu=10 size=2048 KB n_lines=32768 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=819648 ns accesses=163840 lat=5.00 ns/access cpu_before=15 cpu_after=15 sink=0x4fbde8800000
+[src] measure elapsed=109424 ns accesses=32768 cpu_before=15 cpu_after=15
+>>> src_latency = 3.34 ns/access  (sink=0x4fbde8800000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=1022640 ns accesses=32768 cpu_before=10 cpu_after=10
+>>> migrate_latency = 31.21 ns/access  (sink=0x4fbde8800000)
+>>> migrate_penalty = 27.87 ns/access
+  [median/7] src_latency     = 3.33 ns/access
+  [median/7] migrate_latency = 31.25 ns/access
+  [median/7] migrate_penalty = 27.87 ns/access
+
+  --- [C0A725_to_C1A725_8192KB] src=0 dst=10 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_8192KB
+src_cpu=0 dst_cpu=10 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=10808800 ns accesses=655360 lat=16.49 ns/access cpu_before=0 cpu_after=0 sink=0x58bbfd400000
+[src] measure elapsed=501104 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> src_latency = 3.82 ns/access  (sink=0x58bbfd400000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=10043952 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> migrate_latency = 76.63 ns/access  (sink=0x58bbfd400000)
+>>> migrate_penalty = 72.81 ns/access
+  [median/7] src_latency     = 3.84 ns/access
+  [median/7] migrate_latency = 74.95 ns/access
+  [median/7] migrate_penalty = 71.10 ns/access
+
+  --- [C1A725_to_C0A725_8192KB] src=10 dst=0 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_8192KB
+src_cpu=10 dst_cpu=0 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=8280192 ns accesses=655360 lat=12.63 ns/access cpu_before=10 cpu_after=10 sink=0x5a690ba00000
+[src] measure elapsed=497968 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> src_latency = 3.80 ns/access  (sink=0x5a690ba00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=11555552 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> migrate_latency = 88.16 ns/access  (sink=0x5a690ba00000)
+>>> migrate_penalty = 84.36 ns/access
+  [median/7] src_latency     = 3.78 ns/access
+  [median/7] migrate_latency = 87.60 ns/access
+  [median/7] migrate_penalty = 83.74 ns/access
+
+  --- [C0X925_to_C1X925_8192KB] src=5 dst=15 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_8192KB
+src_cpu=5 dst_cpu=15 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=8726032 ns accesses=655360 lat=13.31 ns/access cpu_before=5 cpu_after=5 sink=0x5b10f7e00000
+[src] measure elapsed=705216 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> src_latency = 5.38 ns/access  (sink=0x5b10f7e00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=7957088 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> migrate_latency = 60.71 ns/access  (sink=0x5b10f7e00000)
+>>> migrate_penalty = 55.33 ns/access
+  [median/7] src_latency     = 5.38 ns/access
+  [median/7] migrate_latency = 60.31 ns/access
+  [median/7] migrate_penalty = 55.06 ns/access
+
+  --- [C1X925_to_C0X925_8192KB] src=15 dst=5 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_8192KB
+src_cpu=15 dst_cpu=5 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=5089344 ns accesses=655360 lat=7.77 ns/access cpu_before=15 cpu_after=15 sink=0x5b80bea00000
+[src] measure elapsed=637184 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> src_latency = 4.86 ns/access  (sink=0x5b80bea00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=8700304 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> migrate_latency = 66.38 ns/access  (sink=0x5b80bea00000)
+>>> migrate_penalty = 61.52 ns/access
+  [median/7] src_latency     = 5.07 ns/access
+  [median/7] migrate_latency = 65.09 ns/access
+  [median/7] migrate_penalty = 60.02 ns/access
+
+  --- [C0A725_to_C0X925_8192KB] src=0 dst=5 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_8192KB
+src_cpu=0 dst_cpu=5 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=9183472 ns accesses=655360 lat=14.01 ns/access cpu_before=0 cpu_after=0 sink=0x57eb60200000
+[src] measure elapsed=504608 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> src_latency = 3.85 ns/access  (sink=0x57eb60200000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=3495616 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> migrate_latency = 26.67 ns/access  (sink=0x57eb60200000)
+>>> migrate_penalty = 22.82 ns/access
+  [median/7] src_latency     = 3.85 ns/access
+  [median/7] migrate_latency = 20.90 ns/access
+  [median/7] migrate_penalty = 16.86 ns/access
+
+  --- [C0X925_to_C0A725_8192KB] src=5 dst=0 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_8192KB
+src_cpu=5 dst_cpu=0 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=6599424 ns accesses=655360 lat=10.07 ns/access cpu_before=5 cpu_after=5 sink=0x57ada6000000
+[src] measure elapsed=711536 ns accesses=131072 cpu_before=5 cpu_after=5
+>>> src_latency = 5.43 ns/access  (sink=0x57ada6000000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=4051904 ns accesses=131072 cpu_before=0 cpu_after=0
+>>> migrate_latency = 30.91 ns/access  (sink=0x57ada6000000)
+>>> migrate_penalty = 25.48 ns/access
+  [median/7] src_latency     = 5.43 ns/access
+  [median/7] migrate_latency = 30.37 ns/access
+  [median/7] migrate_penalty = 24.86 ns/access
+
+  --- [C1A725_to_C1X925_8192KB] src=10 dst=15 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_8192KB
+src_cpu=10 dst_cpu=15 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=9099584 ns accesses=655360 lat=13.88 ns/access cpu_before=10 cpu_after=10 sink=0x4185bda00000
+[src] measure elapsed=493936 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> src_latency = 3.77 ns/access  (sink=0x4185bda00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=2577520 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> migrate_latency = 19.66 ns/access  (sink=0x4185bda00000)
+>>> migrate_penalty = 15.90 ns/access
+  [median/7] src_latency     = 3.79 ns/access
+  [median/7] migrate_latency = 14.11 ns/access
+  [median/7] migrate_penalty = 10.36 ns/access
+
+  --- [C1X925_to_C1A725_8192KB] src=15 dst=10 size=8192KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_8192KB
+src_cpu=15 dst_cpu=10 size=8192 KB n_lines=131072 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=4887552 ns accesses=655360 lat=7.46 ns/access cpu_before=15 cpu_after=15 sink=0x5853db000000
+[src] measure elapsed=664144 ns accesses=131072 cpu_before=15 cpu_after=15
+>>> src_latency = 5.07 ns/access  (sink=0x5853db000000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=3373712 ns accesses=131072 cpu_before=10 cpu_after=10
+>>> migrate_latency = 25.74 ns/access  (sink=0x5853db000000)
+>>> migrate_penalty = 20.67 ns/access
+  [median/7] src_latency     = 5.03 ns/access
+  [median/7] migrate_latency = 25.85 ns/access
+  [median/7] migrate_penalty = 20.82 ns/access
+
+  --- [C0A725_to_C1A725_16384KB] src=0 dst=10 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_16384KB
+src_cpu=0 dst_cpu=10 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=82515040 ns accesses=1310720 lat=62.95 ns/access cpu_before=0 cpu_after=0 sink=0x4a01b2000000
+[src] measure elapsed=6574240 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> src_latency = 25.08 ns/access  (sink=0x4a01b2000000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=23749168 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> migrate_latency = 90.60 ns/access  (sink=0x4a01b2000000)
+>>> migrate_penalty = 65.52 ns/access
+  [median/7] src_latency     = 27.71 ns/access
+  [median/7] migrate_latency = 88.01 ns/access
+  [median/7] migrate_penalty = 60.03 ns/access
+
+  --- [C1A725_to_C0A725_16384KB] src=10 dst=0 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_16384KB
+src_cpu=10 dst_cpu=0 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=34881536 ns accesses=1310720 lat=26.61 ns/access cpu_before=10 cpu_after=10 sink=0x41e490a00000
+[src] measure elapsed=2779664 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> src_latency = 10.60 ns/access  (sink=0x41e490a00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=25109584 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> migrate_latency = 95.79 ns/access  (sink=0x41e490a00000)
+>>> migrate_penalty = 85.18 ns/access
+  [median/7] src_latency     = 10.67 ns/access
+  [median/7] migrate_latency = 91.05 ns/access
+  [median/7] migrate_penalty = 80.03 ns/access
+
+  --- [C0X925_to_C1X925_16384KB] src=5 dst=15 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_16384KB
+src_cpu=5 dst_cpu=15 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=21852192 ns accesses=1310720 lat=16.67 ns/access cpu_before=5 cpu_after=5 sink=0x5997c0400000
+[src] measure elapsed=1064592 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> src_latency = 4.06 ns/access  (sink=0x5997c0400000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=17791232 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> migrate_latency = 67.87 ns/access  (sink=0x5997c0400000)
+>>> migrate_penalty = 63.81 ns/access
+  [median/7] src_latency     = 4.24 ns/access
+  [median/7] migrate_latency = 66.84 ns/access
+  [median/7] migrate_penalty = 62.51 ns/access
+
+  --- [C1X925_to_C0X925_16384KB] src=15 dst=5 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_16384KB
+src_cpu=15 dst_cpu=5 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=13738080 ns accesses=1310720 lat=10.48 ns/access cpu_before=15 cpu_after=15 sink=0x559da7e00000
+[src] measure elapsed=1084400 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> src_latency = 4.14 ns/access  (sink=0x559da7e00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=19936880 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> migrate_latency = 76.05 ns/access  (sink=0x559da7e00000)
+>>> migrate_penalty = 71.92 ns/access
+  [median/7] src_latency     = 4.00 ns/access
+  [median/7] migrate_latency = 75.98 ns/access
+  [median/7] migrate_penalty = 71.89 ns/access
+
+  --- [C0A725_to_C0X925_16384KB] src=0 dst=5 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_16384KB
+src_cpu=0 dst_cpu=5 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=81908176 ns accesses=1310720 lat=62.49 ns/access cpu_before=0 cpu_after=0 sink=0x5fd927200000
+[src] measure elapsed=8364176 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> src_latency = 31.91 ns/access  (sink=0x5fd927200000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=18175088 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> migrate_latency = 69.33 ns/access  (sink=0x5fd927200000)
+>>> migrate_penalty = 37.43 ns/access
+  [median/7] src_latency     = 19.43 ns/access
+  [median/7] migrate_latency = 56.10 ns/access
+  [median/7] migrate_penalty = 37.43 ns/access
+
+  --- [C0X925_to_C0A725_16384KB] src=5 dst=0 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_16384KB
+src_cpu=5 dst_cpu=0 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=21394400 ns accesses=1310720 lat=16.32 ns/access cpu_before=5 cpu_after=5 sink=0x407209e00000
+[src] measure elapsed=1114240 ns accesses=262144 cpu_before=5 cpu_after=5
+>>> src_latency = 4.25 ns/access  (sink=0x407209e00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=18422384 ns accesses=262144 cpu_before=0 cpu_after=0
+>>> migrate_latency = 70.28 ns/access  (sink=0x407209e00000)
+>>> migrate_penalty = 66.03 ns/access
+  [median/7] src_latency     = 4.22 ns/access
+  [median/7] migrate_latency = 60.43 ns/access
+  [median/7] migrate_penalty = 56.22 ns/access
+
+  --- [C1A725_to_C1X925_16384KB] src=10 dst=15 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_16384KB
+src_cpu=10 dst_cpu=15 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=52953520 ns accesses=1310720 lat=40.40 ns/access cpu_before=10 cpu_after=10 sink=0x57d407c00000
+[src] measure elapsed=3251696 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> src_latency = 12.40 ns/access  (sink=0x57d407c00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=5284240 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> migrate_latency = 20.16 ns/access  (sink=0x57d407c00000)
+>>> migrate_penalty = 7.75 ns/access
+  [median/7] src_latency     = 11.01 ns/access
+  [median/7] migrate_latency = 18.44 ns/access
+  [median/7] migrate_penalty = 7.10 ns/access
+
+  --- [C1X925_to_C1A725_16384KB] src=15 dst=10 size=16384KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_16384KB
+src_cpu=15 dst_cpu=10 size=16384 KB n_lines=262144 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=14118576 ns accesses=1310720 lat=10.77 ns/access cpu_before=15 cpu_after=15 sink=0x5a5d1fc00000
+[src] measure elapsed=1059648 ns accesses=262144 cpu_before=15 cpu_after=15
+>>> src_latency = 4.04 ns/access  (sink=0x5a5d1fc00000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=5979808 ns accesses=262144 cpu_before=10 cpu_after=10
+>>> migrate_latency = 22.81 ns/access  (sink=0x5a5d1fc00000)
+>>> migrate_penalty = 18.77 ns/access
+  [median/7] src_latency     = 4.04 ns/access
+  [median/7] migrate_latency = 22.81 ns/access
+  [median/7] migrate_penalty = 18.77 ns/access
+
+  --- [C0A725_to_C1A725_32768KB] src=0 dst=10 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_32768KB
+src_cpu=0 dst_cpu=10 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=239794752 ns accesses=2621440 lat=91.47 ns/access cpu_before=0 cpu_after=0 sink=0x504c9f800000
+[src] measure elapsed=43339904 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> src_latency = 82.66 ns/access  (sink=0x504c9f800000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=58202192 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> migrate_latency = 111.01 ns/access  (sink=0x504c9f800000)
+>>> migrate_penalty = 28.35 ns/access
+  [median/7] src_latency     = 72.59 ns/access
+  [median/7] migrate_latency = 111.01 ns/access
+  [median/7] migrate_penalty = 38.25 ns/access
+
+  --- [C1A725_to_C0A725_32768KB] src=10 dst=0 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_32768KB
+src_cpu=10 dst_cpu=0 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=201607856 ns accesses=2621440 lat=76.91 ns/access cpu_before=10 cpu_after=10 sink=0x40b813600000
+[src] measure elapsed=32822800 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> src_latency = 62.60 ns/access  (sink=0x40b813600000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=60520512 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> migrate_latency = 115.43 ns/access  (sink=0x40b813600000)
+>>> migrate_penalty = 52.83 ns/access
+  [median/7] src_latency     = 59.03 ns/access
+  [median/7] migrate_latency = 113.58 ns/access
+  [median/7] migrate_penalty = 53.15 ns/access
+
+  --- [C0X925_to_C1X925_32768KB] src=5 dst=15 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_32768KB
+src_cpu=5 dst_cpu=15 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=89372400 ns accesses=2621440 lat=34.09 ns/access cpu_before=5 cpu_after=5 sink=0x4ce1a0800000
+[src] measure elapsed=2405312 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> src_latency = 4.59 ns/access  (sink=0x4ce1a0800000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=46051040 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> migrate_latency = 87.84 ns/access  (sink=0x4ce1a0800000)
+>>> migrate_penalty = 83.25 ns/access
+  [median/7] src_latency     = 4.93 ns/access
+  [median/7] migrate_latency = 87.84 ns/access
+  [median/7] migrate_penalty = 83.25 ns/access
+
+  --- [C1X925_to_C0X925_32768KB] src=15 dst=5 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_32768KB
+src_cpu=15 dst_cpu=5 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=80306560 ns accesses=2621440 lat=30.63 ns/access cpu_before=15 cpu_after=15 sink=0x44c8c1e00000
+[src] measure elapsed=2427264 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> src_latency = 4.63 ns/access  (sink=0x44c8c1e00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=51239552 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> migrate_latency = 97.73 ns/access  (sink=0x44c8c1e00000)
+>>> migrate_penalty = 93.10 ns/access
+  [median/7] src_latency     = 4.59 ns/access
+  [median/7] migrate_latency = 95.63 ns/access
+  [median/7] migrate_penalty = 91.27 ns/access
+
+  --- [C0A725_to_C0X925_32768KB] src=0 dst=5 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_32768KB
+src_cpu=0 dst_cpu=5 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=256837008 ns accesses=2621440 lat=97.98 ns/access cpu_before=0 cpu_after=0 sink=0x50d462200000
+[src] measure elapsed=41090832 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> src_latency = 78.37 ns/access  (sink=0x50d462200000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=50988576 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> migrate_latency = 97.25 ns/access  (sink=0x50d462200000)
+>>> migrate_penalty = 18.88 ns/access
+  [median/7] src_latency     = 77.72 ns/access
+  [median/7] migrate_latency = 92.04 ns/access
+  [median/7] migrate_penalty = 15.01 ns/access
+
+  --- [C0X925_to_C0A725_32768KB] src=5 dst=0 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_32768KB
+src_cpu=5 dst_cpu=0 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=111493344 ns accesses=2621440 lat=42.53 ns/access cpu_before=5 cpu_after=5 sink=0x59889fc00000
+[src] measure elapsed=6463024 ns accesses=524288 cpu_before=5 cpu_after=5
+>>> src_latency = 12.33 ns/access  (sink=0x59889fc00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=51437776 ns accesses=524288 cpu_before=0 cpu_after=0
+>>> migrate_latency = 98.11 ns/access  (sink=0x59889fc00000)
+>>> migrate_penalty = 85.78 ns/access
+  [median/7] src_latency     = 5.06 ns/access
+  [median/7] migrate_latency = 98.11 ns/access
+  [median/7] migrate_penalty = 92.53 ns/access
+
+  --- [C1A725_to_C1X925_32768KB] src=10 dst=15 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_32768KB
+src_cpu=10 dst_cpu=15 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=207076992 ns accesses=2621440 lat=78.99 ns/access cpu_before=10 cpu_after=10 sink=0x44f312e00000
+[src] measure elapsed=31053184 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> src_latency = 59.23 ns/access  (sink=0x44f312e00000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=37675792 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> migrate_latency = 71.86 ns/access  (sink=0x44f312e00000)
+>>> migrate_penalty = 12.63 ns/access
+  [median/7] src_latency     = 62.43 ns/access
+  [median/7] migrate_latency = 74.22 ns/access
+  [median/7] migrate_penalty = 12.19 ns/access
+
+  --- [C1X925_to_C1A725_32768KB] src=15 dst=10 size=32768KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_32768KB
+src_cpu=15 dst_cpu=10 size=32768 KB n_lines=524288 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=78924960 ns accesses=2621440 lat=30.11 ns/access cpu_before=15 cpu_after=15 sink=0x5cc3e0200000
+[src] measure elapsed=2401872 ns accesses=524288 cpu_before=15 cpu_after=15
+>>> src_latency = 4.58 ns/access  (sink=0x5cc3e0200000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=39560256 ns accesses=524288 cpu_before=10 cpu_after=10
+>>> migrate_latency = 75.46 ns/access  (sink=0x5cc3e0200000)
+>>> migrate_penalty = 70.87 ns/access
+  [median/7] src_latency     = 4.46 ns/access
+  [median/7] migrate_latency = 103.53 ns/access
+  [median/7] migrate_penalty = 98.79 ns/access
+
+  --- [C0A725_to_C1A725_65536KB] src=0 dst=10 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C1A725_65536KB
+src_cpu=0 dst_cpu=10 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=572323136 ns accesses=5242880 lat=109.16 ns/access cpu_before=0 cpu_after=0 sink=0x462bc9400000
+[src] measure elapsed=107524800 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> src_latency = 102.54 ns/access  (sink=0x462bc9400000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=124067072 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> migrate_latency = 118.32 ns/access  (sink=0x462bc9400000)
+>>> migrate_penalty = 15.78 ns/access
+  [median/7] src_latency     = 103.88 ns/access
+  [median/7] migrate_latency = 118.80 ns/access
+  [median/7] migrate_penalty = 15.03 ns/access
+
+  --- [C1A725_to_C0A725_65536KB] src=10 dst=0 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C0A725_65536KB
+src_cpu=10 dst_cpu=0 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=557138128 ns accesses=5242880 lat=106.27 ns/access cpu_before=10 cpu_after=10 sink=0x4a6c0da00000
+[src] measure elapsed=98862816 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> src_latency = 94.28 ns/access  (sink=0x4a6c0da00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=128498816 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> migrate_latency = 122.55 ns/access  (sink=0x4a6c0da00000)
+>>> migrate_penalty = 28.26 ns/access
+  [median/7] src_latency     = 92.79 ns/access
+  [median/7] migrate_latency = 122.82 ns/access
+  [median/7] migrate_penalty = 30.33 ns/access
+
+  --- [C0X925_to_C1X925_65536KB] src=5 dst=15 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C1X925_65536KB
+src_cpu=5 dst_cpu=15 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=394153504 ns accesses=5242880 lat=75.18 ns/access cpu_before=5 cpu_after=5 sink=0x5133e3000000
+[src] measure elapsed=58379200 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> src_latency = 55.67 ns/access  (sink=0x5133e3000000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=110249216 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> migrate_latency = 105.14 ns/access  (sink=0x5133e3000000)
+>>> migrate_penalty = 49.47 ns/access
+  [median/7] src_latency     = 55.96 ns/access
+  [median/7] migrate_latency = 103.42 ns/access
+  [median/7] migrate_penalty = 48.39 ns/access
+
+  --- [C1X925_to_C0X925_65536KB] src=15 dst=5 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C0X925_65536KB
+src_cpu=15 dst_cpu=5 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=343592464 ns accesses=5242880 lat=65.54 ns/access cpu_before=15 cpu_after=15 sink=0x54614f800000
+[src] measure elapsed=49241552 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> src_latency = 46.96 ns/access  (sink=0x54614f800000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=113111520 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> migrate_latency = 107.87 ns/access  (sink=0x54614f800000)
+>>> migrate_penalty = 60.91 ns/access
+  [median/7] src_latency     = 47.30 ns/access
+  [median/7] migrate_latency = 108.35 ns/access
+  [median/7] migrate_penalty = 60.91 ns/access
+
+  --- [C0A725_to_C0X925_65536KB] src=0 dst=5 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0A725_to_C0X925_65536KB
+src_cpu=0 dst_cpu=5 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[src] warm elapsed=581939296 ns accesses=5242880 lat=111.00 ns/access cpu_before=0 cpu_after=0 sink=0x470f9fa00000
+[src] measure elapsed=109814384 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> src_latency = 104.73 ns/access  (sink=0x470f9fa00000)
+[dst] bound after migration: requested=5 current=5
+[dst] measure elapsed=114256976 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> migrate_latency = 108.96 ns/access  (sink=0x470f9fa00000)
+>>> migrate_penalty = 4.24 ns/access
+  [median/7] src_latency     = 102.87 ns/access
+  [median/7] migrate_latency = 105.46 ns/access
+  [median/7] migrate_penalty = 2.56 ns/access
+
+  --- [C0X925_to_C0A725_65536KB] src=5 dst=0 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C0X925_to_C0A725_65536KB
+src_cpu=5 dst_cpu=0 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=5 current=5
+[src] warm elapsed=397201376 ns accesses=5242880 lat=75.76 ns/access cpu_before=5 cpu_after=5 sink=0x4b4371c00000
+[src] measure elapsed=60064288 ns accesses=1048576 cpu_before=5 cpu_after=5
+>>> src_latency = 57.28 ns/access  (sink=0x4b4371c00000)
+[dst] bound after migration: requested=0 current=0
+[dst] measure elapsed=127425616 ns accesses=1048576 cpu_before=0 cpu_after=0
+>>> migrate_latency = 121.52 ns/access  (sink=0x4b4371c00000)
+>>> migrate_penalty = 64.24 ns/access
+  [median/7] src_latency     = 56.04 ns/access
+  [median/7] migrate_latency = 118.37 ns/access
+  [median/7] migrate_penalty = 62.33 ns/access
+
+  --- [C1A725_to_C1X925_65536KB] src=10 dst=15 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1A725_to_C1X925_65536KB
+src_cpu=10 dst_cpu=15 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=10 current=10
+[src] warm elapsed=531411712 ns accesses=5242880 lat=101.36 ns/access cpu_before=10 cpu_after=10 sink=0x5dedaa600000
+[src] measure elapsed=95632608 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> src_latency = 91.20 ns/access  (sink=0x5dedaa600000)
+[dst] bound after migration: requested=15 current=15
+[dst] measure elapsed=101120192 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> migrate_latency = 96.44 ns/access  (sink=0x5dedaa600000)
+>>> migrate_penalty = 5.23 ns/access
+  [median/7] src_latency     = 96.10 ns/access
+  [median/7] migrate_latency = 95.44 ns/access
+  [median/7] migrate_penalty = -1.16 ns/access
+
+  --- [C1X925_to_C1A725_65536KB] src=15 dst=10 size=65536KB mode=migrate ---
+  [sample/run1]
+=== chase_migrate v1.0 ===
+label=C1X925_to_C1A725_65536KB
+src_cpu=15 dst_cpu=10 size=65536 KB n_lines=1048576 warm_src=5 measure_rounds=1 measure_src=1 seed=42 hugepage=1 strict_hugepage=1 sleep_us=0
+[src] bound before alloc/init: requested=15 current=15
+[src] warm elapsed=382704112 ns accesses=5242880 lat=73.00 ns/access cpu_before=15 cpu_after=15 sink=0x4eb6de200000
+[src] measure elapsed=58911568 ns accesses=1048576 cpu_before=15 cpu_after=15
+>>> src_latency = 56.18 ns/access  (sink=0x4eb6de200000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=104532608 ns accesses=1048576 cpu_before=10 cpu_after=10
+>>> migrate_latency = 99.69 ns/access  (sink=0x4eb6de200000)
+>>> migrate_penalty = 43.51 ns/access
+  [median/7] src_latency     = 49.69 ns/access
+  [median/7] migrate_latency = 101.62 ns/access
+  [median/7] migrate_penalty = 55.29 ns/access
+
+============================================================
+=== Done ===
+OUTFILE      : ../data/20260611_v2.7.11_section10_migrate/raw/run_20260611_191852.txt
+SUMMARY_FILE : ../data/20260611_v2.7.11_section10_migrate/raw/summary_20260611_191852.txt
+ERROR_FILE   : ../data/20260611_v2.7.11_section10_migrate/raw/error_20260611_191852.txt
+============================================================
+
+Quick Summary (median values):
+  local: src_cpu == dst_cpu
+  migrate: same chain warmed on src, measured on dst
+
+  Label                                  SrcCPU   DstCPU     Size  Mode               SrcLat       MigLat      Penalty
+  ------------------------------------ -------- -------- --------  ------------ ------------ ------------ ------------
+  C0-A725_local_512KB                         0        0    512KB  local              4.45 ns       5.41 ns       0.91 ns
+  C0-X925_local_512KB                         5        5    512KB  local              1.35 ns       1.41 ns       0.04 ns
+  C1-A725_local_512KB                        10       10    512KB  local              4.14 ns       5.60 ns       0.73 ns
+  C1-X925_local_512KB                        15       15    512KB  local              1.37 ns       1.41 ns       0.07 ns
+  C0-A725_local_2048KB                        0        0   2048KB  local              3.58 ns       3.59 ns       0.02 ns
+  C0-X925_local_2048KB                        5        5   2048KB  local              3.41 ns       3.49 ns       0.10 ns
+  C1-A725_local_2048KB                       10       10   2048KB  local              3.54 ns       3.56 ns       0.01 ns
+  C1-X925_local_2048KB                       15       15   2048KB  local              3.35 ns       3.44 ns       0.09 ns
+  C0-A725_local_8192KB                        0        0   8192KB  local              3.85 ns       3.84 ns      -0.02 ns
+  C0-X925_local_8192KB                        5        5   8192KB  local              5.38 ns       5.24 ns      -0.13 ns
+  C1-A725_local_8192KB                       10       10   8192KB  local              3.77 ns       3.77 ns       0.00 ns
+  C1-X925_local_8192KB                       15       15   8192KB  local              5.08 ns       4.91 ns      -0.19 ns
+  C0-A725_local_16384KB                       0        0  16384KB  local             25.07 ns      22.02 ns      -1.86 ns
+  C0-X925_local_16384KB                       5        5  16384KB  local              4.23 ns       4.32 ns      -0.00 ns
+  C1-A725_local_16384KB                      10       10  16384KB  local             10.44 ns      10.48 ns      -0.06 ns
+  C1-X925_local_16384KB                      15       15  16384KB  local              4.06 ns       4.04 ns       0.02 ns
+  C0-A725_local_32768KB                       0        0  32768KB  local             78.00 ns      77.21 ns      -0.87 ns
+  C0-X925_local_32768KB                       5        5  32768KB  local              4.82 ns       4.67 ns      -0.15 ns
+  C1-A725_local_32768KB                      10       10  32768KB  local             63.97 ns      62.46 ns      -0.87 ns
+  C1-X925_local_32768KB                      15       15  32768KB  local              4.70 ns       4.66 ns      -0.09 ns
+  C0-A725_local_65536KB                       0        0  65536KB  local            102.46 ns     101.66 ns      -1.12 ns
+  C0-X925_local_65536KB                       5        5  65536KB  local             56.63 ns      56.51 ns      -0.12 ns
+  C1-A725_local_65536KB                      10       10  65536KB  local             97.82 ns      96.41 ns      -1.23 ns
+  C1-X925_local_65536KB                      15       15  65536KB  local             49.37 ns      48.93 ns      -0.76 ns
+  C0A725_to_C1A725_512KB                      0       10    512KB  migrate            4.46 ns      55.52 ns      51.21 ns
+  C1A725_to_C0A725_512KB                     10        0    512KB  migrate            4.08 ns      53.94 ns      49.92 ns
+  C0X925_to_C1X925_512KB                      5       15    512KB  migrate            1.34 ns      52.46 ns      51.14 ns
+  C1X925_to_C0X925_512KB                     15        5    512KB  migrate            1.37 ns      49.14 ns      47.77 ns
+  C0A725_to_C0X925_512KB                      0        5    512KB  migrate            4.43 ns      12.49 ns       8.09 ns
+  C0X925_to_C0A725_512KB                      5        0    512KB  migrate            1.34 ns      24.32 ns      22.98 ns
+  C1A725_to_C1X925_512KB                     10       15    512KB  migrate            4.16 ns      11.42 ns       7.24 ns
+  C1X925_to_C1A725_512KB                     15       10    512KB  migrate            1.38 ns      20.61 ns      19.27 ns
+  C0A725_to_C1A725_2048KB                     0       10   2048KB  migrate            3.57 ns      63.66 ns      60.08 ns
+  C1A725_to_C0A725_2048KB                    10        0   2048KB  migrate            3.54 ns      71.85 ns      68.32 ns
+  C0X925_to_C1X925_2048KB                     5       15   2048KB  migrate            3.67 ns      66.28 ns      61.96 ns
+  C1X925_to_C0X925_2048KB                    15        5   2048KB  migrate            3.33 ns      68.10 ns      64.59 ns
+  C0A725_to_C0X925_2048KB                     0        5   2048KB  migrate            3.62 ns      13.49 ns       9.71 ns
+  C0X925_to_C0A725_2048KB                     5        0   2048KB  migrate            3.41 ns      39.82 ns      36.48 ns
+  C1A725_to_C1X925_2048KB                    10       15   2048KB  migrate            3.55 ns      12.12 ns       8.58 ns
+  C1X925_to_C1A725_2048KB                    15       10   2048KB  migrate            3.33 ns      31.25 ns      27.87 ns
+  C0A725_to_C1A725_8192KB                     0       10   8192KB  migrate            3.84 ns      74.95 ns      71.10 ns
+  C1A725_to_C0A725_8192KB                    10        0   8192KB  migrate            3.78 ns      87.60 ns      83.74 ns
+  C0X925_to_C1X925_8192KB                     5       15   8192KB  migrate            5.38 ns      60.31 ns      55.06 ns
+  C1X925_to_C0X925_8192KB                    15        5   8192KB  migrate            5.07 ns      65.09 ns      60.02 ns
+  C0A725_to_C0X925_8192KB                     0        5   8192KB  migrate            3.85 ns      20.90 ns      16.86 ns
+  C0X925_to_C0A725_8192KB                     5        0   8192KB  migrate            5.43 ns      30.37 ns      24.86 ns
+  C1A725_to_C1X925_8192KB                    10       15   8192KB  migrate            3.79 ns      14.11 ns      10.36 ns
+  C1X925_to_C1A725_8192KB                    15       10   8192KB  migrate            5.03 ns      25.85 ns      20.82 ns
+  C0A725_to_C1A725_16384KB                    0       10  16384KB  migrate           27.71 ns      88.01 ns      60.03 ns
+  C1A725_to_C0A725_16384KB                   10        0  16384KB  migrate           10.67 ns      91.05 ns      80.03 ns
+  C0X925_to_C1X925_16384KB                    5       15  16384KB  migrate            4.24 ns      66.84 ns      62.51 ns
+  C1X925_to_C0X925_16384KB                   15        5  16384KB  migrate            4.00 ns      75.98 ns      71.89 ns
+  C0A725_to_C0X925_16384KB                    0        5  16384KB  migrate           19.43 ns      56.10 ns      37.43 ns
+  C0X925_to_C0A725_16384KB                    5        0  16384KB  migrate            4.22 ns      60.43 ns      56.22 ns
+  C1A725_to_C1X925_16384KB                   10       15  16384KB  migrate           11.01 ns      18.44 ns       7.10 ns
+  C1X925_to_C1A725_16384KB                   15       10  16384KB  migrate            4.04 ns      22.81 ns      18.77 ns
+  C0A725_to_C1A725_32768KB                    0       10  32768KB  migrate           72.59 ns     111.01 ns      38.25 ns
+  C1A725_to_C0A725_32768KB                   10        0  32768KB  migrate           59.03 ns     113.58 ns      53.15 ns
+  C0X925_to_C1X925_32768KB                    5       15  32768KB  migrate            4.93 ns      87.84 ns      83.25 ns
+  C1X925_to_C0X925_32768KB                   15        5  32768KB  migrate            4.59 ns      95.63 ns      91.27 ns
+  C0A725_to_C0X925_32768KB                    0        5  32768KB  migrate           77.72 ns      92.04 ns      15.01 ns
+  C0X925_to_C0A725_32768KB                    5        0  32768KB  migrate            5.06 ns      98.11 ns      92.53 ns
+  C1A725_to_C1X925_32768KB                   10       15  32768KB  migrate           62.43 ns      74.22 ns      12.19 ns
+  C1X925_to_C1A725_32768KB                   15       10  32768KB  migrate            4.46 ns     103.53 ns      98.79 ns
+  C0A725_to_C1A725_65536KB                    0       10  65536KB  migrate          103.88 ns     118.80 ns      15.03 ns
+  C1A725_to_C0A725_65536KB                   10        0  65536KB  migrate           92.79 ns     122.82 ns      30.33 ns
+  C0X925_to_C1X925_65536KB                    5       15  65536KB  migrate           55.96 ns     103.42 ns      48.39 ns
+  C1X925_to_C0X925_65536KB                   15        5  65536KB  migrate           47.30 ns     108.35 ns      60.91 ns
+  C0A725_to_C0X925_65536KB                    0        5  65536KB  migrate          102.87 ns     105.46 ns       2.56 ns
+  C0X925_to_C0A725_65536KB                    5        0  65536KB  migrate           56.04 ns     118.37 ns      62.33 ns
+  C1A725_to_C1X925_65536KB                   10       15  65536KB  migrate           96.10 ns      95.44 ns      -1.16 ns
+  C1X925_to_C1A725_65536KB                   15       10  65536KB  migrate           49.69 ns     101.62 ns      55.29 ns
+
+# File check:
+-rw-r--r-- 1 michaelyao1 eng    0 Jun 11 19:18 ../data/20260611_v2.7.11_section10_migrate/raw/error_20260611_191852.txt
+-rw-r--r-- 1 michaelyao1 eng  78K Jun 11 19:20 ../data/20260611_v2.7.11_section10_migrate/raw/run_20260611_191852.txt
+-rw-r--r-- 1 michaelyao1 eng 9.0K Jun 11 19:20 ../data/20260611_v2.7.11_section10_migrate/raw/summary_20260611_191852.txt
+
+[OK] No command-level errors recorded.
