@@ -1,0 +1,1303 @@
+# GB10 PMU Cache Validation  v2.7.5
+# Binary    : ~/gb10-arch/runner/../tools/bin/chase_pmu
+# Evict     : ~/gb10-arch/runner/../tools/bin/evict_slc  (evict_mb=32)
+# Date      : Thu Jun 11 02:31:22 PM CST 2026
+# BUG-03 FIX: 多次采样取中位数 (MEDIAN_RUNS=3)
+# BUG-04 FIX: double-evict 流程修正（去掉第二次 evict）
+#   新 dbl-evict 流程：evict(全清) → warm=1(填L3) → measure
+#   适用：size ≤ L3（SLC 保持干净）
+#   size > L3 时：warm 溢出进 SLC，改用 warm0 模式
+# BUG-05 FIX: A725 L3 有效容量修正
+#   C0-A725 cpu0:  effective L3 ~8MB，>8MB → SLC (~15ns)
+#   C1-A725 cpu10: effective L3 ~8MB (near-slice)，8~16MB → far-slice (~10ns)
+# BUG-06 FIX: Quick Summary 补全 size 字段
+# BUG-07 FIX: 所有 warm 测量点统一 force_rounds=5
+#   消除 meas_rounds 变量对 4K page L3 set conflict 的干扰
+# Topology:
+#   C0-X925 cpu5  3900MHz L2=2MB    L3=8MB
+#   C0-A725 cpu0  2808MHz L2=512KB  L3=8MB  (effective ~8MB, spills to SLC)
+#   C1-X925 cpu15 3900MHz L2=2MB    L3=16MB
+#   C1-A725 cpu10 2808MHz L2=512KB  L3=16MB (effective ~8MB near-slice)
+#   SLC=16MB (shared)  DRAM=128GB LPDDR5X
+============================================================
+
+============================================================
+# Section 1: C0-X925  cpu5 @ 3.9GHz  L2=2MB  L3=8MB
+============================================================
+
+  --- [C0-X925 L2-hit]  cpu=5  size=1MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=345184 ns  accesses=81920
+>>> latency = 4.21 ns/access  (sink=0x5d29e4e1e000)
+  [median/3] latency = 4.21 ns/access
+
+  --- [C0-X925 L2->L3 boundary]  cpu=5  size=2MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=2048 KB  n_lines=32768  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=901504 ns  accesses=163840
+>>> latency = 5.50 ns/access  (sink=0x435f62800000)
+  [median/3] latency = 5.30 ns/access
+
+  --- [C0-X925 L3-hit]  cpu=5  size=4MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=2120448 ns  accesses=327680
+>>> latency = 6.47 ns/access  (sink=0x445dfe200000)
+  [median/3] latency = 6.47 ns/access
+
+  --- [C0-X925 L3-hit+]  cpu=5  size=6MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=3285056 ns  accesses=491520
+>>> latency = 6.68 ns/access  (sink=0x4a14de200000)
+  [median/3] latency = 6.68 ns/access
+
+  --- [C0-X925 L3-tail]  cpu=5  size=8MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=4099104 ns  accesses=655360
+>>> latency = 6.25 ns/access  (sink=0x4e6013200000)
+  [median/3] latency = 6.25 ns/access
+
+  --- [C0-X925 4MB dbl-evict]  cpu=5  size=4MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=1036768 ns  accesses=65536
+>>> latency = 15.82 ns/access  (sink=0x4a9beb000000)
+  [median/3] latency = 15.34 ns/access
+
+  --- [C0-X925 6MB dbl-evict]  cpu=5  size=6MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=1838400 ns  accesses=98304
+>>> latency = 18.70 ns/access  (sink=0x44e272000000)
+  [median/3] latency = 19.34 ns/access
+
+  --- [C0-X925 8MB dbl-evict]  cpu=5  size=8MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=3716144 ns  accesses=131072
+>>> latency = 28.35 ns/access  (sink=0x5d8e16200000)
+  [median/3] latency = 28.35 ns/access
+
+  --- [C0-X925 10MB cold/warm0]  cpu=5  size=10MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=7285792 ns  accesses=163840
+>>> latency = 44.47 ns/access  (sink=0x53eff0c00000)
+  [median/3] latency = 43.01 ns/access
+
+  --- [C0-X925 12MB cold/warm0]  cpu=5  size=12MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=10277008 ns  accesses=196608
+>>> latency = 52.27 ns/access  (sink=0x4281e3800000)
+  [median/3] latency = 52.02 ns/access
+
+  --- [C0-X925 16MB cold/warm0]  cpu=5  size=16MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=17591936 ns  accesses=262144
+>>> latency = 67.11 ns/access  (sink=0x486843600000)
+  [median/3] latency = 63.69 ns/access
+
+  --- [C0-X925 20MB cold/warm0]  cpu=5  size=20MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=20480 KB  n_lines=327680  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=24442992 ns  accesses=327680
+>>> latency = 74.59 ns/access  (sink=0x52ebbba00000)
+  [median/3] latency = 74.59 ns/access
+
+  --- [C0-X925 32MB cold/warm0]  cpu=5  size=32MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=50578896 ns  accesses=524288
+>>> latency = 96.47 ns/access  (sink=0x5ccc6e200000)
+  [median/3] latency = 96.47 ns/access
+
+  --- [C0-X925 64MB cold/warm0]  cpu=5  size=64MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=117131712 ns  accesses=1048576
+>>> latency = 111.71 ns/access  (sink=0x4e62c7a00000)
+  [median/3] latency = 110.91 ns/access
+
+============================================================
+# Section 2: C0-A725  cpu0 @ 2.808GHz  L2=512KB  L3=8MB
+#   BUG-05: effective L3 ~8MB; >8MB spills directly to SLC (~15ns)
+============================================================
+
+  -- C0-A725 L2 KB-granularity boundary scan --
+
+  --- [C0-A725 L2-scan 128KB]  cpu=0  size=128KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=128 KB  n_lines=2048  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=33136 ns  accesses=10240
+>>> latency = 3.24 ns/access  (sink=0x4dad2046e000)
+  [median/3] latency = 3.24 ns/access
+
+  --- [C0-A725 L2-scan 256KB]  cpu=0  size=256KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=256 KB  n_lines=4096  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=75392 ns  accesses=20480
+>>> latency = 3.68 ns/access  (sink=0x4e9079a6e000)
+  [median/3] latency = 3.68 ns/access
+
+  --- [C0-A725 L2-scan 384KB]  cpu=0  size=384KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=384 KB  n_lines=6144  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=150144 ns  accesses=30720
+>>> latency = 4.89 ns/access  (sink=0x58ce68d0e000)
+  [median/3] latency = 4.89 ns/access
+
+  --- [C0-A725 L2-scan 448KB]  cpu=0  size=448KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=448 KB  n_lines=7168  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=208272 ns  accesses=35840
+>>> latency = 5.81 ns/access  (sink=0x42b87e99e000)
+  [median/3] latency = 5.72 ns/access
+
+  --- [C0-A725 L2-scan 480KB]  cpu=0  size=480KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=480 KB  n_lines=7680  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=207440 ns  accesses=38400
+>>> latency = 5.40 ns/access  (sink=0x4e837779e000)
+  [median/3] latency = 5.75 ns/access
+
+  --- [C0-A725 L2-scan 512KB]  cpu=0  size=512KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=512 KB  n_lines=8192  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=204816 ns  accesses=40960
+>>> latency = 5.00 ns/access  (sink=0x565b32f1e000)
+  [median/3] latency = 5.86 ns/access
+
+  --- [C0-A725 L2-scan 576KB]  cpu=0  size=576KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=576 KB  n_lines=9216  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=251648 ns  accesses=46080
+>>> latency = 5.46 ns/access  (sink=0x51629ce9e000)
+  [median/3] latency = 5.65 ns/access
+
+  --- [C0-A725 L2-scan 640KB]  cpu=0  size=640KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=640 KB  n_lines=10240  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=308800 ns  accesses=51200
+>>> latency = 6.03 ns/access  (sink=0x54d44842e000)
+  [median/3] latency = 5.75 ns/access
+
+  --- [C0-A725 L2-scan 768KB]  cpu=0  size=768KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=768 KB  n_lines=12288  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=469584 ns  accesses=61440
+>>> latency = 7.64 ns/access  (sink=0x4c153c01e000)
+  [median/3] latency = 5.91 ns/access
+
+  --- [C0-A725 L2-scan 1024KB]  cpu=0  size=1024KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=453872 ns  accesses=81920
+>>> latency = 5.54 ns/access  (sink=0x44b65c13e000)
+  [median/3] latency = 5.53 ns/access
+
+  --- [C0-A725 L3-hit]  cpu=0  size=4MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=5151360 ns  accesses=327680
+>>> latency = 15.72 ns/access  (sink=0x57c2d1200000)
+  [median/3] latency = 22.33 ns/access
+
+  --- [C0-A725 L3-hit+]  cpu=0  size=6MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=3087632 ns  accesses=491520
+>>> latency = 6.28 ns/access  (sink=0x47a546200000)
+  [median/3] latency = 10.52 ns/access
+
+  --- [C0-A725 L3-tail]  cpu=0  size=8MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=4391248 ns  accesses=655360
+>>> latency = 6.70 ns/access  (sink=0x546865800000)
+  [median/3] latency = 7.56 ns/access
+
+  --- [C0-A725 SLC-hit]  cpu=0  size=12MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=12834752 ns  accesses=983040
+>>> latency = 13.06 ns/access  (sink=0x57f4afe00000)
+  [median/3] latency = 11.45 ns/access
+
+  --- [C0-A725 SLC-hit+]  cpu=0  size=16MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=27601056 ns  accesses=1310720
+>>> latency = 21.06 ns/access  (sink=0x5f0699000000)
+  [median/3] latency = 23.73 ns/access
+
+  --- [C0-A725 4MB dbl-evict]  cpu=0  size=4MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=1880576 ns  accesses=65536
+>>> latency = 28.70 ns/access  (sink=0x477efc000000)
+  [median/3] latency = 27.66 ns/access
+
+  --- [C0-A725 6MB dbl-evict]  cpu=0  size=6MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=3307472 ns  accesses=98304
+>>> latency = 33.65 ns/access  (sink=0x536798600000)
+  [median/3] latency = 36.26 ns/access
+
+  --- [C0-A725 8MB dbl-evict]  cpu=0  size=8MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=6644240 ns  accesses=131072
+>>> latency = 50.69 ns/access  (sink=0x50cd53200000)
+  [median/3] latency = 50.68 ns/access
+
+  --- [C0-A725 10MB cold/warm0]  cpu=0  size=10MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=10871872 ns  accesses=163840
+>>> latency = 66.36 ns/access  (sink=0x4c2067200000)
+  [median/3] latency = 66.81 ns/access
+
+  --- [C0-A725 16MB cold/warm0]  cpu=0  size=16MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=22299888 ns  accesses=262144
+>>> latency = 85.07 ns/access  (sink=0x4c3cb3a00000)
+  [median/3] latency = 85.81 ns/access
+
+  --- [C0-A725 32MB cold/warm0]  cpu=0  size=32MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=61552384 ns  accesses=524288
+>>> latency = 117.40 ns/access  (sink=0x5eb9c2a00000)
+  [median/3] latency = 118.07 ns/access
+
+  --- [C0-A725 64MB cold/warm0]  cpu=0  size=64MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=140958960 ns  accesses=1048576
+>>> latency = 134.43 ns/access  (sink=0x52f434c00000)
+  [median/3] latency = 134.86 ns/access
+
+============================================================
+# Section 3: C1-X925  cpu15 @ 3.9GHz  L2=2MB  L3=16MB
+============================================================
+
+  --- [C1-X925 L2-hit]  cpu=15  size=1MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=340768 ns  accesses=81920
+>>> latency = 4.16 ns/access  (sink=0x442b7919e000)
+  [median/3] latency = 4.11 ns/access
+
+  --- [C1-X925 L2->L3 boundary]  cpu=15  size=2MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=2048 KB  n_lines=32768  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=853504 ns  accesses=163840
+>>> latency = 5.21 ns/access  (sink=0x4e3c31c00000)
+  [median/3] latency = 5.21 ns/access
+
+  --- [C1-X925 L3-hit]  cpu=15  size=4MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=2055168 ns  accesses=327680
+>>> latency = 6.27 ns/access  (sink=0x5bbb21000000)
+  [median/3] latency = 6.21 ns/access
+
+  --- [C1-X925 L3-hit+]  cpu=15  size=8MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=4055312 ns  accesses=655360
+>>> latency = 6.19 ns/access  (sink=0x593c49200000)
+  [median/3] latency = 5.98 ns/access
+
+  --- [C1-X925 L3-hit++]  cpu=15  size=12MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=5611168 ns  accesses=983040
+>>> latency = 5.71 ns/access  (sink=0x5ca96ca00000)
+  [median/3] latency = 5.59 ns/access
+
+  --- [C1-X925 L3-tail]  cpu=15  size=16MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=6814032 ns  accesses=1310720
+>>> latency = 5.20 ns/access  (sink=0x47b9c0c00000)
+  [median/3] latency = 5.08 ns/access
+
+  --- [C1-X925 8MB dbl-evict]  cpu=15  size=8MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=2051280 ns  accesses=131072
+>>> latency = 15.65 ns/access  (sink=0x4c047a600000)
+  [median/3] latency = 15.63 ns/access
+
+  --- [C1-X925 12MB dbl-evict]  cpu=15  size=12MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=4316256 ns  accesses=196608
+>>> latency = 21.95 ns/access  (sink=0x5a3832000000)
+  [median/3] latency = 21.81 ns/access
+
+  --- [C1-X925 16MB dbl-evict]  cpu=15  size=16MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=8601744 ns  accesses=262144
+>>> latency = 32.81 ns/access  (sink=0x47923fc00000)
+  [median/3] latency = 32.81 ns/access
+
+  --- [C1-X925 18MB cold/warm0]  cpu=15  size=18MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=18432 KB  n_lines=294912  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=12155488 ns  accesses=294912
+>>> latency = 41.22 ns/access  (sink=0x43d4de600000)
+  [median/3] latency = 41.22 ns/access
+
+  --- [C1-X925 20MB cold/warm0]  cpu=15  size=20MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=20480 KB  n_lines=327680  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=15010400 ns  accesses=327680
+>>> latency = 45.81 ns/access  (sink=0x5fd989800000)
+  [median/3] latency = 45.81 ns/access
+
+  --- [C1-X925 24MB cold/warm0]  cpu=15  size=24MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=24576 KB  n_lines=393216  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=21124176 ns  accesses=393216
+>>> latency = 53.72 ns/access  (sink=0x5d7b2bc00000)
+  [median/3] latency = 53.72 ns/access
+
+  --- [C1-X925 28MB cold/warm0]  cpu=15  size=28MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=28672 KB  n_lines=458752  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=28558944 ns  accesses=458752
+>>> latency = 62.25 ns/access  (sink=0x57721fe00000)
+  [median/3] latency = 62.25 ns/access
+
+  --- [C1-X925 32MB cold/warm0]  cpu=15  size=32MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=37089776 ns  accesses=524288
+>>> latency = 70.74 ns/access  (sink=0x53a5c4200000)
+  [median/3] latency = 70.93 ns/access
+
+  --- [C1-X925 64MB cold/warm0]  cpu=15  size=64MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=108020720 ns  accesses=1048576
+>>> latency = 103.02 ns/access  (sink=0x5fec3b400000)
+  [median/3] latency = 101.13 ns/access
+
+============================================================
+# Section 4: C1-A725  cpu10 @ 2.808GHz  L2=512KB  L3=16MB
+#   BUG-05: effective L3 ~8MB (near-slice); 8~16MB = far-slice (~10ns)
+============================================================
+
+  -- C1-A725 L2 KB-granularity boundary scan --
+
+  --- [C1-A725 L2-scan 128KB]  cpu=10  size=128KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=128 KB  n_lines=2048  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=33136 ns  accesses=10240
+>>> latency = 3.24 ns/access  (sink=0x545ede18f000)
+  [median/3] latency = 3.24 ns/access
+
+  --- [C1-A725 L2-scan 256KB]  cpu=10  size=256KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=256 KB  n_lines=4096  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=75600 ns  accesses=20480
+>>> latency = 3.69 ns/access  (sink=0x5931b5afe000)
+  [median/3] latency = 3.69 ns/access
+
+  --- [C1-A725 L2-scan 384KB]  cpu=10  size=384KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=384 KB  n_lines=6144  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=174208 ns  accesses=30720
+>>> latency = 5.67 ns/access  (sink=0x46de594be000)
+  [median/3] latency = 4.82 ns/access
+
+  --- [C1-A725 L2-scan 448KB]  cpu=10  size=448KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=448 KB  n_lines=7168  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=170272 ns  accesses=35840
+>>> latency = 4.75 ns/access  (sink=0x401bbe2be000)
+  [median/3] latency = 4.74 ns/access
+
+  --- [C1-A725 L2-scan 480KB]  cpu=10  size=480KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=480 KB  n_lines=7680  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=191824 ns  accesses=38400
+>>> latency = 5.00 ns/access  (sink=0x565f8ed6e000)
+  [median/3] latency = 4.94 ns/access
+
+  --- [C1-A725 L2-scan 512KB]  cpu=10  size=512KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=512 KB  n_lines=8192  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=211008 ns  accesses=40960
+>>> latency = 5.15 ns/access  (sink=0x57701618e000)
+  [median/3] latency = 5.15 ns/access
+
+  --- [C1-A725 L2-scan 576KB]  cpu=10  size=576KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=576 KB  n_lines=9216  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=273008 ns  accesses=46080
+>>> latency = 5.92 ns/access  (sink=0x438105b6e000)
+  [median/3] latency = 6.00 ns/access
+
+  --- [C1-A725 L2-scan 640KB]  cpu=10  size=640KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=640 KB  n_lines=10240  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=280992 ns  accesses=51200
+>>> latency = 5.49 ns/access  (sink=0x5a411e66e000)
+  [median/3] latency = 5.51 ns/access
+
+  --- [C1-A725 L2-scan 768KB]  cpu=10  size=768KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=768 KB  n_lines=12288  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=350736 ns  accesses=61440
+>>> latency = 5.71 ns/access  (sink=0x59e63433e000)
+  [median/3] latency = 5.71 ns/access
+
+  --- [C1-A725 L2-scan 1024KB]  cpu=10  size=1024KB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=570080 ns  accesses=81920
+>>> latency = 6.96 ns/access  (sink=0x49aa1402e000)
+  [median/3] latency = 5.47 ns/access
+
+  --- [C1-A725 L3-hit]  cpu=10  size=4MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=7204224 ns  accesses=327680
+>>> latency = 21.99 ns/access  (sink=0x498d58200000)
+  [median/3] latency = 21.99 ns/access
+
+  --- [C1-A725 L3-hit+]  cpu=10  size=6MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=4279712 ns  accesses=491520
+>>> latency = 8.71 ns/access  (sink=0x4fb362c00000)
+  [median/3] latency = 8.71 ns/access
+
+  --- [C1-A725 L3-tail]  cpu=10  size=8MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=4315136 ns  accesses=655360
+>>> latency = 6.58 ns/access  (sink=0x5ce44a600000)
+  [median/3] latency = 7.76 ns/access
+
+  --- [C1-A725 SLC-hit]  cpu=10  size=12MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=10031616 ns  accesses=983040
+>>> latency = 10.20 ns/access  (sink=0x590dea400000)
+  [median/3] latency = 10.56 ns/access
+
+  --- [C1-A725 SLC-hit+]  cpu=10  size=16MB  mode=warm ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=23345376 ns  accesses=1310720
+>>> latency = 17.81 ns/access  (sink=0x42e6a0200000)
+  [median/3] latency = 17.81 ns/access
+
+  --- [C1-A725 8MB dbl-evict]  cpu=10  size=8MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=3819152 ns  accesses=131072
+>>> latency = 29.14 ns/access  (sink=0x5a8a86200000)
+  [median/3] latency = 29.14 ns/access
+
+  --- [C1-A725 12MB dbl-evict]  cpu=10  size=12MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=7619376 ns  accesses=196608
+>>> latency = 38.75 ns/access  (sink=0x5b06eda00000)
+  [median/3] latency = 38.84 ns/access
+
+  --- [C1-A725 16MB dbl-evict]  cpu=10  size=16MB  mode=cold/dbl-evict ---
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=13368912 ns  accesses=262144
+>>> latency = 51.00 ns/access  (sink=0x473602a00000)
+  [median/3] latency = 50.96 ns/access
+
+  --- [C1-A725 18MB cold/warm0]  cpu=10  size=18MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=18432 KB  n_lines=294912  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=17565264 ns  accesses=294912
+>>> latency = 59.56 ns/access  (sink=0x49c4ca000000)
+  [median/3] latency = 63.93 ns/access
+
+  --- [C1-A725 24MB cold/warm0]  cpu=10  size=24MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=24576 KB  n_lines=393216  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=32230080 ns  accesses=393216
+>>> latency = 81.97 ns/access  (sink=0x5b8bce400000)
+  [median/3] latency = 83.96 ns/access
+
+  --- [C1-A725 32MB cold/warm0]  cpu=10  size=32MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=32768 KB  n_lines=524288  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=52873312 ns  accesses=524288
+>>> latency = 100.85 ns/access  (sink=0x450125400000)
+  [median/3] latency = 99.40 ns/access
+
+  --- [C1-A725 64MB cold/warm0]  cpu=10  size=64MB  mode=cold/warm0 ---
+  [lat] === chase_pmu v2.7.3 ===
+size=65536 KB  n_lines=1048576  warm=0  meas_rounds=1  seed=42  hugepage=0  [COLD-L3residue]
+warm=0: init_chain fill only (L3 residue possible)
+elapsed=132197648 ns  accesses=1048576
+>>> latency = 126.07 ns/access  (sink=0x5ca6c4c00000)
+  [median/3] latency = 126.89 ns/access
+
+============================================================
+# Section 5: hugepage L3 boundary scan (4-core comparison)
+#   C0-A725 cpu0 / C0-X925 cpu5 / C1-A725 cpu10 / C1-X925 cpu15
+#   A725: boundary ~8MB (C0直溢SLC, C1有far-slice台阶)
+#   X925: 无边界跳变，单调递减（Slice均匀分布效应）
+#   BUG-07: 所有核 force_rounds 统一为 5
+============================================================
+
+  -- Section 5.1: C0-A725 cpu0 hugepage boundary --
+
+  --- [C0-A725-HP 4096KB]  cpu=0  size=4096KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x406362600000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x56e8e8000000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4c4cc2a00000  alloc=4096 KB  chain=4096 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1460800 ns  accesses=327680
+>>> latency = 4.46 ns/access  (sink=0x406362600000)
+  [median/3] latency = 4.31 ns/access
+
+  --- [C0-A725-HP 6144KB]  cpu=0  size=6144KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4e3292200000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4be710c00000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x53e452800000  alloc=6144 KB  chain=6144 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1879136 ns  accesses=491520
+>>> latency = 3.82 ns/access  (sink=0x4e3292200000)
+  [median/3] latency = 3.82 ns/access
+
+  --- [C0-A725-HP 7168KB]  cpu=0  size=7168KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x417191000000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4e7d14e00000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x48411d800000  alloc=8192 KB  chain=7168 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7168 KB  n_lines=114688  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2182544 ns  accesses=573440
+>>> latency = 3.81 ns/access  (sink=0x417191000000)
+  [median/3] latency = 3.77 ns/access
+
+  --- [C0-A725-HP 7680KB]  cpu=0  size=7680KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x51121d200000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4522c3a00000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x40f1a1600000  alloc=8192 KB  chain=7680 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7680 KB  n_lines=122880  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2459312 ns  accesses=614400
+>>> latency = 4.00 ns/access  (sink=0x51121d200000)
+  [median/3] latency = 3.93 ns/access
+
+  --- [C0-A725-HP 8192KB]  cpu=0  size=8192KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x511d20600000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x59e2b1400000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x52c16a400000  alloc=8192 KB  chain=8192 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2495728 ns  accesses=655360
+>>> latency = 3.81 ns/access  (sink=0x511d20600000)
+  [median/3] latency = 3.81 ns/access
+
+  --- [C0-A725-HP 8704KB]  cpu=0  size=8704KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5080e8e00000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5268f3800000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4d5728c00000  alloc=10240 KB  chain=8704 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8704 KB  n_lines=139264  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3026016 ns  accesses=696320
+>>> latency = 4.35 ns/access  (sink=0x5080e8e00000)
+  [median/3] latency = 4.16 ns/access
+
+  --- [C0-A725-HP 9216KB]  cpu=0  size=9216KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4d11cac00000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x45a997c00000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x477358800000  alloc=10240 KB  chain=9216 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9216 KB  n_lines=147456  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3016208 ns  accesses=737280
+>>> latency = 4.09 ns/access  (sink=0x4d11cac00000)
+  [median/3] latency = 4.63 ns/access
+
+  --- [C0-A725-HP 9728KB]  cpu=0  size=9728KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x54f181200000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x52d85c200000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4a8351e00000  alloc=10240 KB  chain=9728 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9728 KB  n_lines=155648  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3481520 ns  accesses=778240
+>>> latency = 4.47 ns/access  (sink=0x54f181200000)
+  [median/3] latency = 4.47 ns/access
+
+  --- [C0-A725-HP 10240KB]  cpu=0  size=10240KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4326a2e00000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5e39ec800000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5c1ac4a00000  alloc=10240 KB  chain=10240 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3707984 ns  accesses=819200
+>>> latency = 4.53 ns/access  (sink=0x4326a2e00000)
+  [median/3] latency = 4.53 ns/access
+
+  --- [C0-A725-HP 12288KB]  cpu=0  size=12288KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x40180c000000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x56e1a9c00000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x58bc91000000  alloc=12288 KB  chain=12288 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=7321344 ns  accesses=983040
+>>> latency = 7.45 ns/access  (sink=0x40180c000000)
+  [median/3] latency = 7.45 ns/access
+
+  --- [C0-A725-HP 14336KB]  cpu=0  size=14336KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x50c7ad600000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5628ea800000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4c638d000000  alloc=14336 KB  chain=14336 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=12117360 ns  accesses=1146880
+>>> latency = 10.57 ns/access  (sink=0x50c7ad600000)
+  [median/3] latency = 9.88 ns/access
+
+  --- [C0-A725-HP 16384KB]  cpu=0  size=16384KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4db900e00000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x46124b800000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4c0558a00000  alloc=16384 KB  chain=16384 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=20974192 ns  accesses=1310720
+>>> latency = 16.00 ns/access  (sink=0x4db900e00000)
+  [median/3] latency = 16.00 ns/access
+
+  -- Section 5.2: C0-X925 cpu5 hugepage boundary --
+
+  --- [C0-X925-HP 4096KB]  cpu=5  size=4096KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x516538400000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4c6252800000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x49c22c600000  alloc=4096 KB  chain=4096 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1573920 ns  accesses=327680
+>>> latency = 4.80 ns/access  (sink=0x516538400000)
+  [median/3] latency = 4.97 ns/access
+
+  --- [C0-X925-HP 6144KB]  cpu=5  size=6144KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5a471e000000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5649fa800000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4d6850a00000  alloc=6144 KB  chain=6144 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2653456 ns  accesses=491520
+>>> latency = 5.40 ns/access  (sink=0x5a471e000000)
+  [median/3] latency = 5.36 ns/access
+
+  --- [C0-X925-HP 7168KB]  cpu=5  size=7168KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5c1c0d600000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5733b5000000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x44f285200000  alloc=8192 KB  chain=7168 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7168 KB  n_lines=114688  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2989152 ns  accesses=573440
+>>> latency = 5.21 ns/access  (sink=0x5c1c0d600000)
+  [median/3] latency = 5.21 ns/access
+
+  --- [C0-X925-HP 7680KB]  cpu=5  size=7680KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x44302dc00000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x539456800000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4f5e58a00000  alloc=8192 KB  chain=7680 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7680 KB  n_lines=122880  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3012528 ns  accesses=614400
+>>> latency = 4.90 ns/access  (sink=0x44302dc00000)
+  [median/3] latency = 4.95 ns/access
+
+  --- [C0-X925-HP 8192KB]  cpu=5  size=8192KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x570de1000000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x555c46400000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x467d78a00000  alloc=8192 KB  chain=8192 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3409328 ns  accesses=655360
+>>> latency = 5.20 ns/access  (sink=0x570de1000000)
+  [median/3] latency = 5.20 ns/access
+
+  --- [C0-X925-HP 8704KB]  cpu=5  size=8704KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x40d289c00000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5ce3cea00000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x51ecffc00000  alloc=10240 KB  chain=8704 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8704 KB  n_lines=139264  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3500720 ns  accesses=696320
+>>> latency = 5.03 ns/access  (sink=0x40d289c00000)
+  [median/3] latency = 5.03 ns/access
+
+  --- [C0-X925-HP 9216KB]  cpu=5  size=9216KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x44e36e000000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x563469600000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5a68e2a00000  alloc=10240 KB  chain=9216 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9216 KB  n_lines=147456  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3791232 ns  accesses=737280
+>>> latency = 5.14 ns/access  (sink=0x44e36e000000)
+  [median/3] latency = 5.14 ns/access
+
+  --- [C0-X925-HP 9728KB]  cpu=5  size=9728KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5b10f5400000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x459118a00000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5f1d41600000  alloc=10240 KB  chain=9728 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9728 KB  n_lines=155648  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3961184 ns  accesses=778240
+>>> latency = 5.09 ns/access  (sink=0x5b10f5400000)
+  [median/3] latency = 5.09 ns/access
+
+  --- [C0-X925-HP 10240KB]  cpu=5  size=10240KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5e024cc00000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4358d7400000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x580a95e00000  alloc=10240 KB  chain=10240 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4039776 ns  accesses=819200
+>>> latency = 4.93 ns/access  (sink=0x5e024cc00000)
+  [median/3] latency = 4.86 ns/access
+
+  --- [C0-X925-HP 12288KB]  cpu=5  size=12288KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4170aec00000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4d25c4400000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x43a2e1000000  alloc=12288 KB  chain=12288 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4374688 ns  accesses=983040
+>>> latency = 4.45 ns/access  (sink=0x4170aec00000)
+  [median/3] latency = 4.64 ns/access
+
+  --- [C0-X925-HP 14336KB]  cpu=5  size=14336KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5e4839400000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4ae279400000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5e2e73000000  alloc=14336 KB  chain=14336 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4827200 ns  accesses=1146880
+>>> latency = 4.21 ns/access  (sink=0x5e4839400000)
+  [median/3] latency = 4.21 ns/access
+
+  --- [C0-X925-HP 16384KB]  cpu=5  size=16384KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x41d775200000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x41be2f600000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x513923400000  alloc=16384 KB  chain=16384 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=5488768 ns  accesses=1310720
+>>> latency = 4.19 ns/access  (sink=0x41d775200000)
+  [median/3] latency = 4.24 ns/access
+
+  -- Section 5.3: C1-A725 cpu10 hugepage boundary --
+
+  --- [C1-A725-HP 4096KB]  cpu=10  size=4096KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x55f284200000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x43a63d000000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x44f7c9e00000  alloc=4096 KB  chain=4096 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1843744 ns  accesses=327680
+>>> latency = 5.63 ns/access  (sink=0x55f284200000)
+  [median/3] latency = 5.49 ns/access
+
+  --- [C1-A725-HP 6144KB]  cpu=10  size=6144KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x57db4d200000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4b3f0f200000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x50dcb8600000  alloc=6144 KB  chain=6144 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1825968 ns  accesses=491520
+>>> latency = 3.71 ns/access  (sink=0x57db4d200000)
+  [median/3] latency = 3.71 ns/access
+
+  --- [C1-A725-HP 7168KB]  cpu=10  size=7168KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x533f57200000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x56e377600000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x50ffe2200000  alloc=8192 KB  chain=7168 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7168 KB  n_lines=114688  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2202400 ns  accesses=573440
+>>> latency = 3.84 ns/access  (sink=0x533f57200000)
+  [median/3] latency = 3.82 ns/access
+
+  --- [C1-A725-HP 7680KB]  cpu=10  size=7680KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x51c9e1e00000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x540a9c800000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x511221000000  alloc=8192 KB  chain=7680 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7680 KB  n_lines=122880  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2314688 ns  accesses=614400
+>>> latency = 3.77 ns/access  (sink=0x51c9e1e00000)
+  [median/3] latency = 3.77 ns/access
+
+  --- [C1-A725-HP 8192KB]  cpu=10  size=8192KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x501501400000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x521b55600000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x570e91200000  alloc=8192 KB  chain=8192 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2458304 ns  accesses=655360
+>>> latency = 3.75 ns/access  (sink=0x501501400000)
+  [median/3] latency = 3.84 ns/access
+
+  --- [C1-A725-HP 8704KB]  cpu=10  size=8704KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4ac7b1400000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x529866000000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4837a9400000  alloc=10240 KB  chain=8704 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8704 KB  n_lines=139264  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2796160 ns  accesses=696320
+>>> latency = 4.02 ns/access  (sink=0x4ac7b1400000)
+  [median/3] latency = 3.96 ns/access
+
+  --- [C1-A725-HP 9216KB]  cpu=10  size=9216KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x499256c00000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x49a92ba00000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4f9ea9e00000  alloc=10240 KB  chain=9216 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9216 KB  n_lines=147456  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3054912 ns  accesses=737280
+>>> latency = 4.14 ns/access  (sink=0x499256c00000)
+  [median/3] latency = 4.07 ns/access
+
+  --- [C1-A725-HP 9728KB]  cpu=10  size=9728KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5fb021000000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x41c9e1600000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x401d19600000  alloc=10240 KB  chain=9728 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9728 KB  n_lines=155648  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4269120 ns  accesses=778240
+>>> latency = 5.49 ns/access  (sink=0x5fb021000000)
+  [median/3] latency = 5.40 ns/access
+
+  --- [C1-A725-HP 10240KB]  cpu=10  size=10240KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x55cd63400000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5fc840c00000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x49f0b3800000  alloc=10240 KB  chain=10240 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4024896 ns  accesses=819200
+>>> latency = 4.91 ns/access  (sink=0x55cd63400000)
+  [median/3] latency = 4.91 ns/access
+
+  --- [C1-A725-HP 12288KB]  cpu=10  size=12288KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5d46a3600000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x528f32000000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x46e82b200000  alloc=12288 KB  chain=12288 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=7467904 ns  accesses=983040
+>>> latency = 7.60 ns/access  (sink=0x5d46a3600000)
+  [median/3] latency = 6.54 ns/access
+
+  --- [C1-A725-HP 14336KB]  cpu=10  size=14336KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4aeeb0000000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5f9b83400000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4fba45a00000  alloc=14336 KB  chain=14336 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=9656576 ns  accesses=1146880
+>>> latency = 8.42 ns/access  (sink=0x4aeeb0000000)
+  [median/3] latency = 8.42 ns/access
+
+  --- [C1-A725-HP 16384KB]  cpu=10  size=16384KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x432452400000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x46c2cd400000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x47f5e3a00000  alloc=16384 KB  chain=16384 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=13678144 ns  accesses=1310720
+>>> latency = 10.44 ns/access  (sink=0x432452400000)
+  [median/3] latency = 10.71 ns/access
+
+  -- Section 5.4: C1-X925 cpu15 hugepage boundary --
+
+  --- [C1-X925-HP 4096KB]  cpu=15  size=4096KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x545394800000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x47269f000000  alloc=4096 KB  chain=4096 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x445298800000  alloc=4096 KB  chain=4096 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=4096 KB  n_lines=65536  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=1529296 ns  accesses=327680
+>>> latency = 4.67 ns/access  (sink=0x545394800000)
+  [median/3] latency = 4.67 ns/access
+
+  --- [C1-X925-HP 6144KB]  cpu=15  size=6144KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5ff4e8000000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5cfffb400000  alloc=6144 KB  chain=6144 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x58fca2c00000  alloc=6144 KB  chain=6144 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=6144 KB  n_lines=98304  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2461056 ns  accesses=491520
+>>> latency = 5.01 ns/access  (sink=0x5ff4e8000000)
+  [median/3] latency = 5.01 ns/access
+
+  --- [C1-X925-HP 7168KB]  cpu=15  size=7168KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x55614e200000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4b235aa00000  alloc=8192 KB  chain=7168 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4acd49600000  alloc=8192 KB  chain=7168 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7168 KB  n_lines=114688  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=2679440 ns  accesses=573440
+>>> latency = 4.67 ns/access  (sink=0x55614e200000)
+  [median/3] latency = 4.72 ns/access
+
+  --- [C1-X925-HP 7680KB]  cpu=15  size=7680KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x591284600000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x47416d200000  alloc=8192 KB  chain=7680 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5e67e9200000  alloc=8192 KB  chain=7680 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=7680 KB  n_lines=122880  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3031664 ns  accesses=614400
+>>> latency = 4.93 ns/access  (sink=0x591284600000)
+  [median/3] latency = 4.96 ns/access
+
+  --- [C1-X925-HP 8192KB]  cpu=15  size=8192KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x5efe68200000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x578e8ae00000  alloc=8192 KB  chain=8192 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4fec30200000  alloc=8192 KB  chain=8192 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8192 KB  n_lines=131072  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3038832 ns  accesses=655360
+>>> latency = 4.64 ns/access  (sink=0x5efe68200000)
+  [median/3] latency = 4.68 ns/access
+
+  --- [C1-X925-HP 8704KB]  cpu=15  size=8704KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4ffa31000000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5089ac600000  alloc=10240 KB  chain=8704 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x560f98200000  alloc=10240 KB  chain=8704 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=8704 KB  n_lines=139264  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3274992 ns  accesses=696320
+>>> latency = 4.70 ns/access  (sink=0x4ffa31000000)
+  [median/3] latency = 4.70 ns/access
+
+  --- [C1-X925-HP 9216KB]  cpu=15  size=9216KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x558590600000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4043c2600000  alloc=10240 KB  chain=9216 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4661b9600000  alloc=10240 KB  chain=9216 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9216 KB  n_lines=147456  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3438832 ns  accesses=737280
+>>> latency = 4.66 ns/access  (sink=0x558590600000)
+  [median/3] latency = 4.66 ns/access
+
+  --- [C1-X925-HP 9728KB]  cpu=15  size=9728KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x530801c00000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5575ac600000  alloc=10240 KB  chain=9728 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4e2a27200000  alloc=10240 KB  chain=9728 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=9728 KB  n_lines=155648  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3581776 ns  accesses=778240
+>>> latency = 4.60 ns/access  (sink=0x530801c00000)
+  [median/3] latency = 4.60 ns/access
+
+  --- [C1-X925-HP 10240KB]  cpu=15  size=10240KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x530d38600000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4f056b400000  alloc=10240 KB  chain=10240 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x487edc000000  alloc=10240 KB  chain=10240 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=10240 KB  n_lines=163840  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=3693216 ns  accesses=819200
+>>> latency = 4.51 ns/access  (sink=0x530d38600000)
+  [median/3] latency = 4.50 ns/access
+
+  --- [C1-X925-HP 12288KB]  cpu=15  size=12288KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x40df48e00000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x5d159dc00000  alloc=12288 KB  chain=12288 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x43c28e400000  alloc=12288 KB  chain=12288 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=12288 KB  n_lines=196608  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4232048 ns  accesses=983040
+>>> latency = 4.31 ns/access  (sink=0x40df48e00000)
+  [median/3] latency = 4.31 ns/access
+
+  --- [C1-X925-HP 14336KB]  cpu=15  size=14336KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x4d03c6000000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x551c47200000  alloc=14336 KB  chain=14336 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x4b723ae00000  alloc=14336 KB  chain=14336 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=14336 KB  n_lines=229376  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=4735744 ns  accesses=1146880
+>>> latency = 4.13 ns/access  (sink=0x4d03c6000000)
+  [median/3] latency = 4.13 ns/access
+
+  --- [C1-X925-HP 16384KB]  cpu=15  size=16384KB  mode=warm/hugepage ---
+[hugepage] 2MB hugepage alloc OK: addr=0x515cf8400000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x522befa00000  alloc=16384 KB  chain=16384 KB
+[hugepage] 2MB hugepage alloc OK: addr=0x58b177800000  alloc=16384 KB  chain=16384 KB
+  [lat] === chase_pmu v2.7.3 ===
+size=16384 KB  n_lines=262144  warm=5  meas_rounds=5  seed=42  hugepage=1
+Warming 5 pass(es)...
+elapsed=5256592 ns  accesses=1310720
+>>> latency = 4.01 ns/access  (sink=0x515cf8400000)
+  [median/3] latency = 4.10 ns/access
+
+============================================================
+=== Done: ../data/20260611_v2.7.5/raw/run_20260611_143122.txt ===
+============================================================
+
+Quick Summary (median values):
+  (W)=warm  (W0)=cold/warm0  (DE)=cold/dbl-evict  (HP)=hugepage
+
+  Label                                            Size  Mode                  Latency
+  -------------------------------------------- --------  ------------------ ----------
+  C0-X925 L2-hit                                    1MB  warm                   4.21 ns
+  C0-X925 L2->L3 boundary                           2MB  warm                   5.30 ns
+  C0-X925 L3-hit                                    4MB  warm                   6.47 ns
+  C0-X925 L3-hit+                                   6MB  warm                   6.68 ns
+  C0-X925 L3-tail                                   8MB  warm                   6.25 ns
+  C0-X925 4MB dbl-evict                             4MB  cold/dbl-evict        15.34 ns
+  C0-X925 6MB dbl-evict                             6MB  cold/dbl-evict        19.34 ns
+  C0-X925 8MB dbl-evict                             8MB  cold/dbl-evict        28.35 ns
+  C0-X925 10MB cold/warm0                          10MB  cold/warm0            43.01 ns
+  C0-X925 12MB cold/warm0                          12MB  cold/warm0            52.02 ns
+  C0-X925 16MB cold/warm0                          16MB  cold/warm0            63.69 ns
+  C0-X925 20MB cold/warm0                          20MB  cold/warm0            74.59 ns
+  C0-X925 32MB cold/warm0                          32MB  cold/warm0            96.47 ns
+  C0-X925 64MB cold/warm0                          64MB  cold/warm0           110.91 ns
+  C0-A725 L2-scan 128KB                           128KB  warm                   3.24 ns
+  C0-A725 L2-scan 256KB                           256KB  warm                   3.68 ns
+  C0-A725 L2-scan 384KB                           384KB  warm                   4.89 ns
+  C0-A725 L2-scan 448KB                           448KB  warm                   5.72 ns
+  C0-A725 L2-scan 480KB                           480KB  warm                   5.75 ns
+  C0-A725 L2-scan 512KB                           512KB  warm                   5.86 ns
+  C0-A725 L2-scan 576KB                           576KB  warm                   5.65 ns
+  C0-A725 L2-scan 640KB                           640KB  warm                   5.75 ns
+  C0-A725 L2-scan 768KB                           768KB  warm                   5.91 ns
+  C0-A725 L2-scan 1024KB                         1024KB  warm                   5.53 ns
+  C0-A725 L3-hit                                    4MB  warm                  22.33 ns
+  C0-A725 L3-hit+                                   6MB  warm                  10.52 ns
+  C0-A725 L3-tail                                   8MB  warm                   7.56 ns
+  C0-A725 SLC-hit                                  12MB  warm                  11.45 ns
+  C0-A725 SLC-hit+                                 16MB  warm                  23.73 ns
+  C0-A725 4MB dbl-evict                             4MB  cold/dbl-evict        27.66 ns
+  C0-A725 6MB dbl-evict                             6MB  cold/dbl-evict        36.26 ns
+  C0-A725 8MB dbl-evict                             8MB  cold/dbl-evict        50.68 ns
+  C0-A725 10MB cold/warm0                          10MB  cold/warm0            66.81 ns
+  C0-A725 16MB cold/warm0                          16MB  cold/warm0            85.81 ns
+  C0-A725 32MB cold/warm0                          32MB  cold/warm0           118.07 ns
+  C0-A725 64MB cold/warm0                          64MB  cold/warm0           134.86 ns
+  C1-X925 L2-hit                                    1MB  warm                   4.11 ns
+  C1-X925 L2->L3 boundary                           2MB  warm                   5.21 ns
+  C1-X925 L3-hit                                    4MB  warm                   6.21 ns
+  C1-X925 L3-hit+                                   8MB  warm                   5.98 ns
+  C1-X925 L3-hit++                                 12MB  warm                   5.59 ns
+  C1-X925 L3-tail                                  16MB  warm                   5.08 ns
+  C1-X925 8MB dbl-evict                             8MB  cold/dbl-evict        15.63 ns
+  C1-X925 12MB dbl-evict                           12MB  cold/dbl-evict        21.81 ns
+  C1-X925 16MB dbl-evict                           16MB  cold/dbl-evict        32.81 ns
+  C1-X925 18MB cold/warm0                          18MB  cold/warm0            41.22 ns
+  C1-X925 20MB cold/warm0                          20MB  cold/warm0            45.81 ns
+  C1-X925 24MB cold/warm0                          24MB  cold/warm0            53.72 ns
+  C1-X925 28MB cold/warm0                          28MB  cold/warm0            62.25 ns
+  C1-X925 32MB cold/warm0                          32MB  cold/warm0            70.93 ns
+  C1-X925 64MB cold/warm0                          64MB  cold/warm0           101.13 ns
+  C1-A725 L2-scan 128KB                           128KB  warm                   3.24 ns
+  C1-A725 L2-scan 256KB                           256KB  warm                   3.69 ns
+  C1-A725 L2-scan 384KB                           384KB  warm                   4.82 ns
+  C1-A725 L2-scan 448KB                           448KB  warm                   4.74 ns
+  C1-A725 L2-scan 480KB                           480KB  warm                   4.94 ns
+  C1-A725 L2-scan 512KB                           512KB  warm                   5.15 ns
+  C1-A725 L2-scan 576KB                           576KB  warm                   6.00 ns
+  C1-A725 L2-scan 640KB                           640KB  warm                   5.51 ns
+  C1-A725 L2-scan 768KB                           768KB  warm                   5.71 ns
+  C1-A725 L2-scan 1024KB                         1024KB  warm                   5.47 ns
+  C1-A725 L3-hit                                    4MB  warm                  21.99 ns
+  C1-A725 L3-hit+                                   6MB  warm                   8.71 ns
+  C1-A725 L3-tail                                   8MB  warm                   7.76 ns
+  C1-A725 SLC-hit                                  12MB  warm                  10.56 ns
+  C1-A725 SLC-hit+                                 16MB  warm                  17.81 ns
+  C1-A725 8MB dbl-evict                             8MB  cold/dbl-evict        29.14 ns
+  C1-A725 12MB dbl-evict                           12MB  cold/dbl-evict        38.84 ns
+  C1-A725 16MB dbl-evict                           16MB  cold/dbl-evict        50.96 ns
+  C1-A725 18MB cold/warm0                          18MB  cold/warm0            63.93 ns
+  C1-A725 24MB cold/warm0                          24MB  cold/warm0            83.96 ns
+  C1-A725 32MB cold/warm0                          32MB  cold/warm0            99.40 ns
+  C1-A725 64MB cold/warm0                          64MB  cold/warm0           126.89 ns
+  C0-A725-HP 4096KB                              4096KB  warm/hugepage          4.31 ns
+  C0-A725-HP 6144KB                              6144KB  warm/hugepage          3.82 ns
+  C0-A725-HP 7168KB                              7168KB  warm/hugepage          3.77 ns
+  C0-A725-HP 7680KB                              7680KB  warm/hugepage          3.93 ns
+  C0-A725-HP 8192KB                              8192KB  warm/hugepage          3.81 ns
+  C0-A725-HP 8704KB                              8704KB  warm/hugepage          4.16 ns
+  C0-A725-HP 9216KB                              9216KB  warm/hugepage          4.63 ns
+  C0-A725-HP 9728KB                              9728KB  warm/hugepage          4.47 ns
+  C0-A725-HP 10240KB                            10240KB  warm/hugepage          4.53 ns
+  C0-A725-HP 12288KB                            12288KB  warm/hugepage          7.45 ns
+  C0-A725-HP 14336KB                            14336KB  warm/hugepage          9.88 ns
+  C0-A725-HP 16384KB                            16384KB  warm/hugepage         16.00 ns
+  C0-X925-HP 4096KB                              4096KB  warm/hugepage          4.97 ns
+  C0-X925-HP 6144KB                              6144KB  warm/hugepage          5.36 ns
+  C0-X925-HP 7168KB                              7168KB  warm/hugepage          5.21 ns
+  C0-X925-HP 7680KB                              7680KB  warm/hugepage          4.95 ns
+  C0-X925-HP 8192KB                              8192KB  warm/hugepage          5.20 ns
+  C0-X925-HP 8704KB                              8704KB  warm/hugepage          5.03 ns
+  C0-X925-HP 9216KB                              9216KB  warm/hugepage          5.14 ns
+  C0-X925-HP 9728KB                              9728KB  warm/hugepage          5.09 ns
+  C0-X925-HP 10240KB                            10240KB  warm/hugepage          4.86 ns
+  C0-X925-HP 12288KB                            12288KB  warm/hugepage          4.64 ns
+  C0-X925-HP 14336KB                            14336KB  warm/hugepage          4.21 ns
+  C0-X925-HP 16384KB                            16384KB  warm/hugepage          4.24 ns
+  C1-A725-HP 4096KB                              4096KB  warm/hugepage          5.49 ns
+  C1-A725-HP 6144KB                              6144KB  warm/hugepage          3.71 ns
+  C1-A725-HP 7168KB                              7168KB  warm/hugepage          3.82 ns
+  C1-A725-HP 7680KB                              7680KB  warm/hugepage          3.77 ns
+  C1-A725-HP 8192KB                              8192KB  warm/hugepage          3.84 ns
+  C1-A725-HP 8704KB                              8704KB  warm/hugepage          3.96 ns
+  C1-A725-HP 9216KB                              9216KB  warm/hugepage          4.07 ns
+  C1-A725-HP 9728KB                              9728KB  warm/hugepage          5.40 ns
+  C1-A725-HP 10240KB                            10240KB  warm/hugepage          4.91 ns
+  C1-A725-HP 12288KB                            12288KB  warm/hugepage          6.54 ns
+  C1-A725-HP 14336KB                            14336KB  warm/hugepage          8.42 ns
+  C1-A725-HP 16384KB                            16384KB  warm/hugepage         10.71 ns
+  C1-X925-HP 4096KB                              4096KB  warm/hugepage          4.67 ns
+  C1-X925-HP 6144KB                              6144KB  warm/hugepage          5.01 ns
+  C1-X925-HP 7168KB                              7168KB  warm/hugepage          4.72 ns
+  C1-X925-HP 7680KB                              7680KB  warm/hugepage          4.96 ns
+  C1-X925-HP 8192KB                              8192KB  warm/hugepage          4.68 ns
+  C1-X925-HP 8704KB                              8704KB  warm/hugepage          4.70 ns
+  C1-X925-HP 9216KB                              9216KB  warm/hugepage          4.66 ns
+  C1-X925-HP 9728KB                              9728KB  warm/hugepage          4.60 ns
+  C1-X925-HP 10240KB                            10240KB  warm/hugepage          4.50 ns
+  C1-X925-HP 12288KB                            12288KB  warm/hugepage          4.31 ns
+  C1-X925-HP 14336KB                            14336KB  warm/hugepage          4.13 ns
+  C1-X925-HP 16384KB                            16384KB  warm/hugepage          4.10 ns
