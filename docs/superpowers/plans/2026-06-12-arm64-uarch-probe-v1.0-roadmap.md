@@ -108,4 +108,3 @@ After each phase:
 3. Review public interfaces and data formats before the next plan is written.
 4. Commit phase acceptance evidence.
 5. Merge through GitHub PR before beginning the next phase branch.
-
