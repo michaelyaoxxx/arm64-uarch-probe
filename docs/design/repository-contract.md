@@ -18,8 +18,8 @@ Mac measurements validate software behavior only; they are not GB10 baselines.
 ## Runtime and Development Dependencies
 
 GB10 runtime code may depend on compiled probes, Bash/system utilities, and the
-Python standard library. Third-party dependencies are development or analysis
-dependencies and must be installed through repository-owned metadata.
+Python standard library. Third-party Python packages are development or
+analysis dependencies and must be installed through repository-owned metadata.
 
 ## Build and Verification Contract
 
@@ -32,9 +32,10 @@ dependencies and must be installed through repository-owned metadata.
 
 ## Legacy Evidence
 
-Current versioned `runner/run_pmu*.sh` scripts and tracked `data/` files are
-frozen historical evidence. Verify them with `make legacy-check`. Do not change
-them for v1.0 features. Later migration requires an explicit compatibility plan.
+Current versioned runner scripts and tracked data files are frozen historical
+evidence. The current versioned experiment runners are `runner/run_pmu*.sh`.
+Verify them with `make legacy-check`. Do not change them for v1.0 features.
+Later migration requires an explicit compatibility plan.
 
 ## Result Retention
 
