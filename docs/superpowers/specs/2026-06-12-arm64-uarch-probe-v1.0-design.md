@@ -34,7 +34,9 @@ protocol, or reports.
   documentation.
 - A Chips and Cheese comparison that distinguishes agreement, differences,
   and experiments not yet covered.
-- Design roadmaps for deeper X925 and A725 exploration.
+- Design roadmaps for X925 and A725 microarchitecture deep dives, including
+  ROB capacity, decode and dispatch width, execution-port and functional-unit
+  structure, load/store behavior, branch prediction, and cache/TLB behavior.
 
 ### 2.2 Excluded from v1.0
 
@@ -239,16 +241,117 @@ traceability.
 
 ## 7. Unified Control Surface
 
-The stable interface will be a Python standard-library control layer. Exact
-flags and configuration syntax will be finalized after implementation-level
-analysis, but the conceptual operations are:
+The stable interface will be a Python standard-library control layer. It must
+make scenarios first-class selectable targets so users can discover, inspect,
+plan, run, combine, resume, and compare them without invoking experiment-
+specific scripts.
+
+### 7.1 Stable Target Model
+
+The control surface accepts four target types:
+
+- `experiment`: all scenarios belonging to an experiment, such as
+  `cache-latency`.
+- `scenario`: one independently runnable test item, such as `l1-latency`,
+  `dram-latency`, or `cross-cluster`.
+- `profile`: a committed named composition of experiments, scenarios, and
+  selectors, such as `v1.0-smoke` or `v1.0-baseline`.
+- `case`: one stable expanded case ID, primarily used for diagnosis, comparison,
+  or exact reruns.
+
+The canonical scenario name is the qualified `experiment/scenario` form, for
+example `cache-latency/l2-latency` and `migration-latency/cross-cluster`.
+Unqualified short names such as `l2-latency` are convenience aliases only when
+they resolve unambiguously. Committed profiles, result records, and
+documentation use canonical qualified names.
+
+The v1.0 scenario catalog includes:
 
 ```text
+cache-latency/l1-latency
+cache-latency/l2-latency
+cache-latency/l3-latency
+cache-latency/slc-latency
+cache-latency/dram-latency
+
+migration-latency/same-core
+migration-latency/same-cluster
+migration-latency/cross-cluster
+```
+
+### 7.2 Discovery and Planning
+
+Users must be able to discover the available interface before running tests:
+
+```text
+probe list experiments
+probe list scenarios
+probe show cache-latency/l2-latency
+probe show --profile v1.0-baseline
+```
+
+`show` describes capability requirements, environment policy, default
+selectors, parameter space, expected duration, and result fields.
+
+`plan` accepts the same targets and selectors as `run`. It expands the exact
+cases, environment-transaction phases, skipped cases, privilege requirements,
+and estimated work without changing the machine:
+
+```text
+probe plan cache-latency/l1-latency
+probe plan cache-latency/l2-latency cache-latency/dram-latency
+probe plan migration-latency/cross-cluster
+probe plan --profile v1.0-baseline
+```
+
+### 7.3 Individual and Combined Execution
+
+The same invocation model supports one scenario, arbitrary scenario
+combinations, a complete experiment, or a committed profile:
+
+```text
+probe run cache-latency/l1-latency
+probe run cache-latency/l2-latency cache-latency/dram-latency
+probe run migration-latency/cross-cluster
+probe run cache-latency
+probe run --profile v1.0-baseline
+```
+
+Selectors narrow the selected targets without changing their definitions.
+Required common selector dimensions include platform, cluster, core group,
+working-set range, page policy, sample count, and case ID. Scenarios may add
+typed selectors specific to their measurement semantics.
+
+The interface must support behavior equivalent to:
+
+```text
+probe plan cache-latency/l2-latency --core-group X925
+probe run cache-latency/l2-latency --cluster C1 --page-policy hugepage
+probe run cache-latency/dram-latency --working-set 32MB,64MB,128MB
+probe run migration-latency/cross-cluster --samples 3
+probe run --case gb10/cache-latency/l2/C0-X925/2048KB/hugepage/warm
+```
+
+The examples establish required selection behavior; exact option spelling is
+finalized during implementation-level interface design.
+
+Multiple targets are expanded into one execution plan. Duplicate case IDs are
+removed. Conflicting environment policies produce separate visible transaction
+phases. Unsupported cases are reported during planning rather than silently
+omitted.
+
+### 7.4 Operations
+
+The conceptual operations are:
+
+```text
+probe list         discover experiments, scenarios, profiles, and prior runs
+probe show         inspect one target or profile
 probe doctor       inspect dependencies, capabilities, and recovery journals
-probe plan         expand cases and show required environment changes
-probe run          execute a plan inside environment transactions
-probe resume       continue incomplete cases
-probe analyze      calculate statistics and compare baselines
+probe plan         expand selected targets and show environment changes
+probe run          execute selected targets inside environment transactions
+probe resume       continue incomplete cases from a prior run
+probe analyze      calculate statistics and compare selected runs or baselines
 probe report       generate figures and Markdown reports
 probe restore      recover an interrupted environment transaction
 ```
@@ -256,12 +359,20 @@ probe restore      recover an interrupted environment transaction
 Rules:
 
 - `plan` is read-only and reviewable before execution.
+- `plan` and `run` accept the same target and selector model.
 - Formal runs reference a committed profile; CLI overrides are recorded.
+- Profiles compose targets and selectors; they do not invoke special scripts.
+- `resume` and exact reruns operate on stable case IDs from an existing run.
 - Unsupported capabilities are identified during planning.
 - `run` writes structured results but does not generate figures.
 - Analysis and reporting can run offline on Mac.
 - Makefile targets wrap common development tasks but do not contain experiment
   orchestration logic.
+
+The target types, scenario catalog, composition behavior, and operation
+semantics above are v1.0 interface requirements. Exact executable naming,
+option spelling, configuration-file encoding, and selector syntax will be
+finalized after implementation-level analysis and reviewed before coding.
 
 The GB10 runtime depends only on compiled probes, Bash/system utilities, and
 Python's standard library. Development, testing, analysis, and plotting use a
@@ -360,8 +471,10 @@ Published conclusions must distinguish:
   [GB10 memory-subsystem article](https://chipsandcheese.com/p/inside-nvidia-gb10s-memory-subsystem),
   including agreements, differences, methodological differences, and missing
   experiments.
-- `docs/roadmap/`: X925/A725 exploration plus bandwidth, load contention,
-  CPU/GPU interference, and complete core-to-core studies.
+- `docs/roadmap/`: X925/A725 microarchitecture deep dives covering ROB capacity,
+  decode and dispatch width, execution resources, load/store behavior, branch
+  prediction, cache/TLB behavior, plus bandwidth, load contention, CPU/GPU
+  interference, and complete core-to-core studies.
 
 Figure-generation code, structured baseline inputs, and generated publication
 figures are committed so GitHub readers can review the report directly.
