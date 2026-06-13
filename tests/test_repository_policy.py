@@ -10,7 +10,11 @@ def ignored(path: str) -> bool:
     result = subprocess.run(
         ["git", "check-ignore", "--no-index", "-q", path],
         cwd=ROOT,
+        capture_output=True,
+        text=True,
     )
+    if result.returncode not in (0, 1):
+        result.check_returncode()
     return result.returncode == 0
 
 
@@ -18,10 +22,15 @@ class RepositoryPolicyTests(unittest.TestCase):
     def test_temporary_paths_are_ignored(self):
         for path in (
             "build/bin/chase_pmu",
+            "tools/bin/chase_pmu",
+            "bin/chase_pmu",
+            "backup/archive.tar",
             "results/runs/example/manifest.json",
             "results/.locks/active.lock",
             "results/.recovery/session.json",
             ".venv/bin/python",
+            ".pytest_cache/v/cache/nodeids",
+            ".ruff_cache/content",
             "arm64_probe/__pycache__/module.pyc",
         ):
             with self.subTest(path=path):
@@ -34,6 +43,28 @@ class RepositoryPolicyTests(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 self.assertFalse(ignored(path))
+
+    def test_root_local_directory_names_are_trackable_below_release_paths(self):
+        for path in (
+            "results/baselines/v1.0/build/environment.json",
+            "results/baselines/v1.0/tools/bin/helper",
+            "docs/assets/v1.0/bin/cache-latency.svg",
+            "docs/assets/v2.0/backup/chart.svg",
+            "docs/assets/v1.0/.venv/environment.json",
+            "results/baselines/v1.0/.pytest_cache/summary.json",
+            "results/baselines/v1.0/.ruff_cache/summary.json",
+            "docs/assets/v1.0/results/runs/manifest.json",
+            "docs/assets/v1.0/results/.locks/active.lock",
+            "docs/assets/v1.0/results/.recovery/session.json",
+        ):
+            with self.subTest(path=path):
+                self.assertFalse(ignored(path))
+
+    def test_git_errors_are_not_treated_as_trackable(self):
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            ignored("../outside")
+
+        self.assertGreater(error.exception.returncode, 1)
 
     def test_policy_documents_exist(self):
         for path in (
