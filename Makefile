@@ -1,24 +1,30 @@
 CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra -g
 
-BUILD_DIR := build
-BIN_DIR := $(BUILD_DIR)/bin
-UNAME_S := $(shell uname -s)
+override BUILD_DIR := build
+override BIN_DIR := $(BUILD_DIR)/bin
+override HOST_OS := $(shell uname -s)
+override REQUESTED_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 
-CHASE_PMU_SRC := src/chase_pmu/chase_pmu_v2.7.3.c
-EVICT_SLC_SRC := src/evict_slc/evict_slc_v1.2.c
-CHASE_MIGRATE_SRC := src/chase_migrate/chase_migrate_v1.0.c
+override CHASE_PMU_SRC := src/chase_pmu/chase_pmu_v2.7.3.c
+override EVICT_SLC_SRC := src/evict_slc/evict_slc_v1.2.c
+override CHASE_MIGRATE_SRC := src/chase_migrate/chase_migrate_v1.0.c
 
-CHASE_PMU_BIN := $(BIN_DIR)/chase_pmu
-EVICT_SLC_BIN := $(BIN_DIR)/evict_slc
-CHASE_MIGRATE_BIN := $(BIN_DIR)/chase_migrate
+override CHASE_PMU_BIN := $(BIN_DIR)/chase_pmu
+override EVICT_SLC_BIN := $(BIN_DIR)/evict_slc
+override CHASE_MIGRATE_BIN := $(BIN_DIR)/chase_migrate
 
-LINUX_BINS := $(CHASE_PMU_BIN) $(EVICT_SLC_BIN) $(CHASE_MIGRATE_BIN)
+override LINUX_BINS := $(CHASE_PMU_BIN) $(EVICT_SLC_BIN) $(CHASE_MIGRATE_BIN)
 
-ifeq ($(UNAME_S),Linux)
-HOST_BINS := $(LINUX_BINS)
+ifeq ($(HOST_OS),Linux)
+override HOST_BINS := $(LINUX_BINS)
+else ifeq ($(HOST_OS),Darwin)
+override HOST_BINS := $(EVICT_SLC_BIN)
 else
-HOST_BINS := $(EVICT_SLC_BIN)
+override HOST_BINS :=
+ifneq ($(filter all build build-linux,$(REQUESTED_GOALS)),)
+$(error [ERROR] unsupported host: $(HOST_OS))
+endif
 endif
 
 .PHONY: all build build-linux check legacy-check shell-check show-targets clean help
@@ -26,14 +32,16 @@ endif
 all: build
 
 build: $(HOST_BINS)
-	@echo "[OK] Built probes supported on $(UNAME_S)"
+	@echo "[OK] Built probes supported on $(HOST_OS)"
 
+ifeq ($(HOST_OS),Linux)
+build-linux: $(LINUX_BINS)
+	@echo "[OK] Built all Linux ARM64 probes"
+else
 build-linux:
-	@if [ "$(UNAME_S)" != "Linux" ]; then \
-		echo "[ERROR] build-linux requires Linux" >&2; \
-		exit 2; \
-	fi
-	@$(MAKE) $(LINUX_BINS)
+	@echo "[ERROR] build-linux requires Linux" >&2
+	@exit 2
+endif
 
 $(BIN_DIR):
 	@mkdir -p $@
@@ -66,6 +74,10 @@ show-targets:
 	@echo "$(CHASE_MIGRATE_SRC) -> $(CHASE_MIGRATE_BIN) [Linux]"
 
 clean:
+	@test "$(BUILD_DIR)" = "build" || { \
+		echo "[ERROR] refusing to clean unexpected directory: $(BUILD_DIR)" >&2; \
+		exit 2; \
+	}
 	rm -rf $(BUILD_DIR)
 
 help:

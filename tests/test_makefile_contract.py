@@ -1,5 +1,7 @@
+import os
 import platform
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -12,13 +14,30 @@ EXPECTED_TARGETS = [
 ]
 
 
-def make(*arguments: str) -> subprocess.CompletedProcess[str]:
+def make(
+    *arguments: str,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["make", *arguments],
         cwd=ROOT,
+        env=env,
         text=True,
         capture_output=True,
     )
+
+
+def make_with_uname(
+    system: str,
+    *arguments: str,
+) -> subprocess.CompletedProcess[str]:
+    with tempfile.TemporaryDirectory() as tmp:
+        fake_uname = Path(tmp) / "uname"
+        fake_uname.write_text(f"#!/bin/sh\nprintf '%s\\n' '{system}'\n")
+        fake_uname.chmod(0o755)
+        env = os.environ.copy()
+        env["PATH"] = f"{tmp}{os.pathsep}{env['PATH']}"
+        return make(*arguments, env=env)
 
 
 class MakefileContractTests(unittest.TestCase):
@@ -74,7 +93,7 @@ class MakefileContractTests(unittest.TestCase):
         self.assertNotIn("src/chase_migrate/chase_migrate_v1.0.c", output)
 
     def test_linux_build_dry_run_selects_all_probes(self):
-        result = make("-B", "-n", "build", "UNAME_S=Linux")
+        result = make_with_uname("Linux", "-B", "-n", "build")
         output = result.stdout + result.stderr
 
         self.assertEqual(result.returncode, 0, output)
@@ -85,6 +104,52 @@ class MakefileContractTests(unittest.TestCase):
         ):
             with self.subTest(source=source):
                 self.assertIn(source, output)
+
+    def test_command_line_cannot_spoof_detected_platform(self):
+        spoofed = "Linux" if platform.system() != "Linux" else "Darwin"
+        result = make("-B", "-n", "build", f"HOST_OS={spoofed}", f"UNAME_S={spoofed}")
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 0, output)
+        if platform.system() == "Linux":
+            self.assertIn("src/chase_pmu/chase_pmu_v2.7.3.c", output)
+        else:
+            self.assertNotIn("src/chase_pmu/chase_pmu_v2.7.3.c", output)
+
+    def test_unknown_host_is_rejected(self):
+        result = make_with_uname("FreeBSD", "-n", "build")
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 2, output)
+        self.assertIn("unsupported host: FreeBSD", output)
+
+    def test_clean_cannot_be_redirected_by_command_line(self):
+        result = make("-n", "clean", f"BUILD_DIR={ROOT}")
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 0, output)
+        self.assertNotIn(str(ROOT), output)
+        self.assertIn("rm -rf build", output)
+
+    def test_overlapping_linux_build_goals_compile_each_probe_once(self):
+        result = make_with_uname(
+            "Linux",
+            "-B",
+            "-j8",
+            "-n",
+            "build",
+            "build-linux",
+        )
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 0, output)
+        for source in (
+            "src/chase_pmu/chase_pmu_v2.7.3.c",
+            "src/evict_slc/evict_slc_v1.2.c",
+            "src/chase_migrate/chase_migrate_v1.0.c",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(output.count(source), 1, output)
 
 
 if __name__ == "__main__":
