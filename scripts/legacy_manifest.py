@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 import fnmatch
+import functools
 import hashlib
 import json
+import os
 import stat
 import subprocess
 import sys
@@ -16,6 +18,7 @@ CANONICAL_MANIFEST = ROOT / DEFAULT_MANIFEST
 LEGACY_PATHS = ("runner/run_pmu*.sh", "data/**/*.txt")
 MANIFEST_KEYS = {"source_commit", "files"}
 HEX_DIGITS = frozenset("0123456789abcdef")
+OID_HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 REGULAR_GIT_MODES = {"100644", "100755"}
 
 
@@ -52,13 +55,56 @@ def is_canonical_manifest(path: Path) -> bool:
     return path.resolve(strict=False) == CANONICAL_MANIFEST.resolve(strict=False)
 
 
+@functools.lru_cache(maxsize=1)
+def repository_git_dir() -> Path:
+    dot_git = ROOT / ".git"
+    try:
+        mode = dot_git.lstat().st_mode
+        if stat.S_ISDIR(mode):
+            git_dir = dot_git.resolve(strict=True)
+        elif stat.S_ISREG(mode):
+            pointer = dot_git.read_text(encoding="utf-8").strip()
+            prefix = "gitdir: "
+            if not pointer.startswith(prefix):
+                raise ManifestError("invalid checkout .git file")
+            git_dir = Path(pointer[len(prefix) :])
+            if not git_dir.is_absolute():
+                git_dir = ROOT / git_dir
+            git_dir = git_dir.resolve(strict=True)
+        else:
+            raise ManifestError("checkout .git entry is not a file or directory")
+    except (OSError, UnicodeDecodeError) as error:
+        raise ManifestError("unable to resolve checkout Git directory") from error
+    if not git_dir.is_dir():
+        raise ManifestError("checkout Git directory is not a directory")
+    return git_dir
+
+
+def sanitized_git_environment() -> dict[str, str]:
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith("GIT_")
+    }
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    return environment
+
+
 def run_git(*args: str) -> subprocess.CompletedProcess:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=ROOT,
-        capture_output=True,
-    )
-    return result
+    try:
+        return subprocess.run(
+            [
+                "git",
+                f"--git-dir={repository_git_dir()}",
+                f"--work-tree={ROOT}",
+                *args,
+            ],
+            cwd=ROOT,
+            env=sanitized_git_environment(),
+            capture_output=True,
+        )
+    except (OSError, UnicodeError, ValueError) as error:
+        raise ManifestError("unable to run Git plumbing") from error
 
 
 def tracked_legacy_paths() -> list[str]:
@@ -86,12 +132,15 @@ def resolve_commit(source_commit: str) -> str:
         raise ManifestError(
             f"invalid source_commit: {source_commit!r} does not resolve to a commit"
         )
-    return result.stdout.decode("ascii").strip()
+    try:
+        return result.stdout.decode("ascii").strip()
+    except UnicodeDecodeError as error:
+        raise ManifestError("unable to parse resolved source_commit") from error
 
 
 def require_full_commit_oid(source_commit: str) -> str:
-    resolved_commit = resolve_commit(source_commit)
-    if source_commit != resolved_commit:
+    resolved_commit = resolve_commit(source_commit.lower())
+    if source_commit.lower() != resolved_commit.lower():
         raise ManifestError("source_commit must be a full resolved commit OID")
     return resolved_commit
 
@@ -139,13 +188,23 @@ def git_blob_digest(object_oid: str, path: str) -> str:
 
 
 def regular_working_path(raw_path: str) -> Path:
-    path = ROOT / raw_path
-    try:
-        mode = path.lstat().st_mode
-    except OSError as error:
-        raise ManifestError(f"missing file: {raw_path}") from error
-    if not stat.S_ISREG(mode):
-        raise ManifestError(f"working tree entry is not a regular file: {raw_path}")
+    parts = PurePosixPath(raw_path).parts
+    path = ROOT
+    for index, part in enumerate(parts):
+        path /= part
+        try:
+            mode = path.lstat().st_mode
+        except OSError as error:
+            raise ManifestError(f"missing file: {raw_path}") from error
+        if index < len(parts) - 1:
+            if stat.S_ISLNK(mode):
+                raise ManifestError(f"working tree path contains symlink: {raw_path}")
+            if not stat.S_ISDIR(mode):
+                raise ManifestError(
+                    f"working tree path component is not a directory: {raw_path}"
+                )
+        elif not stat.S_ISREG(mode):
+            raise ManifestError(f"working tree entry is not a regular file: {raw_path}")
     try:
         path.resolve(strict=True).relative_to(ROOT_RESOLVED)
     except (OSError, ValueError) as error:
@@ -161,6 +220,10 @@ def is_normalized_repo_relative(raw_path: str) -> bool:
         and ".." not in path.parts
         and path.as_posix() == raw_path
     )
+
+
+def is_full_commit_oid(source_commit: str) -> bool:
+    return len(source_commit) == 40 and set(source_commit) <= OID_HEX_DIGITS
 
 
 def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
@@ -196,6 +259,8 @@ def load_manifest(manifest_path: Path, canonical: bool) -> dict:
     files = payload["files"]
     if not isinstance(source_commit, str) or not source_commit:
         raise ManifestError("invalid manifest: source_commit must be a non-empty string")
+    if canonical and not is_full_commit_oid(source_commit):
+        raise ManifestError("invalid manifest: source_commit must be a 40-hex OID")
     if not isinstance(files, dict):
         raise ManifestError("invalid manifest: files must be an object")
     if not canonical and not files:

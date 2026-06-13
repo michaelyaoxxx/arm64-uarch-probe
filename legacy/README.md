@@ -20,6 +20,10 @@ Canonical verification proves schema, provenance, exact tracked inventory,
 normalized repo-relative path scope, and file digests. It is the repository
 integrity contract.
 
+Canonical Git plumbing is pinned to this checkout's `.git` entry and worktree.
+It ignores inherited `GIT_*` routing/configuration variables and replacement
+refs, so ambient Git state cannot redirect provenance checks.
+
 A caller-supplied external manifest is instead an ad hoc digest-check input. It
 may reference absolute paths and does not certify repository inventory or
 provenance:

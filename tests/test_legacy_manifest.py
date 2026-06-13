@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -58,37 +59,78 @@ class LegacyManifestTest(unittest.TestCase):
         cls.fixture_directory.cleanup()
 
     @classmethod
-    def git(cls, *args, input_text=None):
+    def git_in(cls, root, *args, input_text=None):
         return subprocess.run(
             ["git", *args],
-            cwd=cls.fixture_root,
+            cwd=root,
             check=True,
             capture_output=True,
             text=True,
             input=input_text,
         )
 
+    @classmethod
+    def git(cls, *args, input_text=None):
+        return cls.git_in(cls.fixture_root, *args, input_text=input_text)
+
     def setUp(self):
+        for replacement in self.git("replace", "-l").stdout.splitlines():
+            self.git("replace", "-d", replacement)
         self.git("reset", "--hard", "-q", self.fixture_commit)
         self.write_fixture_manifest(self.fixture_payload)
         for name in ("generated.json", "target.sh"):
             (self.fixture_root / name).unlink(missing_ok=True)
+        shutil.rmtree(self.fixture_root / "data" / "sample-real", ignore_errors=True)
 
-    def run_script(self, *args):
+    def run_script(self, *args, env=None):
         return subprocess.run(
             [sys.executable, str(SCRIPT), *args],
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,
+            env=env,
         )
 
-    def run_fixture_script(self, *args):
+    def run_fixture_script(self, *args, env=None):
         return subprocess.run(
             [sys.executable, str(self.fixture_script), *args],
             cwd=self.fixture_root,
             capture_output=True,
             text=True,
+            env=env,
         )
+
+    def create_foreign_repository(self, root):
+        (root / "runner").mkdir()
+        (root / "data" / "sample" / "raw").mkdir(parents=True)
+        (root / "runner" / "run_pmu_v1.sh").write_bytes(
+            (self.fixture_root / "runner" / "run_pmu_v1.sh").read_bytes()
+        )
+        (root / "data" / "sample" / "raw" / "run.txt").write_bytes(
+            (self.fixture_root / "data" / "sample" / "raw" / "run.txt").read_bytes()
+        )
+        self.git_in(root, "init", "-q")
+        self.git_in(root, "config", "user.name", "Foreign Repository")
+        self.git_in(root, "config", "user.email", "foreign@example.invalid")
+        self.git_in(root, "add", "runner", "data")
+        self.git_in(root, "commit", "-qm", "foreign baseline")
+        return self.git_in(root, "rev-parse", "HEAD").stdout.strip()
+
+    def redirected_git_environment(self, foreign_root):
+        environment = os.environ.copy()
+        environment.update(
+            {
+                "GIT_DIR": str(foreign_root / ".git"),
+                "GIT_WORK_TREE": str(self.fixture_root),
+                "GIT_COMMON_DIR": str(foreign_root / ".git"),
+                "GIT_OBJECT_DIRECTORY": str(foreign_root / ".git" / "objects"),
+                "GIT_INDEX_FILE": str(foreign_root / ".git" / "index"),
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.worktree",
+                "GIT_CONFIG_VALUE_0": str(self.fixture_root),
+            }
+        )
+        return environment
 
     def write_fixture_manifest(self, payload):
         self.fixture_manifest.write_text(
@@ -153,8 +195,18 @@ class LegacyManifestTest(unittest.TestCase):
             }
             external_manifest = temporary_root / "manifest.json"
             external_manifest.write_text(json.dumps(payload), encoding="utf-8")
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "GIT_DIR": str(temporary_root / "not-a-repository"),
+                    "GIT_WORK_TREE": str(temporary_root / "not-a-worktree"),
+                }
+            )
             result = self.run_script(
-                "verify", "--manifest", str(external_manifest.resolve())
+                "verify",
+                "--manifest",
+                str(external_manifest.resolve()),
+                env=environment,
             )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -233,10 +285,15 @@ class LegacyManifestTest(unittest.TestCase):
 
         result = self.run_fixture_script("verify")
 
-        self.assert_concise_failure(result, "invalid source_commit:")
+        self.assert_concise_failure(result, "invalid manifest:")
 
     def test_canonical_manifest_requires_full_source_oid(self):
-        for source_commit in ("HEAD", self.fixture_commit[:12]):
+        for source_commit in (
+            "HEAD",
+            self.fixture_commit[:12],
+            "g" * 40,
+            "\ud800",
+        ):
             with self.subTest(source_commit=source_commit):
                 payload = copy.deepcopy(self.fixture_payload)
                 payload["source_commit"] = source_commit
@@ -245,8 +302,18 @@ class LegacyManifestTest(unittest.TestCase):
                 result = self.run_fixture_script("verify")
 
                 self.assert_concise_failure(
-                    result, "source_commit must be a full resolved commit OID"
+                    result, "invalid manifest: source_commit must be a 40-hex OID"
                 )
+
+    def test_canonical_manifest_accepts_uppercase_source_oid(self):
+        payload = copy.deepcopy(self.fixture_payload)
+        payload["source_commit"] = self.fixture_commit.upper()
+        self.write_fixture_manifest(payload)
+
+        result = self.run_fixture_script("verify")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("legacy manifest verified", result.stdout)
 
     def test_canonical_manifest_rejects_source_commit_not_ancestor(self):
         unrelated_commit = self.git(
@@ -307,6 +374,65 @@ class LegacyManifestTest(unittest.TestCase):
         self.assert_concise_failure(
             result, "working tree entry is not a regular file:"
         )
+
+    def test_canonical_manifest_rejects_parent_directory_symlink(self):
+        sample = self.fixture_root / "data" / "sample"
+        sample_real = self.fixture_root / "data" / "sample-real"
+        sample.rename(sample_real)
+        sample.symlink_to(sample_real.name, target_is_directory=True)
+
+        result = self.run_fixture_script("verify")
+
+        self.assert_concise_failure(
+            result, "working tree path contains symlink:"
+        )
+
+    def test_canonical_manifest_ignores_git_replace(self):
+        runner_path = self.fixture_root / "runner" / "run_pmu_v1.sh"
+        runner_path.write_text("#!/bin/sh\n# replaced commit\n", encoding="utf-8")
+        self.git("add", "runner/run_pmu_v1.sh")
+        self.git("commit", "-qm", "replace target")
+        replaced_commit = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("checkout", self.fixture_commit, "--", "runner/run_pmu_v1.sh")
+        self.git("replace", replaced_commit, self.fixture_commit)
+        payload = copy.deepcopy(self.fixture_payload)
+        payload["source_commit"] = replaced_commit
+        self.write_fixture_manifest(payload)
+
+        result = self.run_fixture_script("verify")
+
+        self.assert_concise_failure(result, "source tree digest mismatch:")
+
+    def test_canonical_manifest_ignores_redirected_git_environment(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            foreign_root = Path(temporary_directory)
+            foreign_commit = self.create_foreign_repository(foreign_root)
+            payload = copy.deepcopy(self.fixture_payload)
+            payload["source_commit"] = foreign_commit
+            self.write_fixture_manifest(payload)
+
+            result = self.run_fixture_script(
+                "verify",
+                env=self.redirected_git_environment(foreign_root),
+            )
+
+        self.assert_concise_failure(result, "invalid source_commit:")
+
+    def test_write_ignores_redirected_git_environment(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            foreign_root = Path(temporary_directory)
+            foreign_commit = self.create_foreign_repository(foreign_root)
+
+            result = self.run_fixture_script(
+                "write",
+                "--manifest",
+                "generated.json",
+                "--source-commit",
+                foreign_commit,
+                env=self.redirected_git_environment(foreign_root),
+            )
+
+        self.assert_concise_failure(result, "invalid source_commit:")
 
     def test_canonical_manifest_rejects_unsafe_paths(self):
         tracked_path = "runner/run_pmu_v1.sh"
