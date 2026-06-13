@@ -5,7 +5,9 @@
 Probe sources live under `src/<probe>/`; current probes include `chase_pmu`,
 `evict_slc`, and `chase_migrate`. Build products belong in ignored
 `build/bin/`. Python repository tooling is under `scripts/`, contract tests are
-under `tests/`, and design decisions are under `docs/design/`.
+under `tests/`, and design decisions are under `docs/design/`. Architecture and
+model notes live in `docs/arch/` and `docs/model/`; interpreted results and
+accepted summaries live in `analysis/` and `baseline/`.
 
 GB10 is the authoritative v1.0 measurement platform. Mac validates software
 behavior, runs contract tests, and supports offline analysis; Mac measurements
@@ -34,6 +36,11 @@ keep compiler warnings enabled, and use `snake_case` for Python functions and
 tests. Prefer the Python standard library for runtime tooling. Name tests
 `tests/test_<area>.py` and write behavior-focused `unittest` cases. Add a
 failing contract test before changing behavior.
+
+Follow existing versioned names: `<probe>_v<version>.c` and
+`run_pmu_v<version>[_section_description].sh`. For GB10 measurements, use pinned
+CPUs, fixed seeds, repeated runs, and explicit page and warm/cold modes. Never
+present pointer-chase effective capacity as physical cache size.
 
 ## Results, Commits, and Pull Requests
 
