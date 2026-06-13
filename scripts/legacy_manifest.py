@@ -1,22 +1,34 @@
 #!/usr/bin/env python3
 import argparse
+import fnmatch
 import hashlib
 import json
+import stat
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ROOT_RESOLVED = ROOT.resolve()
 DEFAULT_MANIFEST = Path("legacy/manifest.json")
 CANONICAL_MANIFEST = ROOT / DEFAULT_MANIFEST
 LEGACY_PATHS = ("runner/run_pmu*.sh", "data/**/*.txt")
 MANIFEST_KEYS = {"source_commit", "files"}
 HEX_DIGITS = frozenset("0123456789abcdef")
+REGULAR_GIT_MODES = {"100644", "100755"}
 
 
 class ManifestError(Exception):
     pass
+
+
+class DuplicateKeyError(ValueError):
+    pass
+
+
+def digest_bytes(content: bytes) -> str:
+    return hashlib.sha256(content).hexdigest()
 
 
 def digest(path: Path) -> str:
@@ -26,7 +38,7 @@ def digest(path: Path) -> str:
             for chunk in iter(lambda: source.read(1024 * 1024), b""):
                 sha256.update(chunk)
     except OSError as error:
-        raise ManifestError(f"cannot read legacy file: {path}") from error
+        raise ManifestError(f"cannot read file: {path}") from error
     return sha256.hexdigest()
 
 
@@ -40,49 +52,105 @@ def is_canonical_manifest(path: Path) -> bool:
     return path.resolve(strict=False) == CANONICAL_MANIFEST.resolve(strict=False)
 
 
-def tracked_legacy_paths() -> list[str]:
+def run_git(*args: str) -> subprocess.CompletedProcess:
     result = subprocess.run(
-        ["git", "ls-files", *LEGACY_PATHS],
+        ["git", *args],
         cwd=ROOT,
         capture_output=True,
-        text=True,
     )
+    return result
+
+
+def tracked_legacy_paths() -> list[str]:
+    result = run_git("ls-files", "-z", *LEGACY_PATHS)
     if result.returncode != 0:
         raise ManifestError("unable to list tracked legacy files")
-    return sorted(line for line in result.stdout.splitlines() if line)
+    try:
+        return sorted(
+            raw_path.decode("utf-8")
+            for raw_path in result.stdout.split(b"\0")
+            if raw_path
+        )
+    except UnicodeDecodeError as error:
+        raise ManifestError("tracked legacy path is not valid UTF-8") from error
 
 
 def resolve_commit(source_commit: str) -> str:
-    result = subprocess.run(
-        [
-            "git",
-            "rev-parse",
-            "--verify",
-            "--end-of-options",
-            f"{source_commit}^{{commit}}",
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
+    result = run_git(
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        f"{source_commit}^{{commit}}",
     )
     if result.returncode != 0:
         raise ManifestError(
             f"invalid source_commit: {source_commit!r} does not resolve to a commit"
         )
-    return result.stdout.strip()
+    return result.stdout.decode("ascii").strip()
+
+
+def require_full_commit_oid(source_commit: str) -> str:
+    resolved_commit = resolve_commit(source_commit)
+    if source_commit != resolved_commit:
+        raise ManifestError("source_commit must be a full resolved commit OID")
+    return resolved_commit
 
 
 def require_ancestor(source_commit: str) -> None:
-    result = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
+    result = run_git("merge-base", "--is-ancestor", source_commit, "HEAD")
     if result.returncode == 1:
         raise ManifestError("source_commit is not an ancestor of HEAD")
     if result.returncode != 0:
         raise ManifestError("unable to validate source_commit ancestry")
+
+
+def source_tree_entries(source_commit: str) -> dict[str, tuple[str, str, str]]:
+    result = run_git("ls-tree", "-r", "-z", "--full-tree", source_commit)
+    if result.returncode != 0:
+        raise ManifestError("unable to read source_commit tree")
+
+    entries = {}
+    try:
+        for record in result.stdout.split(b"\0"):
+            if not record:
+                continue
+            metadata, raw_path = record.split(b"\t", 1)
+            mode, object_type, object_oid = metadata.split(b" ", 2)
+            path = raw_path.decode("utf-8")
+            entries[path] = (
+                mode.decode("ascii"),
+                object_type.decode("ascii"),
+                object_oid.decode("ascii"),
+            )
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ManifestError("unable to parse source_commit tree") from error
+    return entries
+
+
+def is_legacy_path(path: str) -> bool:
+    return any(fnmatch.fnmatchcase(path, pattern) for pattern in LEGACY_PATHS)
+
+
+def git_blob_digest(object_oid: str, path: str) -> str:
+    result = run_git("cat-file", "blob", object_oid)
+    if result.returncode != 0:
+        raise ManifestError(f"unable to read source tree blob: {path}")
+    return digest_bytes(result.stdout)
+
+
+def regular_working_path(raw_path: str) -> Path:
+    path = ROOT / raw_path
+    try:
+        mode = path.lstat().st_mode
+    except OSError as error:
+        raise ManifestError(f"missing file: {raw_path}") from error
+    if not stat.S_ISREG(mode):
+        raise ManifestError(f"working tree entry is not a regular file: {raw_path}")
+    try:
+        path.resolve(strict=True).relative_to(ROOT_RESOLVED)
+    except (OSError, ValueError) as error:
+        raise ManifestError(f"working tree path escapes repository: {raw_path}") from error
+    return path
 
 
 def is_normalized_repo_relative(raw_path: str) -> bool:
@@ -95,11 +163,25 @@ def is_normalized_repo_relative(raw_path: str) -> bool:
     )
 
 
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateKeyError(key)
+        result[key] = value
+    return result
+
+
 def load_manifest(manifest_path: Path, canonical: bool) -> dict:
     try:
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        raw_manifest = manifest_path.read_text(encoding="utf-8")
+        payload = json.loads(raw_manifest, object_pairs_hook=reject_duplicate_keys)
     except OSError as error:
         raise ManifestError(f"invalid manifest: cannot read {manifest_path}") from error
+    except UnicodeDecodeError as error:
+        raise ManifestError("invalid manifest: content is not valid UTF-8") from error
+    except DuplicateKeyError as error:
+        raise ManifestError(f"invalid manifest: duplicate key: {error}") from error
     except json.JSONDecodeError as error:
         raise ManifestError(
             f"invalid manifest: invalid JSON at line {error.lineno}"
@@ -145,11 +227,11 @@ def summarize_paths(paths: list[str]) -> str:
     return summary
 
 
-def require_complete_inventory(files: dict, tracked: list[str]) -> None:
+def require_complete_inventory(files: dict, expected_paths: list[str]) -> None:
     manifest_paths = set(files)
-    tracked_paths = set(tracked)
-    missing = sorted(tracked_paths - manifest_paths)
-    extra = sorted(manifest_paths - tracked_paths)
+    expected = set(expected_paths)
+    missing = sorted(expected - manifest_paths)
+    extra = sorted(manifest_paths - expected)
     failures = []
     if missing:
         failures.append(f"missing entries: {summarize_paths(missing)}")
@@ -159,14 +241,43 @@ def require_complete_inventory(files: dict, tracked: list[str]) -> None:
         raise ManifestError(f"inventory mismatch: {'; '.join(failures)}")
 
 
+def source_files_for_commit(
+    source_commit: str, tracked_paths: list[str]
+) -> dict[str, str]:
+    entries = source_tree_entries(source_commit)
+    source_legacy_paths = sorted(path for path in entries if is_legacy_path(path))
+    require_complete_inventory(
+        {path: None for path in tracked_paths},
+        source_legacy_paths,
+    )
+
+    files = {}
+    for raw_path in tracked_paths:
+        mode, object_type, object_oid = entries[raw_path]
+        if mode not in REGULAR_GIT_MODES or object_type != "blob":
+            raise ManifestError(
+                f"source tree entry is not a regular file: {raw_path}"
+            )
+        files[raw_path] = git_blob_digest(object_oid, raw_path)
+    return files
+
+
+def require_current_files_match(source_files: dict[str, str]) -> None:
+    for raw_path, source_digest in source_files.items():
+        path = regular_working_path(raw_path)
+        if digest(path) != source_digest:
+            raise ManifestError(
+                f"current file digest differs from source_commit: {raw_path}"
+            )
+
+
 def write_manifest(manifest_path: Path, source_commit: str) -> None:
     resolved_commit = resolve_commit(source_commit)
-    files = {
-        raw_path: digest(ROOT / raw_path)
-        for raw_path in tracked_legacy_paths()
-    }
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    require_ancestor(resolved_commit)
+    files = source_files_for_commit(resolved_commit, tracked_legacy_paths())
+    require_current_files_match(files)
     try:
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(
             json.dumps(
                 {"source_commit": resolved_commit, "files": files},
@@ -181,20 +292,24 @@ def write_manifest(manifest_path: Path, source_commit: str) -> None:
     print(f"wrote {manifest_path} ({len(files)} files)")
 
 
-def verify_manifest(manifest_path: Path) -> None:
-    canonical = is_canonical_manifest(manifest_path)
-    payload = load_manifest(manifest_path, canonical)
+def verify_canonical_manifest(payload: dict) -> None:
     files = payload["files"]
-    if canonical:
-        tracked = tracked_legacy_paths()
-        require_complete_inventory(files, tracked)
-        source_commit = resolve_commit(payload["source_commit"])
-        require_ancestor(source_commit)
+    tracked_paths = tracked_legacy_paths()
+    require_complete_inventory(files, tracked_paths)
+    source_commit = require_full_commit_oid(payload["source_commit"])
+    require_ancestor(source_commit)
+    source_files = source_files_for_commit(source_commit, tracked_paths)
+    for raw_path, expected in files.items():
+        if source_files[raw_path] != expected:
+            raise ManifestError(f"source tree digest mismatch: {raw_path}")
+    require_current_files_match(source_files)
 
+
+def verify_external_manifest(files: dict) -> None:
     failures = []
     for raw_path, expected in files.items():
         path = Path(raw_path)
-        if canonical or not path.is_absolute():
+        if not path.is_absolute():
             path = ROOT / path
         if not path.is_file():
             failures.append(f"missing file: {raw_path}")
@@ -203,10 +318,16 @@ def verify_manifest(manifest_path: Path) -> None:
     if failures:
         raise ManifestError("\n".join(failures))
 
+
+def verify_manifest(manifest_path: Path) -> None:
+    canonical = is_canonical_manifest(manifest_path)
+    payload = load_manifest(manifest_path, canonical)
     if canonical:
-        print(f"legacy manifest verified ({len(files)} files)")
+        verify_canonical_manifest(payload)
+        print(f"legacy manifest verified ({len(payload['files'])} files)")
     else:
-        print(f"external manifest digests verified ({len(files)} files)")
+        verify_external_manifest(payload["files"])
+        print(f"external manifest digests verified ({len(payload['files'])} files)")
 
 
 def main() -> int:
