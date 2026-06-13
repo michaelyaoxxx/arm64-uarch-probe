@@ -149,6 +149,26 @@ class LegacyManifestTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("legacy manifest verified", result.stdout)
 
+    def test_alternate_case_path_is_canonical_when_same_file(self):
+        alternate_manifest = self.fixture_root / "LEGACY" / "MANIFEST.JSON"
+        try:
+            if not alternate_manifest.samefile(self.fixture_manifest):
+                self.skipTest("alternate-case path is not the canonical manifest")
+        except OSError:
+            self.skipTest("filesystem does not resolve alternate-case path")
+
+        payload = copy.deepcopy(self.fixture_payload)
+        payload["source_commit"] = "HEAD"
+        self.write_fixture_manifest(payload)
+
+        result = self.run_fixture_script(
+            "verify", "--manifest", str(alternate_manifest)
+        )
+
+        self.assert_concise_failure(
+            result, "invalid manifest: source_commit must be a 40-hex OID"
+        )
+
     def test_manifest_inventory_matches_tracked_legacy_files(self):
         tracked = subprocess.run(
             ["git", "ls-files", "runner/run_pmu*.sh", "data/**/*.txt"],

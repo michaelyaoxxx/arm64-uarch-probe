@@ -52,7 +52,10 @@ def resolve_manifest(path: Path) -> Path:
 
 
 def is_canonical_manifest(path: Path) -> bool:
-    return path.resolve(strict=False) == CANONICAL_MANIFEST.resolve(strict=False)
+    try:
+        return path.samefile(CANONICAL_MANIFEST)
+    except OSError:
+        return path.resolve(strict=False) == CANONICAL_MANIFEST.resolve(strict=False)
 
 
 @functools.lru_cache(maxsize=1)
