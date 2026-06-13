@@ -1,4 +1,13 @@
 *.o
-bin/*tools/bin/
+build/
 tools/bin/
+bin/
 backup/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+results/runs/
+results/.locks/
+results/.recovery/
