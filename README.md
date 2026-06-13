@@ -1,5 +1,27 @@
 # Phase 2B：延迟基准测试 · 子阶段拆分 & 基线评估
 
+## Project Status
+
+`arm64-uarch-probe` is being prepared as a reproducible and extensible v1.0
+GB10 microarchitecture research baseline. GB10 is the authoritative measurement
+platform; Mac and Linux ARM64 environments validate engineering behavior.
+
+Current versioned `runner/run_pmu*.sh` scripts and tracked `data/` files are
+frozen legacy evidence. The stable v1.0 runner will be introduced in later
+phases.
+
+Start with:
+
+```sh
+make help
+make show-targets
+make build
+make check
+```
+
+See `docs/design/repository-contract.md` for collaboration, result-retention,
+and hardware-handoff rules.
+
 > 基于 v2.7.7 实测数据，2026-06-11
 
 ---

@@ -75,6 +75,16 @@ class RepositoryPolicyTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertTrue((ROOT / path).is_file())
 
+    def test_entry_documents_describe_current_contract(self):
+        agents = (ROOT / "AGENTS.md").read_text()
+        readme = (ROOT / "README.md").read_text()
+        for phrase in ("make build", "make check", "build/bin", "legacy"):
+            with self.subTest(document="AGENTS.md", phrase=phrase):
+                self.assertIn(phrase, agents)
+        for phrase in ("arm64-uarch-probe", "GB10", "make help", "legacy"):
+            with self.subTest(document="README.md", phrase=phrase):
+                self.assertIn(phrase, readme)
+
 
 if __name__ == "__main__":
     unittest.main()
