@@ -2,6 +2,7 @@ import unittest
 
 from arm64_probe.domain.ids import (
     build_case_id,
+    validate_capability_id,
     validate_id,
     validate_scenario_id,
 )
@@ -10,6 +11,8 @@ from arm64_probe.domain.ids import (
 class DomainIdTests(unittest.TestCase):
     def test_accepts_canonical_ids(self):
         self.assertEqual(validate_id("cache-latency"), "cache-latency")
+        self.assertEqual(validate_capability_id("arm64"), "arm64")
+        self.assertEqual(validate_capability_id("linux.hugepage"), "linux.hugepage")
         self.assertEqual(
             validate_scenario_id("cache-latency.l2-latency"),
             "cache-latency.l2-latency",
@@ -42,6 +45,12 @@ class DomainIdTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
                     validate_scenario_id(value)
+
+    def test_rejects_noncanonical_capability_ids(self):
+        for value in ("linux.", ".hugepage", "linux.Hugepage", "linux..hugepage"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    validate_capability_id(value)
 
     def test_rejects_noncanonical_case_dimensions(self):
         for dimensions in ((), ("X925",), ("x925", "default_page")):

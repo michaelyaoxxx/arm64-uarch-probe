@@ -10,18 +10,35 @@ Current versioned `runner/run_pmu*.sh` scripts and tracked `data/` files are
 frozen legacy evidence. The stable v1.0 runner will be introduced in later
 phases.
 
-Start with:
+Phase 1 now provides an immutable domain model, strict declarative registries,
+public JSON schemas, deterministic planning, and a read-only control interface.
+It discovers and plans experiments but does not execute measurements or mutate
+system state.
+
+Start with the Phase 1 interface:
 
 ```sh
 make help
-make show-targets
-make build
-make check
+./probe --help
+./probe list targets
+./probe show cache-latency.l2-latency -o json
+./probe plan --platform gb10 --profile smoke -o json
+python3 -m arm64_probe help plan
+make phase1-check
 ```
+
+`make probe PROBE_ARGS='plan --platform gb10 --profile smoke -o json'` is a
+convenience wrapper. Use `make check` for Python and shell checks and
+`make build` to compile probes supported by the current host.
 
 See `docs/design/repository-contract.md` for collaboration, result-retention,
 and hardware-handoff rules, and `docs/design/repository-layout.md` for path
-ownership and migration timing.
+ownership and migration timing. The CLI options and stable exit codes are in
+`docs/design/cli-contract.md`.
+
+Phase 1 and Phase 2 require no GB10 access. GB10 is first required at Phase 3
+Gate 1, after an explicit ready notice confirms that the unified runner,
+environment recovery, and minimal smoke workflow are ready.
 
 > 基于 v2.7.7 实测数据，2026-06-11
 

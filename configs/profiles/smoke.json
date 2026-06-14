@@ -1,0 +1,13 @@
+{
+  "display_name": "Smoke",
+  "environment": {},
+  "id": "smoke",
+  "overrides": {
+    "page-policy": "default",
+    "samples": 1
+  },
+  "selections": [
+    "cache-latency.l1-latency",
+    "migration-latency.cross-cluster"
+  ]
+}

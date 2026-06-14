@@ -1,0 +1,14 @@
+{
+  "display_name": "Baseline",
+  "environment": {
+    "cpu-governor": "performance"
+  },
+  "id": "baseline",
+  "overrides": {
+    "samples": 7
+  },
+  "selections": [
+    "cache-latency",
+    "migration-latency"
+  ]
+}

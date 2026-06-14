@@ -1,0 +1,51 @@
+{
+  "capabilities": [
+    "arm64",
+    "cpu-binding",
+    "linux.cpufreq",
+    "linux.hugepage",
+    "pmu.armv9"
+  ],
+  "clusters": [
+    {
+      "cpus": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "id": "c0"
+    },
+    {
+      "cpus": [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+      "id": "c1"
+    }
+  ],
+  "core_groups": [
+    {
+      "cpus": [0, 1, 2, 3, 4, 10, 11, 12, 13, 14],
+      "id": "a725"
+    },
+    {
+      "cpus": [5, 6, 7, 8, 9, 15, 16, 17, 18, 19],
+      "id": "x925"
+    }
+  ],
+  "defaults": {
+    "cache-latency.dram-latency.working-set": "64MiB",
+    "cache-latency.l1-latency.working-set": "32KiB",
+    "cache-latency.l2-latency.working-set": "256KiB",
+    "cache-latency.l3-latency.working-set": "4MiB",
+    "cache-latency.slc-latency.working-set": "12MiB",
+    "migration-latency.cross-cluster.working-set": "4MiB",
+    "migration-latency.same-cluster.working-set": "4MiB",
+    "migration-latency.same-core.working-set": "4MiB",
+    "page-policy": "default",
+    "samples": 7
+  },
+  "description": "NVIDIA GB10 authoritative v1.0 measurement platform",
+  "display_name": "NVIDIA GB10",
+  "id": "gb10",
+  "measurement_support": "supported",
+  "representative_cpus": {
+    "c0.a725": 0,
+    "c0.x925": 5,
+    "c1.a725": 10,
+    "c1.x925": 15
+  }
+}

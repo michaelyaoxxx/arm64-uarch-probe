@@ -1,7 +1,6 @@
 # Integration Tests
 
-Future multi-component software workflow tests. Hardware performance gates
-remain separate.
-
-Existing root-level `tests/test_*.py` files remain valid Phase 0 repository
-contract tests. Move them only with a reviewed test-discovery update.
+Multi-component, host-safe workflow tests. Phase 1 integration tests verify the
+CLI from other working directories and assert that discovery and planning
+create no files or system mutations. Hardware performance gates remain
+separate.

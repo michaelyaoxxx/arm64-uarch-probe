@@ -1,0 +1,12 @@
+{
+  "capabilities": ["arm64"],
+  "clusters": [{"cpus": [0], "id": "c0"}],
+  "core_groups": [{"cpus": [0], "id": "performance"}],
+  "defaults": {"page-policy": "default", "samples": 1},
+  "description": "Invalid platform fixture",
+  "display_name": "Invalid",
+  "extra": true,
+  "id": "invalid",
+  "measurement_support": "contract-only",
+  "representative_cpus": {"c0.performance": 0}
+}

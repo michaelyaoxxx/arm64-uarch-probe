@@ -11,7 +11,10 @@ from arm64_probe.domain.models import (
     Platform,
     Profile,
     ResolvedValue,
+    RunResult,
+    Sample,
     Scenario,
+    make_run_result,
 )
 
 __all__ = [
@@ -25,5 +28,8 @@ __all__ = [
     "Platform",
     "Profile",
     "ResolvedValue",
+    "RunResult",
+    "Sample",
     "Scenario",
+    "make_run_result",
 ]

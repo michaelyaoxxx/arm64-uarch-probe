@@ -1,0 +1,14 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "git_commit": {"type": "string"},
+    "platform_id": {"type": "string"},
+    "resolved_parameters": {"type": "object"},
+    "run_id": {"type": "string"},
+    "toolchain": {"type": "object"}
+  },
+  "required": ["git_commit", "platform_id", "resolved_parameters", "run_id", "toolchain"],
+  "type": "object"
+}

@@ -11,8 +11,11 @@ from arm64_probe.domain.models import (
     Platform,
     Profile,
     ResolvedValue,
+    RunResult,
+    Sample,
     Scenario,
 )
+from arm64_probe.errors import ProbeError
 
 
 def _mapping(items: tuple[tuple[str, Any], ...]) -> dict[str, Any]:
@@ -97,5 +100,29 @@ def to_data(value: object) -> Any:
             "cases": to_data(value.cases),
             "environment_phases": to_data(value.environment_phases),
             "skip_unavailable": value.skip_unavailable,
+        }
+    if isinstance(value, Sample):
+        return {
+            "run_id": value.run_id,
+            "case_id": value.case_id,
+            "sample_index": value.sample_index,
+            "status": value.status,
+            "metrics": _mapping(value.metrics),
+        }
+    if isinstance(value, RunResult):
+        return {
+            "run_id": value.run_id,
+            "plan": to_data(value.plan),
+            "samples": to_data(value.samples),
+            "summary": _mapping(value.summary),
+            "environment": _mapping(value.environment),
+        }
+    if isinstance(value, ProbeError):
+        return {
+            "code": int(value.code),
+            "category": value.category,
+            "message": value.message,
+            "context": _mapping(value.context),
+            "hint": value.hint,
         }
     raise TypeError(f"unsupported public serialization type: {type(value).__name__}")

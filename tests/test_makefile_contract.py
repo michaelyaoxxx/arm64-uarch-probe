@@ -55,6 +55,22 @@ class MakefileContractTests(unittest.TestCase):
             with self.subTest(target=target):
                 self.assertIn(target, result.stdout)
 
+    def test_phase1_cli_and_check_targets_are_thin_wrappers(self):
+        help_result = make("help")
+        probe = make("-n", "probe", "PROBE_ARGS=list targets")
+        probe_help = make("-n", "probe-help")
+        phase1_check = make("-n", "phase1-check")
+
+        self.assertEqual(help_result.returncode, 0, help_result.stderr)
+        for target in ("probe", "probe-help", "phase1-check"):
+            with self.subTest(target=target):
+                self.assertIn(target, help_result.stdout)
+        self.assertEqual(probe.stdout.strip(), "./probe list targets")
+        self.assertEqual(probe_help.stdout.strip(), "./probe --help")
+        self.assertIn("python3 -m unittest discover", phase1_check.stdout)
+        self.assertIn("python3 scripts/legacy_manifest.py verify", phase1_check.stdout)
+        self.assertNotIn("build/bin", phase1_check.stdout)
+
     def test_show_targets_lists_exact_supported_probe_mappings(self):
         result = make("show-targets")
 

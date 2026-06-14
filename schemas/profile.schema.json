@@ -1,0 +1,17 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/profile.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "display_name": {"minLength": 1, "type": "string"},
+    "environment": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"},
+    "id": {"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "type": "string"},
+    "overrides": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"},
+    "selections": {"items": {"type": "string"}, "type": "array"}
+  },
+  "required": ["display_name", "environment", "id", "overrides", "selections"],
+  "type": "object",
+  "$defs": {
+    "scalar": {"type": ["string", "integer", "number", "boolean", "null"]}
+  }
+}

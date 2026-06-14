@@ -1,0 +1,24 @@
+{
+  "capabilities": [
+    {
+      "description": "ARM64 instruction-set execution",
+      "id": "arm64"
+    },
+    {
+      "description": "Bind a measurement to selected logical CPUs",
+      "id": "cpu-binding"
+    },
+    {
+      "description": "Inspect and control Linux CPU-frequency policy",
+      "id": "linux.cpufreq"
+    },
+    {
+      "description": "Inspect and request Linux hugepages",
+      "id": "linux.hugepage"
+    },
+    {
+      "description": "Access the required ARMv9 PMU events",
+      "id": "pmu.armv9"
+    }
+  ]
+}

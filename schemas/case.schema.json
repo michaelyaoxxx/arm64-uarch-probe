@@ -1,0 +1,30 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/case.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cpu": {"type": ["integer", "null"]},
+    "dst_cpu": {"type": ["integer", "null"]},
+    "id": {"type": "string"},
+    "parameters": {"additionalProperties": {"$ref": "#/$defs/resolved"}, "type": "object"},
+    "platform_id": {"type": "string"},
+    "reason": {"type": ["string", "null"]},
+    "scenario_id": {"type": "string"},
+    "selectors": {"additionalProperties": {"$ref": "#/$defs/resolved"}, "type": "object"},
+    "src_cpu": {"type": ["integer", "null"]},
+    "status": {"enum": ["blocked", "ready", "unsupported"]}
+  },
+  "required": ["cpu", "dst_cpu", "id", "parameters", "platform_id", "reason", "scenario_id", "selectors", "src_cpu", "status"],
+  "type": "object",
+  "$defs": {
+    "resolved": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {"type": "string"},
+        "value": {"type": ["string", "integer", "number", "boolean", "null"]}
+      },
+      "required": ["source", "value"],
+      "type": "object"
+    }
+  }
+}

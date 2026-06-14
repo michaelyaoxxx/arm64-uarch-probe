@@ -27,7 +27,7 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets clean help
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check clean help
 
 all: build
 
@@ -73,6 +73,16 @@ show-targets:
 	@echo "$(EVICT_SLC_SRC) -> $(EVICT_SLC_BIN) [Linux,Darwin]"
 	@echo "$(CHASE_MIGRATE_SRC) -> $(CHASE_MIGRATE_BIN) [Linux]"
 
+probe:
+	./probe $(PROBE_ARGS)
+
+probe-help:
+	./probe --help
+
+phase1-check:
+	python3 -m unittest discover -s tests -p 'test_*.py' -v
+	python3 scripts/legacy_manifest.py verify
+
 clean:
 	@test "$(BUILD_DIR)" = "build" || { \
 		echo "[ERROR] refusing to clean unexpected directory: $(BUILD_DIR)" >&2; \
@@ -87,4 +97,7 @@ help:
 	@echo "  check         Run unit/contract and shell-syntax checks"
 	@echo "  legacy-check  Verify frozen runner and data evidence"
 	@echo "  show-targets  Show source, output, and platform support"
+	@echo "  probe         Run ./probe with PROBE_ARGS"
+	@echo "  probe-help    Show the Phase 1 control-interface help"
+	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification"
 	@echo "  clean         Remove build products"

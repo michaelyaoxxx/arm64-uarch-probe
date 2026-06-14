@@ -1,0 +1,47 @@
+{
+  "capabilities": [
+    "arm64"
+  ],
+  "clusters": [
+    {
+      "cpus": [0, 1],
+      "id": "p-cluster"
+    },
+    {
+      "cpus": [2, 3],
+      "id": "e-cluster"
+    }
+  ],
+  "core_groups": [
+    {
+      "cpus": [0, 2],
+      "id": "performance"
+    },
+    {
+      "cpus": [1, 3],
+      "id": "efficiency"
+    }
+  ],
+  "defaults": {
+    "cache-latency.dram-latency.working-set": "64MiB",
+    "cache-latency.l1-latency.working-set": "32KiB",
+    "cache-latency.l2-latency.working-set": "256KiB",
+    "cache-latency.l3-latency.working-set": "4MiB",
+    "cache-latency.slc-latency.working-set": "12MiB",
+    "migration-latency.cross-cluster.working-set": "4MiB",
+    "migration-latency.same-cluster.working-set": "4MiB",
+    "migration-latency.same-core.working-set": "4MiB",
+    "page-policy": "default",
+    "samples": 7
+  },
+  "description": "Synthetic Apple M4 contract fixture; not live topology or performance evidence",
+  "display_name": "Apple M4 Contract Fixture",
+  "id": "m4",
+  "measurement_support": "contract-only",
+  "representative_cpus": {
+    "e-cluster.efficiency": 3,
+    "e-cluster.performance": 2,
+    "p-cluster.efficiency": 1,
+    "p-cluster.performance": 0
+  }
+}

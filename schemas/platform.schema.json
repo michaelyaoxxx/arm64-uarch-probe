@@ -1,0 +1,30 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/platform.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "capabilities": {"items": {"type": "string"}, "type": "array"},
+    "clusters": {"items": {"$ref": "#/$defs/cpu_set"}, "type": "array"},
+    "core_groups": {"items": {"$ref": "#/$defs/cpu_set"}, "type": "array"},
+    "defaults": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"},
+    "description": {"minLength": 1, "type": "string"},
+    "display_name": {"minLength": 1, "type": "string"},
+    "id": {"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "type": "string"},
+    "measurement_support": {"enum": ["contract-only", "supported"]},
+    "representative_cpus": {"additionalProperties": {"minimum": 0, "type": "integer"}, "type": "object"}
+  },
+  "required": ["capabilities", "clusters", "core_groups", "defaults", "description", "display_name", "id", "measurement_support", "representative_cpus"],
+  "type": "object",
+  "$defs": {
+    "cpu_set": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus": {"items": {"minimum": 0, "type": "integer"}, "type": "array"},
+        "id": {"type": "string"}
+      },
+      "required": ["cpus", "id"],
+      "type": "object"
+    },
+    "scalar": {"type": ["string", "integer", "number", "boolean", "null"]}
+  }
+}

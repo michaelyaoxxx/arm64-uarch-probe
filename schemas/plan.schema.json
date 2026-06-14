@@ -1,0 +1,27 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/plan.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cases": {"items": {"$ref": "case.schema.json"}, "type": "array"},
+    "environment_phases": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "case_ids": {"items": {"type": "string"}, "type": "array"},
+          "id": {"type": "string"},
+          "requirements": {"type": "object"}
+        },
+        "required": ["case_ids", "id", "requirements"],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "platform_id": {"type": "string"},
+    "profile_id": {"type": ["string", "null"]},
+    "selections": {"items": {"type": "string"}, "type": "array"},
+    "skip_unavailable": {"type": "boolean"}
+  },
+  "required": ["cases", "environment_phases", "platform_id", "profile_id", "selections", "skip_unavailable"],
+  "type": "object"
+}

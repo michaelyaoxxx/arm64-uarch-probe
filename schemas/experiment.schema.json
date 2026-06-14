@@ -1,0 +1,26 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/experiment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "display_name": {"minLength": 1, "type": "string"},
+    "id": {"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "type": "string"},
+    "scenarios": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "cpu_mode": {"enum": ["single", "pair-same-core", "pair-same-cluster", "pair-cross-cluster"]},
+          "display_name": {"type": "string"},
+          "id": {"type": "string"},
+          "parameters": {"items": {"type": "object"}, "type": "array"},
+          "required_capabilities": {"items": {"type": "string"}, "type": "array"}
+        },
+        "required": ["cpu_mode", "display_name", "id", "parameters", "required_capabilities"],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": ["display_name", "id", "scenarios"],
+  "type": "object"
+}

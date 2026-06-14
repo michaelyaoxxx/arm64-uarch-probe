@@ -1,0 +1,14 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/environment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "after": {"type": "object"},
+    "before": {"type": "object"},
+    "effective": {"type": "object"},
+    "requested": {"type": "object"},
+    "restoration_status": {"type": "string"}
+  },
+  "required": ["after", "before", "effective", "requested", "restoration_status"],
+  "type": "object"
+}

@@ -7,6 +7,10 @@ SCENARIO_RE = re.compile(
     r"^[a-z0-9]+(?:-[a-z0-9]+)*\.[a-z0-9]+(?:-[a-z0-9]+)*$",
     re.ASCII,
 )
+CAPABILITY_RE = re.compile(
+    r"^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*$",
+    re.ASCII,
+)
 
 
 def validate_id(value: str) -> str:
@@ -18,6 +22,12 @@ def validate_id(value: str) -> str:
 def validate_scenario_id(value: str) -> str:
     if not SCENARIO_RE.fullmatch(value):
         raise ValueError(f"invalid canonical scenario id: {value!r}")
+    return value
+
+
+def validate_capability_id(value: str) -> str:
+    if not CAPABILITY_RE.fullmatch(value):
+        raise ValueError(f"invalid canonical capability id: {value!r}")
     return value
 
 

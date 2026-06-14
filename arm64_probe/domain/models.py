@@ -96,3 +96,50 @@ class Plan:
     cases: tuple[Case, ...]
     environment_phases: tuple[EnvironmentPhase, ...]
     skip_unavailable: bool
+
+
+@dataclass(frozen=True)
+class Sample:
+    run_id: str
+    case_id: str
+    sample_index: int
+    status: str
+    metrics: tuple[tuple[str, JsonScalar], ...]
+
+    def __post_init__(self) -> None:
+        if self.sample_index < 0:
+            raise ValueError("sample_index must be nonnegative")
+        if self.status not in {"ok", "error", "skipped"}:
+            raise ValueError(f"unsupported sample status: {self.status}")
+
+
+@dataclass(frozen=True)
+class RunResult:
+    run_id: str
+    plan: Plan
+    samples: tuple[Sample, ...]
+    summary: tuple[tuple[str, JsonScalar], ...]
+    environment: tuple[tuple[str, JsonScalar], ...]
+
+
+def make_run_result(
+    run_id: str,
+    plan: Plan,
+    samples: tuple[Sample, ...],
+    summary: tuple[tuple[str, JsonScalar], ...],
+    environment: tuple[tuple[str, JsonScalar], ...],
+) -> RunResult:
+    case_ids = {case.id for case in plan.cases}
+    identities: set[tuple[str, int]] = set()
+    for sample in samples:
+        if sample.run_id != run_id:
+            raise ValueError(
+                f"sample run_id {sample.run_id} does not match result run_id {run_id}"
+            )
+        if sample.case_id not in case_ids:
+            raise ValueError(f"sample references unknown case: {sample.case_id}")
+        identity = (sample.case_id, sample.sample_index)
+        if identity in identities:
+            raise ValueError(f"duplicate sample identity: {identity}")
+        identities.add(identity)
+    return RunResult(run_id, plan, samples, summary, environment)

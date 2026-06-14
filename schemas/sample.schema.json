@@ -1,0 +1,14 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/sample.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {"type": "string"},
+    "metrics": {"additionalProperties": {"type": ["integer", "number", "string", "boolean", "null"]}, "type": "object"},
+    "run_id": {"type": "string"},
+    "sample_index": {"minimum": 0, "type": "integer"},
+    "status": {"type": "string"}
+  },
+  "required": ["case_id", "metrics", "run_id", "sample_index", "status"],
+  "type": "object"
+}

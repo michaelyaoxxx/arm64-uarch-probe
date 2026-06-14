@@ -1,7 +1,5 @@
 # Contract Tests
 
-Future shared behavioral contracts for platforms, backends, schemas, CLI
-discovery, and planning.
-
-Existing root-level `tests/test_*.py` files remain valid Phase 0 repository
-contract tests. Move them only with a reviewed test-discovery update.
+Shared behavioral contracts for platforms, schemas, CLI discovery, planning,
+and Phase 1 acceptance. Changes here intentionally freeze public behavior and
+must be reviewed with the corresponding design contract.

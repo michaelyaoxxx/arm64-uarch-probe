@@ -1,0 +1,61 @@
+{
+  "display_name": "Cache Latency",
+  "id": "cache-latency",
+  "scenarios": [
+    {
+      "cpu_mode": "single",
+      "display_name": "L1 Latency",
+      "id": "cache-latency.l1-latency",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "single",
+      "display_name": "L2 Latency",
+      "id": "cache-latency.l2-latency",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "single",
+      "display_name": "L3 Latency",
+      "id": "cache-latency.l3-latency",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "single",
+      "display_name": "SLC Latency",
+      "id": "cache-latency.slc-latency",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "single",
+      "display_name": "DRAM Latency",
+      "id": "cache-latency.dram-latency",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    }
+  ]
+}

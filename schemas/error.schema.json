@@ -1,0 +1,14 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/error.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "category": {"type": "string"},
+    "code": {"type": "integer"},
+    "context": {"additionalProperties": {"type": "string"}, "type": "object"},
+    "hint": {"type": ["string", "null"]},
+    "message": {"type": "string"}
+  },
+  "required": ["category", "code", "context", "hint", "message"],
+  "type": "object"
+}

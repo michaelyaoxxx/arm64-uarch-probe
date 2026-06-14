@@ -1,0 +1,14 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/run-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "environment": {"type": "object"},
+    "plan": {"$ref": "plan.schema.json"},
+    "run_id": {"type": "string"},
+    "samples": {"items": {"$ref": "sample.schema.json"}, "type": "array"},
+    "summary": {"type": "object"}
+  },
+  "required": ["environment", "plan", "run_id", "samples", "summary"],
+  "type": "object"
+}

@@ -1,4 +1,5 @@
 # Configurations
 
-Future reviewed, declarative configuration inputs. Configuration formats and
-schemas are intentionally deferred to Phase 1.
+Reviewed declarative inputs for the Phase 1 catalog. `capabilities.json`
+defines reusable capabilities; subdirectories own platforms, experiments, and
+profiles. Keep files strict, deterministic, and free of executable behavior.

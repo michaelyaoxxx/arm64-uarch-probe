@@ -1,0 +1,39 @@
+{
+  "display_name": "Migration Latency",
+  "id": "migration-latency",
+  "scenarios": [
+    {
+      "cpu_mode": "pair-same-core",
+      "display_name": "Same Core",
+      "id": "migration-latency.same-core",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "pair-same-cluster",
+      "display_name": "Same Cluster",
+      "id": "migration-latency.same-cluster",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    },
+    {
+      "cpu_mode": "pair-cross-cluster",
+      "display_name": "Cross Cluster",
+      "id": "migration-latency.cross-cluster",
+      "parameters": [
+        {"choices": [], "id": "samples", "kind": "integer"},
+        {"choices": [], "id": "working-set", "kind": "size"},
+        {"choices": ["default", "hugepage"], "id": "page-policy", "kind": "string"}
+      ],
+      "required_capabilities": ["cpu-binding"]
+    }
+  ]
+}

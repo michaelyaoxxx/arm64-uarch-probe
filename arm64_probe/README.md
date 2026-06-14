@@ -1,6 +1,8 @@
 # arm64_probe
 
-Future platform-independent Python control layer for domain models, planning,
-backends, platform descriptions, experiments, and reports. Phase 0.5 defines
-ownership only; Phase 1 will review package and API boundaries before adding
-Python modules.
+Platform-independent Python control layer for immutable domain models, strict
+registry loading, generic configured-platform adapters, deterministic planning,
+serialization, and the Phase 1 CLI.
+
+Keep host inspection and environment mutation outside this package. Phase 1
+commands are read-only and consume reviewed facts from `configs/`.
