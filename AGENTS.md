@@ -9,6 +9,9 @@ under `tests/`, and design decisions are under `docs/design/`. Architecture and
 model notes live in `docs/arch/` and `docs/model/`; interpreted results and
 accepted summaries live in `analysis/` and `baseline/`.
 
+See `docs/design/repository-layout.md` for the authoritative frozen,
+transitional, and v1.0-owned path boundaries.
+
 GB10 is the authoritative v1.0 measurement platform. Mac validates software
 behavior, runs contract tests, and supports offline analysis; Mac measurements
 are not GB10 baselines. Versioned `runner/run_pmu*.sh` scripts and tracked

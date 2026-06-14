@@ -20,7 +20,8 @@ make check
 ```
 
 See `docs/design/repository-contract.md` for collaboration, result-retention,
-and hardware-handoff rules.
+and hardware-handoff rules, and `docs/design/repository-layout.md` for path
+ownership and migration timing.
 
 > 基于 v2.7.7 实测数据，2026-06-11
 

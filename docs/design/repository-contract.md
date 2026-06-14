@@ -30,6 +30,12 @@ analysis dependencies and must be installed through repository-owned metadata.
 - `make check`: run repository policy, legacy integrity, Makefile contract, and
   shell-syntax checks.
 
+## Repository Layout
+
+`docs/design/repository-layout.md` is the authoritative ownership map for
+frozen historical evidence, transitional paths, and v1.0-owned paths. Do not
+move frozen or transitional paths outside its reviewed migration rules.
+
 ## Legacy Evidence
 
 Current versioned runner scripts and tracked `data/` files are frozen historical
