@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from arm64_probe.cli.main import main
+
+
+raise SystemExit(main())
