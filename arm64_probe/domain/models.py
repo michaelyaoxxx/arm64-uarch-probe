@@ -1,0 +1,98 @@
+from dataclasses import dataclass
+
+
+JsonScalar = str | int | float | bool | None
+
+
+@dataclass(frozen=True)
+class NamedCpuSet:
+    id: str
+    cpus: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class Capability:
+    id: str
+    description: str
+
+
+@dataclass(frozen=True)
+class ParameterSpec:
+    id: str
+    kind: str
+    choices: tuple[JsonScalar, ...] = ()
+
+
+@dataclass(frozen=True)
+class ResolvedValue:
+    value: JsonScalar
+    source: str
+
+
+@dataclass(frozen=True)
+class Platform:
+    id: str
+    display_name: str
+    description: str
+    measurement_support: str
+    capabilities: tuple[str, ...]
+    clusters: tuple[NamedCpuSet, ...]
+    core_groups: tuple[NamedCpuSet, ...]
+    representative_cpus: tuple[tuple[str, int], ...]
+    defaults: tuple[tuple[str, JsonScalar], ...]
+
+
+@dataclass(frozen=True)
+class Scenario:
+    id: str
+    display_name: str
+    cpu_mode: str
+    required_capabilities: tuple[str, ...]
+    parameters: tuple[ParameterSpec, ...]
+
+
+@dataclass(frozen=True)
+class Experiment:
+    id: str
+    display_name: str
+    scenarios: tuple[Scenario, ...]
+
+
+@dataclass(frozen=True)
+class Profile:
+    id: str
+    display_name: str
+    selections: tuple[str, ...]
+    overrides: tuple[tuple[str, JsonScalar], ...]
+    environment: tuple[tuple[str, JsonScalar], ...]
+
+
+@dataclass(frozen=True)
+class Case:
+    id: str
+    scenario_id: str
+    platform_id: str
+    status: str
+    reason: str | None
+    cpu: int | None
+    src_cpu: int | None
+    dst_cpu: int | None
+    selectors: tuple[tuple[str, ResolvedValue], ...]
+    parameters: tuple[tuple[str, ResolvedValue], ...]
+
+
+@dataclass(frozen=True)
+class EnvironmentPhase:
+    id: str
+    case_ids: tuple[str, ...]
+    requirements: tuple[tuple[str, JsonScalar], ...]
+
+
+@dataclass(frozen=True)
+class Plan:
+    platform_id: str
+    profile_id: str | None
+    selections: tuple[str, ...]
+    cases: tuple[Case, ...]
+    environment_phases: tuple[EnvironmentPhase, ...]
+    skip_unavailable: bool
