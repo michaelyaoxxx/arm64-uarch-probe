@@ -4,6 +4,22 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LAYOUT_CONTRACT = ROOT / "docs" / "design" / "repository-layout.md"
+SKELETON_READMES = (
+    "arm64_probe/README.md",
+    "configs/README.md",
+    "configs/platforms/README.md",
+    "configs/experiments/README.md",
+    "configs/profiles/README.md",
+    "tests/unit/README.md",
+    "tests/contract/README.md",
+    "tests/fixtures/README.md",
+    "tests/integration/README.md",
+    "docs/methodology/README.md",
+    "docs/references/README.md",
+    "docs/results/README.md",
+    "docs/roadmap/README.md",
+)
 
 
 def ignored(path: str) -> bool:
@@ -84,6 +100,40 @@ class RepositoryPolicyTests(unittest.TestCase):
         for phrase in ("arm64-uarch-probe", "GB10", "make help", "legacy"):
             with self.subTest(document="README.md", phrase=phrase):
                 self.assertIn(phrase, readme)
+
+    def test_v1_skeleton_readmes_exist_and_are_trackable(self):
+        for path in SKELETON_READMES:
+            with self.subTest(path=path):
+                self.assertTrue((ROOT / path).is_file())
+                self.assertFalse(ignored(path))
+
+    def test_layout_contract_classifies_repository_boundaries(self):
+        layout = LAYOUT_CONTRACT.read_text()
+        for phrase in (
+            "Frozen Historical Evidence",
+            "`runner/run_pmu*.sh`",
+            "`data/`",
+            "Transitional Paths",
+            "`analysis/`",
+            "`baseline/`",
+            "`runner/cache_info_*.sh`",
+            "v1.0-Owned Paths",
+            "`arm64_probe/`",
+            "`configs/`",
+            "`tests/unit/`",
+            "`docs/methodology/`",
+            "`git mv`",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, layout)
+
+    def test_entry_documents_link_to_layout_contract(self):
+        for path in ("AGENTS.md", "README.md", "docs/design/repository-contract.md"):
+            with self.subTest(path=path):
+                self.assertIn(
+                    "docs/design/repository-layout.md",
+                    (ROOT / path).read_text(),
+                )
 
 
 if __name__ == "__main__":
