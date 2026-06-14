@@ -1,54 +1,50 @@
 # Repository Guidelines
 
-## Project Structure and Boundaries
+## Project Structure & Boundaries
 
-Probe sources live under `src/<probe>/`; current probes include `chase_pmu`,
-`evict_slc`, and `chase_migrate`. Build products belong in ignored
-`build/bin/`. Python repository tooling is under `scripts/`, contract tests are
-under `tests/`, and design decisions are under `docs/design/`. Architecture and
-model notes live in `docs/arch/` and `docs/model/`; interpreted results and
-accepted summaries live in `analysis/` and `baseline/`.
+The read-only Phase 1 control layer lives in `arm64_probe/`; declarative
+platform, experiment, and profile facts live in `configs/`; public contracts
+live in `schemas/`. Probe sources remain under `src/<probe>/`, with build
+products in ignored `build/bin/`. Tests are split among `tests/unit/`,
+`tests/contract/`, and `tests/integration/`. Design decisions live in
+`docs/design/`.
 
 See `docs/design/repository-layout.md` for the authoritative frozen,
 transitional, and v1.0-owned path boundaries.
 
 GB10 is the authoritative v1.0 measurement platform. Mac validates software
-behavior, runs contract tests, and supports offline analysis; Mac measurements
-are not GB10 baselines. Versioned `runner/run_pmu*.sh` scripts and tracked
-`data/` files are frozen legacy evidence. Do not modify them for new features.
+contracts and deterministic plans; Mac measurements are not GB10 baselines.
+Versioned `runner/run_pmu*.sh` scripts and tracked `data/` files are frozen
+legacy evidence. Do not modify them for new features.
 
-## Build, Test, and Development Commands
+## Build, Test & Development Commands
 
 - `make help`: list supported repository targets.
-- `make show-targets`: show source-to-`build/bin` mappings and platform support.
+- `./probe list targets`: discover canonical experiments and scenarios.
+- `./probe plan --platform gb10 --profile smoke -o json`: produce a read-only plan.
+- `make phase1-check`: run all Python tests and legacy verification.
+- `make probe PROBE_ARGS='show gb10 -o json'`: convenience CLI wrapper.
 - `make build`: build probes supported by the current host.
-- `make build-linux`: build all probes on Linux; rejects other hosts.
 - `make check`: run Python contract tests and Bash syntax checks.
-- `make legacy-check`: verify frozen legacy files against their manifest.
-- `make clean`: remove only repository build products.
 
-Run `make check` before submitting changes. Mac should also run `make build`;
-Linux ARM64 changes should run `make build-linux`. GB10 measurements must record
-the exact Git commit or tag, environment state, commands, failures, and
-restoration status.
+Run `make phase1-check`, `make check`, and `make build` before submitting Phase
+1 changes. Phase 1 and Phase 2 require no GB10. Do not begin measurements until
+Phase 3 Gate 1 receives an explicit ready notice.
 
-## Coding Style and Testing
+## Coding Style & Testing
 
 Use four-space indentation in C and Python. Follow existing C brace placement,
 keep compiler warnings enabled, and use `snake_case` for Python functions and
-tests. Prefer the Python standard library for runtime tooling. Name tests
-`tests/test_<area>.py` and write behavior-focused `unittest` cases. Add a
-failing contract test before changing behavior.
+tests. Prefer immutable `dataclass(frozen=True)` records, tuple-based public
+models, the Python standard library, and declarative platform facts over
+platform-name branches. Name tests `test_<area>.py`, use behavior-focused
+`unittest` cases, and add a failing test before changing behavior.
 
-Follow existing versioned names: `<probe>_v<version>.c` and
-`run_pmu_v<version>[_section_description].sh`. For GB10 measurements, use pinned
-CPUs, fixed seeds, repeated runs, and explicit page and warm/cold modes. Never
-present pointer-chase effective capacity as physical cache size.
+## Commits & Pull Requests
 
-## Results, Commits, and Pull Requests
-
-Keep temporary output in ignored `results/runs/`, reviewed release evidence in
-`results/baselines/<version>/`, and publication figures in
-`docs/assets/<version>/`. Use focused imperative commit messages. Pull requests
-must state scope, verification, whether GB10 evidence is required, and whether
-environment restoration was verified.
+Use focused imperative commit messages, such as `Implement read-only Phase 1
+CLI`. Pull requests must state scope, verification commands, whether GB10
+evidence is required, and whether environment restoration applies. Never
+commit transient `build/` output. Keep reviewed evidence under
+`results/baselines/<version>/` and publication figures under
+`docs/assets/<version>/`.
