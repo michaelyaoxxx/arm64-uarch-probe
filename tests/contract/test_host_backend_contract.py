@@ -101,6 +101,44 @@ class HostBackendContractTests(unittest.TestCase):
         self.assertEqual(tuple(item.id for item in controllers), ("linux.cpufreq",))
         self.assertEqual(observations["linux.cpufreq"].status, "available")
 
+    def test_linux_registers_all_inspectable_controllers_in_fixed_order(self):
+        with HostFixture() as fixture:
+            base = "/sys/devices/system/cpu/cpufreq/policy0"
+            fixture.write(f"{base}/related_cpus", "0-3\n")
+            fixture.write(f"{base}/scaling_governor", "powersave\n")
+            fixture.write(
+                f"{base}/scaling_available_governors",
+                "performance powersave\n",
+            )
+            fixture.write(f"{base}/scaling_min_freq", "1000\n")
+            fixture.write(f"{base}/scaling_max_freq", "3000\n")
+            fixture.write(
+                "/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages",
+                "4\n",
+            )
+            fixture.write(
+                "/sys/kernel/mm/transparent_hugepage/enabled",
+                "always [madvise] never\n",
+            )
+            backend = LinuxArm64Backend(fixture.filesystem, FakeRuntime())
+
+            controllers = backend.controllers()
+            observations = {item.capability_id: item for item in backend.inspect()}
+
+        self.assertEqual(
+            tuple(item.id for item in controllers),
+            (
+                "linux.cpufreq",
+                "linux.hugepage",
+                "linux.transparent-hugepage",
+            ),
+        )
+        self.assertEqual(observations["linux.hugepage"].status, "available")
+        self.assertEqual(
+            observations["linux.transparent-hugepage"].status,
+            "available",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
