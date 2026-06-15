@@ -11,7 +11,7 @@ from arm64_probe.domain.models import (
     Scenario,
 )
 from arm64_probe.errors import ExitCode, ProbeError
-from arm64_probe.platforms.configured import ConfiguredPlatformAdapter
+from arm64_probe.platforms.configured_resolver import ConfiguredPlatformResolver
 from arm64_probe.planning.request import PlanRequest, ResolvedScenario
 from arm64_probe.registry.catalog import Catalog
 
@@ -53,7 +53,7 @@ def _validate_value(spec: ParameterSpec, value: JsonScalar) -> None:
 class Planner:
     def __init__(self, catalog: Catalog):
         self.catalog = catalog
-        self.adapter = ConfiguredPlatformAdapter()
+        self.adapter = ConfiguredPlatformResolver()
 
     def plan(self, request: PlanRequest) -> Plan:
         platform = self._platform(request.platform_id)

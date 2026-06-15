@@ -2,7 +2,8 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-from arm64_probe.platforms.configured import ConfiguredPlatformAdapter
+from arm64_probe.platforms.configured_resolver import ConfiguredPlatformResolver
+from arm64_probe.platforms.resolver import PlatformResolver
 from arm64_probe.registry.validation import load_platform
 
 
@@ -12,9 +13,18 @@ ROOT = Path(__file__).resolve().parents[2]
 class PlatformContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.adapter = ConfiguredPlatformAdapter()
+        cls.adapter = ConfiguredPlatformResolver()
         cls.gb10 = load_platform(ROOT / "configs" / "platforms" / "gb10.json")
         cls.m4 = load_platform(ROOT / "configs" / "platforms" / "m4.json")
+
+    def test_platform_package_contains_only_static_resolution(self):
+        self.assertTrue(hasattr(PlatformResolver, "resolve_single"))
+        source = "\n".join(
+            path.read_text()
+            for path in sorted((ROOT / "arm64_probe" / "platforms").glob("*.py"))
+        )
+        self.assertNotIn("HostBackend", source)
+        self.assertNotIn("/sys/", source)
 
     def test_shared_platform_contract(self):
         for platform in (self.gb10, self.m4):

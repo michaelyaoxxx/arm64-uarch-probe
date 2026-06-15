@@ -3,7 +3,7 @@ from typing import Protocol
 from arm64_probe.domain.models import Platform
 
 
-class PlatformAdapter(Protocol):
+class PlatformResolver(Protocol):
     def resolve_single(
         self,
         platform: Platform,

@@ -8,6 +8,11 @@ class ExitCode(IntEnum):
     CONFIG = 3
     CAPABILITY = 4
     PLANNING = 5
+    HOST_INSPECTION = 10
+    MUTATION_AUTHORIZATION = 11
+    ENVIRONMENT_APPLY = 12
+    ENVIRONMENT_RESTORE = 13
+    ENVIRONMENT_BUSY = 14
 
 
 @dataclass(frozen=True)

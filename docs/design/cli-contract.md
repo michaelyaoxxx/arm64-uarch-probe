@@ -36,7 +36,11 @@ validate contracts and report unsupported cases; they are not measurements.
 | `3` | Configuration or schema error |
 | `4` | Platform identification or capability error |
 | `5` | Planning error |
-| `10+` | Reserved for Phase 3 runtime failures |
+| `10` | Backend or host inspection failure |
+| `11` | Mutation authorization or permission failure |
+| `12` | Environment apply or verification failure; restoration succeeded |
+| `13` | Environment restoration or recovery failure |
+| `14` | Active lock or unfinished journal prevents mutation |
 
 The implementation in `arm64_probe/errors.py` is the single source for these
 values. Contract tests keep this table aligned with it.

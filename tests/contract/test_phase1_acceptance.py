@@ -80,7 +80,6 @@ class Phase1AcceptanceTests(unittest.TestCase):
         for exit_code in ExitCode:
             with self.subTest(exit_code=exit_code):
                 self.assertIn(f"| `{int(exit_code)}` |", contract)
-        self.assertIn("| `10+` |", contract)
 
     def test_frozen_and_transitional_paths_are_unchanged(self):
         result = subprocess.run(
