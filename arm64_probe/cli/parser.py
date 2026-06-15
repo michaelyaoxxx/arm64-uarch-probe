@@ -2,7 +2,7 @@ import argparse
 
 
 OUTPUT_CHOICES = ("table", "json")
-COMMANDS = ("list", "show", "plan")
+COMMANDS = ("list", "show", "plan", "doctor")
 
 
 def _add_output_option(parser: argparse.ArgumentParser) -> None:
@@ -90,6 +90,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="record that unavailable cases should be skipped at execution time",
     )
     _add_output_option(plan_parser)
+
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="inspect the live host without changing it",
+        allow_abbrev=False,
+    )
+    doctor_parser.add_argument(
+        "--platform",
+        help="optional registered platform context label",
+    )
+    _add_output_option(doctor_parser)
     return parser
 
 

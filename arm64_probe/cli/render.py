@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from arm64_probe.domain.models import Plan
+from arm64_probe.environment.models import DoctorReport
 from arm64_probe.errors import ProbeError
 from arm64_probe.registry.catalog import Catalog
 from arm64_probe.serialization.json_io import dump_json
@@ -150,6 +151,52 @@ def render_plan(plan: Plan, output: str) -> str:
         + cases
         + "\nCASE REQUIREMENTS\n"
         + case_requirements
+    )
+
+
+def render_doctor(report: DoctorReport, output: str) -> str:
+    if output == "json":
+        return dump_json(to_data(report))
+    summary = _table(
+        ("FIELD", "VALUE"),
+        (
+            ("backend", report.backend_id),
+            ("platform", report.platform_id or ""),
+            ("observations", len(report.observations)),
+            ("recovery_journals", len(report.journals)),
+        ),
+    )
+    observations = _table(
+        ("CAPABILITY", "STATUS", "VALUES", "FORMAL", "HINT"),
+        (
+            (
+                observation.capability_id,
+                observation.status,
+                _compact(dict(observation.values)),
+                observation.permits_formal_measurement,
+                observation.hint or "",
+            )
+            for observation in report.observations
+        ),
+    )
+    journals = _table(
+        ("TRANSACTION", "STATE", "RESTORATION", "UPDATED"),
+        (
+            (
+                journal.transaction_id,
+                journal.state,
+                journal.restoration_status,
+                journal.updated_at,
+            )
+            for journal in report.journals
+        ),
+    )
+    return (
+        summary
+        + "\nOBSERVATIONS\n"
+        + observations
+        + "\nRECOVERY JOURNALS\n"
+        + journals
     )
 
 
