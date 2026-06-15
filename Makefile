@@ -1,6 +1,18 @@
 CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra -g
 
+# ----------------------------------------------------------------------------
+# Python toolchain
+# ----------------------------------------------------------------------------
+# Every Python invocation under this Makefile goes through `uv run` so the
+# pinned CPython 3.13.13 in .venv/ is the single source of truth. System
+# `python3`, Homebrew CPython, and the Anaconda interpreter are all bypassed
+# intentionally; the contract tests in tests/test_makefile_contract.py
+# enforce that the legacy targets and the new uv-managed targets stay in
+# agreement.
+UV ?= uv
+UV_RUN := $(UV) run --no-sync
+
 override BUILD_DIR := build
 override BIN_DIR := $(BUILD_DIR)/bin
 override HOST_OS := $(shell uname -s)
@@ -27,7 +39,7 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check clean help
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check doctor clean clean-venv sync help
 
 all: build
 
@@ -56,11 +68,11 @@ $(CHASE_MIGRATE_BIN): $(CHASE_MIGRATE_SRC) | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
 check:
-	python3 -m unittest discover -s tests -p 'test_*.py' -v
+	$(UV_RUN) python -m unittest discover -s tests -p 'test_*.py' -v
 	$(MAKE) shell-check
 
 legacy-check:
-	python3 scripts/legacy_manifest.py verify
+	$(UV_RUN) python scripts/legacy_manifest.py verify
 
 shell-check:
 	@for script in runner/*.sh; do \
@@ -74,14 +86,21 @@ show-targets:
 	@echo "$(CHASE_MIGRATE_SRC) -> $(CHASE_MIGRATE_BIN) [Linux]"
 
 probe:
-	./probe $(PROBE_ARGS)
+	$(UV_RUN) python ./probe $(PROBE_ARGS)
 
 probe-help:
-	./probe --help
+	$(UV_RUN) python ./probe --help
+
+doctor:
+	$(UV_RUN) python ./probe doctor $(PROBE_ARGS)
 
 phase1-check:
-	python3 -m unittest discover -s tests -p 'test_*.py' -v
-	python3 scripts/legacy_manifest.py verify
+	$(UV_RUN) python -m unittest discover -s tests -p 'test_*.py' -v
+	$(UV_RUN) python scripts/legacy_manifest.py verify
+
+phase2-check:
+	$(UV_RUN) python -m unittest discover -s tests -p 'test_*.py' -v
+	$(UV_RUN) python scripts/legacy_manifest.py verify
 
 clean:
 	@test "$(BUILD_DIR)" = "build" || { \
@@ -90,14 +109,24 @@ clean:
 	}
 	rm -rf $(BUILD_DIR)
 
+clean-venv:
+	rm -rf .venv
+
+sync:
+	$(UV) sync
+
 help:
 	@echo "Usage: make <target>"
 	@echo "  build         Build probes supported on the current host"
 	@echo "  build-linux   Build all Linux ARM64 probes; rejects non-Linux"
-	@echo "  check         Run unit/contract and shell-syntax checks"
-	@echo "  legacy-check  Verify frozen runner and data evidence"
+	@echo "  check         Run unit/contract and shell-syntax checks (uv-managed)"
+	@echo "  legacy-check  Verify frozen runner and data evidence (uv-managed)"
 	@echo "  show-targets  Show source, output, and platform support"
-	@echo "  probe         Run ./probe with PROBE_ARGS"
-	@echo "  probe-help    Show the Phase 1 control-interface help"
-	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification"
+	@echo "  probe         Run ./probe with PROBE_ARGS (uv-managed)"
+	@echo "  probe-help    Show the Phase 1 control-interface help (uv-managed)"
+	@echo "  doctor        Run ./probe doctor with PROBE_ARGS (uv-managed)"
+	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification (uv-managed)"
+	@echo "  phase2-check  Run Phase 2 Python tests and legacy verification (uv-managed)"
+	@echo "  sync          Provision or refresh the .venv via uv"
 	@echo "  clean         Remove build products"
+	@echo "  clean-venv    Remove the local .venv (re-run 'make sync' to rebuild)"

@@ -2,8 +2,10 @@
 
 ## Entry Points
 
-Use `./probe` immediately after checkout. `python3 -m arm64_probe` is the
-equivalent module entry point for debugging and automation.
+Use `./probe` immediately after checkout. The Makefile routes this
+through `uv run` against the pinned CPython 3.13.13 interpreter (see
+`AGENTS.md`); after `make sync` a developer can also run
+`uv run python -m arm64_probe` directly for debugging and automation.
 
 Phase 1 exposes side-effect-free discovery and planning commands:
 
@@ -36,7 +38,11 @@ validate contracts and report unsupported cases; they are not measurements.
 | `3` | Configuration or schema error |
 | `4` | Platform identification or capability error |
 | `5` | Planning error |
-| `10+` | Reserved for Phase 3 runtime failures |
+| `10` | Backend or host inspection failure |
+| `11` | Mutation authorization or permission failure |
+| `12` | Environment apply or verification failure; restoration succeeded |
+| `13` | Environment restoration or recovery failure |
+| `14` | Active lock or unfinished journal prevents mutation |
 
 The implementation in `arm64_probe/errors.py` is the single source for these
 values. Contract tests keep this table aligned with it.
@@ -45,6 +51,30 @@ values. Contract tests keep this table aligned with it.
 
 Every Phase 1 command is read-only. It does not execute probes, request
 privileges, create result directories, or modify CPU frequency, hugepages, page
-policy, or other system state. GB10 is first required at Phase 3 Gate 1 after
-the unified runner, environment recovery, and minimal smoke workflow receive an
-explicit ready notice.
+policy, or other system state.
+
+Phase 2 adds the read-only `probe doctor` and the mutating `probe restore`.
+
+```text
+probe doctor [--platform <id>] [-o table|json]
+probe restore --journal <path> --allow-mutation [-o table|json]
+```
+
+`probe doctor` reuses the existing read-only boundary; it never acquires the
+host mutation lock, never creates a journal, and never touches the production
+state root. `probe restore` is the only public mutating entry point: it accepts
+a managed journal path and `--allow-mutation`, replays the recorded controllers
+in reverse order under the host-wide `MutationLock`, and persists the recovered
+journal. It never executes journal-provided commands, never accepts target
+settings (`--state-root`, `--value`, `--command`), and never invokes `sudo`.
+Restore is denied with exit code `11` when authorization is missing, with
+exit code `13` when the journal path is unsafe or restore fails, and with exit
+code `14` when the host-wide lock is already held.
+
+`SIGINT` and `SIGTERM` are converted into a private exception inside any
+in-flight transaction and automatically restore the host before exit.
+Unhandleable process termination leaves a durable journal for explicit
+recovery via `probe restore`.
+
+GB10 is first required at Phase 3 Gate 1 after the unified runner, environment
+recovery, and minimal smoke workflow receive an explicit ready notice.

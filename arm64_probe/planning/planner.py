@@ -4,6 +4,7 @@ from arm64_probe.domain.ids import build_case_id
 from arm64_probe.domain.models import (
     Case,
     EnvironmentPhase,
+    EnvironmentRequirement,
     JsonScalar,
     ParameterSpec,
     Plan,
@@ -11,7 +12,7 @@ from arm64_probe.domain.models import (
     Scenario,
 )
 from arm64_probe.errors import ExitCode, ProbeError
-from arm64_probe.platforms.configured import ConfiguredPlatformAdapter
+from arm64_probe.platforms.configured_resolver import ConfiguredPlatformResolver
 from arm64_probe.planning.request import PlanRequest, ResolvedScenario
 from arm64_probe.registry.catalog import Catalog
 
@@ -50,10 +51,95 @@ def _validate_value(spec: ParameterSpec, value: JsonScalar) -> None:
         raise _planning_error(f"invalid value for {spec.id}: {value!r}")
 
 
+def _case_requirements(
+    case_cpu_text: str,
+    page_policy: JsonScalar,
+) -> tuple[EnvironmentRequirement, ...]:
+    page_capability = "linux.hugepage" if page_policy == "hugepage" else "arm64"
+    return (
+        EnvironmentRequirement(
+            "cpu-affinity",
+            "cpu-binding",
+            "case",
+            (("selection", case_cpu_text),),
+            False,
+            False,
+        ),
+        EnvironmentRequirement(
+            "page-policy",
+            page_capability,
+            "case",
+            (("policy", page_policy),),
+            False,
+            False,
+        ),
+    )
+
+
+def _host_requirements(
+    environment: tuple[tuple[str, JsonScalar], ...],
+    defaults: tuple[tuple[str, JsonScalar], ...],
+) -> tuple[EnvironmentRequirement, ...]:
+    requested = dict(environment)
+    platform_defaults = dict(defaults)
+    result: list[EnvironmentRequirement] = []
+    frequency_values = tuple(
+        sorted(
+            (request_id, requested[profile_id])
+            for profile_id, request_id in (
+                ("cpu-governor", "governor"),
+                ("cpu-min-frequency-khz", "min-khz"),
+                ("cpu-max-frequency-khz", "max-khz"),
+            )
+            if profile_id in requested
+        )
+    )
+    if frequency_values:
+        result.append(
+            EnvironmentRequirement(
+                "cpu-frequency",
+                "linux.cpufreq",
+                "host",
+                frequency_values,
+                True,
+                True,
+            )
+        )
+    if "hugepages" in requested:
+        size_kb = requested.get(
+            "hugepage-size-kb",
+            platform_defaults.get("hugepage-size-kb"),
+        )
+        if size_kb is None:
+            raise ValueError("hugepages requires a platform or profile hugepage-size-kb")
+        result.append(
+            EnvironmentRequirement(
+                "hugepage-pool",
+                "linux.hugepage",
+                "host",
+                (("count", requested["hugepages"]), ("size-kb", size_kb)),
+                True,
+                True,
+            )
+        )
+    if "transparent-hugepage" in requested:
+        result.append(
+            EnvironmentRequirement(
+                "transparent-hugepage",
+                "linux.transparent-hugepage",
+                "host",
+                (("policy", requested["transparent-hugepage"]),),
+                True,
+                True,
+            )
+        )
+    return tuple(sorted(result, key=lambda item: item.id))
+
+
 class Planner:
     def __init__(self, catalog: Catalog):
         self.catalog = catalog
-        self.adapter = ConfiguredPlatformAdapter()
+        self.adapter = ConfiguredPlatformResolver()
 
     def plan(self, request: PlanRequest) -> Plan:
         platform = self._platform(request.platform_id)
@@ -61,7 +147,7 @@ class Planner:
         resolved = self.resolve(request)
         self._validate_selector_applicability(request, resolved)
         cases_with_requirements: list[
-            tuple[Case, tuple[tuple[str, JsonScalar], ...]]
+            tuple[Case, tuple[EnvironmentRequirement, ...]]
         ] = []
         for item in resolved:
             case, requirements = self._case(platform, request, item)
@@ -79,10 +165,10 @@ class Planner:
                 ),
             )
         )
-        requirements_by_case = {
+        host_requirements_by_case = {
             case.id: requirements for case, requirements in cases_with_requirements
         }
-        phases = self._environment_phases(cases, requirements_by_case)
+        phases = self._environment_phases(cases, host_requirements_by_case)
         return Plan(
             platform_id=platform.id,
             profile_id=profile.id if profile else None,
@@ -207,17 +293,23 @@ class Planner:
         platform,
         request: PlanRequest,
         resolved: ResolvedScenario,
-    ) -> tuple[Case, tuple[tuple[str, JsonScalar], ...]]:
+    ) -> tuple[Case, tuple[EnvironmentRequirement, ...]]:
         parameters = dict(resolved.parameters)
         page_policy = parameters["page-policy"].value
         working_set = parameters["working-set"].value
-        requirements = dict(resolved.environment)
-        requirements["page-policy"] = page_policy
+        try:
+            host_requirements = _host_requirements(
+                resolved.environment,
+                platform.environment_defaults,
+            )
+        except ValueError as error:
+            raise _planning_error(str(error)) from error
         capability_requirements = set(resolved.scenario.required_capabilities)
-        if page_policy == "hugepage" or requirements.get("hugepages", 0):
+        capability_requirements.update(
+            requirement.capability_id for requirement in host_requirements
+        )
+        if page_policy == "hugepage":
             capability_requirements.add("linux.hugepage")
-        if "cpu-governor" in requirements or "cpu-frequency-policy" in requirements:
-            capability_requirements.add("linux.cpufreq")
 
         selectors: list[tuple[str, ResolvedValue]] = []
         if request.cluster is not None:
@@ -241,6 +333,7 @@ class Planner:
                     page_policy,
                 )
                 blocked = cpu is None
+                case_cpu_text = f"cpu-{cpu}" if cpu is not None else "cpu-unresolved"
             else:
                 cpu = None
                 src_cpu, dst_cpu, source = self.adapter.resolve_pair(
@@ -276,6 +369,10 @@ class Planner:
                     self._dimension(page_policy),
                 )
                 blocked = src_cpu is None or dst_cpu is None
+                case_cpu_text = (
+                    f"src-{src_cpu if src_cpu is not None else 'unresolved'},"
+                    f"dst-{dst_cpu if dst_cpu is not None else 'unresolved'}"
+                )
         except ValueError as error:
             raise _planning_error(str(error)) from error
 
@@ -300,8 +397,9 @@ class Planner:
             dst_cpu=dst_cpu,
             selectors=tuple(sorted(selectors)),
             parameters=resolved.parameters,
+            execution_requirements=_case_requirements(case_cpu_text, page_policy),
         )
-        return case, tuple(sorted(requirements.items()))
+        return case, host_requirements
 
     def _single_dimensions(
         self,
@@ -335,9 +433,9 @@ class Planner:
     @staticmethod
     def _environment_phases(
         cases: tuple[Case, ...],
-        requirements_by_case: dict[str, tuple[tuple[str, JsonScalar], ...]],
+        requirements_by_case: dict[str, tuple[EnvironmentRequirement, ...]],
     ) -> tuple[EnvironmentPhase, ...]:
-        groups: dict[tuple[tuple[str, JsonScalar], ...], list[str]] = {}
+        groups: dict[tuple[EnvironmentRequirement, ...], list[str]] = {}
         for case in cases:
             requirements = requirements_by_case[case.id]
             groups.setdefault(requirements, []).append(case.id)
@@ -345,7 +443,7 @@ class Planner:
             EnvironmentPhase(
                 id=f"phase-{index}",
                 case_ids=tuple(case_ids),
-                requirements=requirements,
+                host_requirements=requirements,
             )
             for index, (requirements, case_ids) in enumerate(
                 sorted(groups.items(), key=lambda item: repr(item[0])),

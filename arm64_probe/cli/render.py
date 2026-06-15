@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from arm64_probe.domain.models import Plan
+from arm64_probe.environment.models import DoctorReport, EnvironmentJournal
 from arm64_probe.errors import ProbeError
 from arm64_probe.registry.catalog import Catalog
 from arm64_probe.serialization.json_io import dump_json
@@ -112,7 +113,91 @@ def render_plan(plan: Plan, output: str) -> str:
             for case in plan.cases
         ),
     )
-    return summary + "\n" + cases
+    host_requirements = _table(
+        ("PHASE", "REQUIREMENT", "CAPABILITY", "VALUES", "MUTATION", "PRIVILEGE"),
+        (
+            (
+                phase.id,
+                requirement.id,
+                requirement.capability_id,
+                _compact(dict(requirement.values)),
+                requirement.mutation,
+                requirement.requires_privilege,
+            )
+            for phase in plan.environment_phases
+            for requirement in phase.host_requirements
+        ),
+    )
+    case_requirements = _table(
+        ("CASE", "REQUIREMENT", "CAPABILITY", "VALUES", "MUTATION", "PRIVILEGE"),
+        (
+            (
+                case.id,
+                requirement.id,
+                requirement.capability_id,
+                _compact(dict(requirement.values)),
+                requirement.mutation,
+                requirement.requires_privilege,
+            )
+            for case in plan.cases
+            for requirement in case.execution_requirements
+        ),
+    )
+    return (
+        summary
+        + "\nHOST REQUIREMENTS\n"
+        + host_requirements
+        + "\nCASES\n"
+        + cases
+        + "\nCASE REQUIREMENTS\n"
+        + case_requirements
+    )
+
+
+def render_doctor(report: DoctorReport, output: str) -> str:
+    if output == "json":
+        return dump_json(to_data(report))
+    summary = _table(
+        ("FIELD", "VALUE"),
+        (
+            ("backend", report.backend_id),
+            ("platform", report.platform_id or ""),
+            ("observations", len(report.observations)),
+            ("recovery_journals", len(report.journals)),
+        ),
+    )
+    observations = _table(
+        ("CAPABILITY", "STATUS", "VALUES", "FORMAL", "HINT"),
+        (
+            (
+                observation.capability_id,
+                observation.status,
+                _compact(dict(observation.values)),
+                observation.permits_formal_measurement,
+                observation.hint or "",
+            )
+            for observation in report.observations
+        ),
+    )
+    journals = _table(
+        ("TRANSACTION", "STATE", "RESTORATION", "UPDATED"),
+        (
+            (
+                journal.transaction_id,
+                journal.state,
+                journal.restoration_status,
+                journal.updated_at,
+            )
+            for journal in report.journals
+        ),
+    )
+    return (
+        summary
+        + "\nOBSERVATIONS\n"
+        + observations
+        + "\nRECOVERY JOURNALS\n"
+        + journals
+    )
 
 
 def render_error(error: ProbeError, output: str) -> str:
@@ -123,3 +208,22 @@ def render_error(error: ProbeError, output: str) -> str:
     if error.hint:
         lines.append(f"hint: {error.hint}")
     return "\n".join(lines) + "\n"
+
+
+def render_restore(journal: EnvironmentJournal, output: str) -> str:
+    if output == "json":
+        return dump_json(to_data(journal))
+    summary = _table(
+        ("FIELD", "VALUE"),
+        (
+            ("transaction", journal.transaction_id),
+            ("state", journal.state),
+            ("backend", journal.backend_id),
+            ("platform", journal.platform_id),
+            ("restoration_status", journal.restoration_status),
+            ("applied", ",".join(journal.applied) or ""),
+            ("active", journal.active_controller or ""),
+            ("updated", journal.updated_at),
+        ),
+    )
+    return summary

@@ -22,6 +22,22 @@ EXPECTED_SCENARIOS = (
     "migration-latency.same-cluster",
     "migration-latency.cross-cluster",
 )
+EXPECTED_SCHEMAS = (
+    "capability-observation.schema.json",
+    "capability.schema.json",
+    "case.schema.json",
+    "doctor-report.schema.json",
+    "environment-requirement.schema.json",
+    "environment.schema.json",
+    "error.schema.json",
+    "experiment.schema.json",
+    "manifest.schema.json",
+    "plan.schema.json",
+    "platform.schema.json",
+    "profile.schema.json",
+    "run-result.schema.json",
+    "sample.schema.json",
+)
 
 
 class Phase1AcceptanceTests(unittest.TestCase):
@@ -39,7 +55,7 @@ class Phase1AcceptanceTests(unittest.TestCase):
             *sorted((ROOT / "configs" / "profiles").glob("*.json")),
         )
 
-        self.assertEqual(len(schemas), 11)
+        self.assertEqual(tuple(path.name for path in schemas), EXPECTED_SCHEMAS)
         self.assertEqual(len(registries), 7)
         for path in (*schemas, *registries):
             with self.subTest(path=path):
@@ -80,7 +96,6 @@ class Phase1AcceptanceTests(unittest.TestCase):
         for exit_code in ExitCode:
             with self.subTest(exit_code=exit_code):
                 self.assertIn(f"| `{int(exit_code)}` |", contract)
-        self.assertIn("| `10+` |", contract)
 
     def test_frozen_and_transitional_paths_are_unchanged(self):
         result = subprocess.run(

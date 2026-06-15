@@ -86,16 +86,26 @@ class PlanContractTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            dict(default.environment_phases[0].requirements)["page-policy"],
-            "default",
+            tuple(req.id for req in default.cases[0].execution_requirements),
+            ("cpu-affinity", "page-policy"),
         )
         self.assertEqual(
-            dict(hugepage.environment_phases[0].requirements)["page-policy"],
-            "hugepage",
+            default.environment_phases[0].host_requirements,
+            hugepage.environment_phases[0].host_requirements,
         )
-        self.assertEqual(
-            dict(baseline.environment_phases[0].requirements)["cpu-governor"],
-            "performance",
+        self.assertNotEqual(
+            default.cases[0].execution_requirements,
+            hugepage.cases[0].execution_requirements,
+        )
+        self.assertEqual(len(baseline.environment_phases), 1)
+        baseline_requirement = baseline.environment_phases[0].host_requirements[0]
+        self.assertEqual(baseline_requirement.id, "cpu-frequency")
+        self.assertEqual(baseline_requirement.capability_id, "linux.cpufreq")
+        self.assertTrue(baseline_requirement.mutation)
+        self.assertTrue(baseline_requirement.requires_privilege)
+        self.assertNotIn(
+            "page-policy",
+            tuple(req.id for req in baseline.environment_phases[0].host_requirements),
         )
         source = inspect.getsourcefile(Planner)
         self.assertIsNotNone(source)

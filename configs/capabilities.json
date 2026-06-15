@@ -17,6 +17,10 @@
       "id": "linux.hugepage"
     },
     {
+      "description": "Inspect and control Linux transparent hugepage policy",
+      "id": "linux.transparent-hugepage"
+    },
+    {
       "description": "Access the required ARMv9 PMU events",
       "id": "pmu.armv9"
     }

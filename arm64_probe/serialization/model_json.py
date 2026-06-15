@@ -4,6 +4,7 @@ from arm64_probe.domain.models import (
     Capability,
     Case,
     EnvironmentPhase,
+    EnvironmentRequirement,
     Experiment,
     NamedCpuSet,
     ParameterSpec,
@@ -14,6 +15,14 @@ from arm64_probe.domain.models import (
     RunResult,
     Sample,
     Scenario,
+)
+from arm64_probe.environment.models import (
+    CapabilityObservation,
+    ControllerRequest,
+    ControllerState,
+    DoctorReport,
+    EnvironmentJournal,
+    JournalFailure,
 )
 from arm64_probe.errors import ProbeError
 
@@ -39,6 +48,15 @@ def to_data(value: object) -> Any:
         }
     if isinstance(value, ResolvedValue):
         return {"value": to_data(value.value), "source": value.source}
+    if isinstance(value, EnvironmentRequirement):
+        return {
+            "id": value.id,
+            "capability_id": value.capability_id,
+            "scope": value.scope,
+            "values": _mapping(value.values),
+            "mutation": value.mutation,
+            "requires_privilege": value.requires_privilege,
+        }
     if isinstance(value, Platform):
         return {
             "id": value.id,
@@ -50,6 +68,7 @@ def to_data(value: object) -> Any:
             "core_groups": to_data(value.core_groups),
             "representative_cpus": _mapping(value.representative_cpus),
             "defaults": _mapping(value.defaults),
+            "environment_defaults": _mapping(value.environment_defaults),
         }
     if isinstance(value, Scenario):
         return {
@@ -85,12 +104,13 @@ def to_data(value: object) -> Any:
             "dst_cpu": value.dst_cpu,
             "selectors": _mapping(value.selectors),
             "parameters": _mapping(value.parameters),
+            "execution_requirements": to_data(value.execution_requirements),
         }
     if isinstance(value, EnvironmentPhase):
         return {
             "id": value.id,
             "case_ids": to_data(value.case_ids),
-            "requirements": _mapping(value.requirements),
+            "host_requirements": to_data(value.host_requirements),
         }
     if isinstance(value, Plan):
         return {
@@ -116,6 +136,59 @@ def to_data(value: object) -> Any:
             "samples": to_data(value.samples),
             "summary": _mapping(value.summary),
             "environment": _mapping(value.environment),
+        }
+    if isinstance(value, CapabilityObservation):
+        return {
+            "capability_id": value.capability_id,
+            "status": value.status,
+            "values": _mapping(value.values),
+            "evidence": to_data(value.evidence),
+            "hint": value.hint,
+            "permits_formal_measurement": value.permits_formal_measurement,
+        }
+    if isinstance(value, ControllerRequest):
+        return {
+            "controller_id": value.controller_id,
+            "values": _mapping(value.values),
+        }
+    if isinstance(value, ControllerState):
+        return {
+            "controller_id": value.controller_id,
+            "status": value.status,
+            "values": _mapping(value.values),
+            "evidence": to_data(value.evidence),
+        }
+    if isinstance(value, JournalFailure):
+        return {
+            "stage": value.stage,
+            "category": value.category,
+            "message": value.message,
+        }
+    if isinstance(value, EnvironmentJournal):
+        return {
+            "schema_version": value.schema_version,
+            "transaction_id": value.transaction_id,
+            "repository_id": value.repository_id,
+            "backend_id": value.backend_id,
+            "platform_id": value.platform_id,
+            "state": value.state,
+            "created_at": value.created_at,
+            "updated_at": value.updated_at,
+            "requested": to_data(value.requested),
+            "before": to_data(value.before),
+            "applied": to_data(value.applied),
+            "active_controller": value.active_controller,
+            "effective": to_data(value.effective),
+            "after": to_data(value.after),
+            "restoration_status": value.restoration_status,
+            "failures": to_data(value.failures),
+        }
+    if isinstance(value, DoctorReport):
+        return {
+            "backend_id": value.backend_id,
+            "platform_id": value.platform_id,
+            "observations": to_data(value.observations),
+            "journals": to_data(value.journals),
         }
     if isinstance(value, ProbeError):
         return {

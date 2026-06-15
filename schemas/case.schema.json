@@ -5,6 +5,7 @@
   "properties": {
     "cpu": {"type": ["integer", "null"]},
     "dst_cpu": {"type": ["integer", "null"]},
+    "execution_requirements": {"items": {"$ref": "environment-requirement.schema.json"}, "type": "array"},
     "id": {"type": "string"},
     "parameters": {"additionalProperties": {"$ref": "#/$defs/resolved"}, "type": "object"},
     "platform_id": {"type": "string"},
@@ -14,7 +15,7 @@
     "src_cpu": {"type": ["integer", "null"]},
     "status": {"enum": ["blocked", "ready", "unsupported"]}
   },
-  "required": ["cpu", "dst_cpu", "id", "parameters", "platform_id", "reason", "scenario_id", "selectors", "src_cpu", "status"],
+  "required": ["cpu", "dst_cpu", "execution_requirements", "id", "parameters", "platform_id", "reason", "scenario_id", "selectors", "src_cpu", "status"],
   "type": "object",
   "$defs": {
     "resolved": {

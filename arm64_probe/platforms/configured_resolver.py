@@ -56,7 +56,7 @@ def _semantic_cpu(
     return selected[0]
 
 
-class ConfiguredPlatformAdapter:
+class ConfiguredPlatformResolver:
     def resolve_single(
         self,
         platform: Platform,

@@ -57,6 +57,11 @@ class CliFoundationTests(unittest.TestCase):
         self.assertEqual(ExitCode.CONFIG, 3)
         self.assertEqual(ExitCode.CAPABILITY, 4)
         self.assertEqual(ExitCode.PLANNING, 5)
+        self.assertEqual(ExitCode.HOST_INSPECTION, 10)
+        self.assertEqual(ExitCode.MUTATION_AUTHORIZATION, 11)
+        self.assertEqual(ExitCode.ENVIRONMENT_APPLY, 12)
+        self.assertEqual(ExitCode.ENVIRONMENT_RESTORE, 13)
+        self.assertEqual(ExitCode.ENVIRONMENT_BUSY, 14)
 
 
 if __name__ == "__main__":

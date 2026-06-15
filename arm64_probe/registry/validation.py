@@ -30,6 +30,7 @@ PLATFORM_FIELDS = {
     "core_groups",
     "representative_cpus",
     "defaults",
+    "environment_defaults",
 }
 
 
@@ -124,6 +125,36 @@ def _scalar_mapping(
     return tuple(sorted(result))
 
 
+def _environment_mapping(
+    path: Path,
+    value: object,
+    label: str,
+) -> tuple[tuple[str, JsonScalar], ...]:
+    result = _scalar_mapping(path, value, label)
+    string_fields = {"cpu-governor", "transparent-hugepage"}
+    positive_integer_fields = {
+        "cpu-min-frequency-khz",
+        "cpu-max-frequency-khz",
+        "hugepage-size-kb",
+    }
+    nonnegative_integer_fields = {"hugepages"}
+    allowed = string_fields | positive_integer_fields | nonnegative_integer_fields
+    for key, item in result:
+        if key not in allowed:
+            raise _error(path, f"unknown {label} field: {key}")
+        if key in string_fields:
+            if not isinstance(item, str) or not item:
+                raise _error(path, f"{key} must be a nonempty string")
+        elif (
+            not isinstance(item, int)
+            or isinstance(item, bool)
+            or item < (0 if key in nonnegative_integer_fields else 1)
+        ):
+            qualifier = "nonnegative" if key in nonnegative_integer_fields else "positive"
+            raise _error(path, f"{key} must be a {qualifier} integer")
+    return result
+
+
 def load_capabilities(path: Path) -> tuple[Capability, ...]:
     payload = load_json(path)
     _require_fields(path, payload, {"capabilities"})
@@ -185,6 +216,11 @@ def load_platform(path: Path) -> Platform:
         core_groups=core_groups,
         representative_cpus=tuple(sorted(representatives)),
         defaults=_scalar_mapping(path, payload["defaults"], "defaults"),
+        environment_defaults=_environment_mapping(
+            path,
+            payload["environment_defaults"],
+            "environment_defaults",
+        ),
     )
 
 
@@ -300,16 +336,14 @@ def load_profile(path: Path) -> Profile:
         raise _error(path, "selections must be a nonempty string array")
     if len(selections) != len(set(selections)):
         raise _error(path, "duplicate profile selection")
-    environment = _scalar_mapping(path, payload["environment"], "environment")
-    allowed_environment = {"cpu-governor", "cpu-frequency-policy", "hugepages"}
-    for key, value in environment:
-        if key not in allowed_environment:
-            raise _error(path, f"unknown environment field: {key}")
-        if key == "hugepages":
-            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-                raise _error(path, "hugepages must be a nonnegative integer")
-        elif not isinstance(value, str) or not value:
-            raise _error(path, f"{key} must be a nonempty string")
+    environment = _environment_mapping(path, payload["environment"], "environment")
+    environment_values = dict(environment)
+    if "hugepage-size-kb" in environment_values and "hugepages" not in environment_values:
+        raise _error(path, "hugepage-size-kb requires hugepages")
+    minimum = environment_values.get("cpu-min-frequency-khz")
+    maximum = environment_values.get("cpu-max-frequency-khz")
+    if minimum is not None and maximum is not None and minimum > maximum:
+        raise _error(path, "cpu-min-frequency-khz must not exceed cpu-max-frequency-khz")
     return Profile(
         id=_canonical(path, payload["id"], "profile id"),
         display_name=_string(path, payload["display_name"], "display_name"),

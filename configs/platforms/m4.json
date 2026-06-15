@@ -36,6 +36,7 @@
   },
   "description": "Synthetic Apple M4 contract fixture; not live topology or performance evidence",
   "display_name": "Apple M4 Contract Fixture",
+  "environment_defaults": {},
   "id": "m4",
   "measurement_support": "contract-only",
   "representative_cpus": {

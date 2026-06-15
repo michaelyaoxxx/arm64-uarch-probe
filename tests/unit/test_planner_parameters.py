@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 
 from arm64_probe.errors import ExitCode, ProbeError
-from arm64_probe.planning.planner import Planner
+from arm64_probe.planning.planner import Planner, _host_requirements
 from arm64_probe.planning.request import PlanRequest
 from arm64_probe.registry.catalog import Catalog
 
@@ -74,6 +74,35 @@ class PlannerParameterTests(unittest.TestCase):
                 with self.assertRaises(ProbeError) as error:
                     self.planner.resolve(request)
                 self.assertEqual(error.exception.code, ExitCode.PLANNING)
+
+    def test_platform_environment_defaults_do_not_implicitly_request_mutation(self):
+        plan = self.planner.plan(
+            PlanRequest(
+                platform_id="gb10",
+                selections=("cache-latency.l1-latency",),
+            )
+        )
+
+        self.assertEqual(plan.environment_phases[0].host_requirements, ())
+
+    def test_host_requirements_complete_explicit_requests_from_platform_defaults(self):
+        requirements = _host_requirements(
+            (
+                ("cpu-governor", "performance"),
+                ("hugepages", 8),
+                ("transparent-hugepage", "never"),
+            ),
+            (("hugepage-size-kb", 2048),),
+        )
+
+        self.assertEqual(
+            tuple(requirement.id for requirement in requirements),
+            ("cpu-frequency", "hugepage-pool", "transparent-hugepage"),
+        )
+        self.assertEqual(
+            dict(requirements[1].values),
+            {"count": 8, "size-kb": 2048},
+        )
 
 
 if __name__ == "__main__":

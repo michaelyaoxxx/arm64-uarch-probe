@@ -68,6 +68,20 @@ class CliPlanTests(unittest.TestCase):
         self.assertEqual(case["parameters"]["samples"]["source"], "cli")
         self.assertEqual(case["parameters"]["working-set"]["value"], "48KiB")
         self.assertEqual(case["parameters"]["page-policy"]["value"], "hugepage")
+        self.assertEqual(
+            [item["id"] for item in case["execution_requirements"]],
+            ["cpu-affinity", "page-policy"],
+        )
+
+    def test_table_preview_lists_host_and_case_requirements(self):
+        result = run_probe("plan", "--platform", "gb10", "--profile", "baseline")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("HOST REQUIREMENTS", result.stdout)
+        self.assertIn("cpu-frequency", result.stdout)
+        self.assertIn("CASE REQUIREMENTS", result.stdout)
+        self.assertIn("cpu-affinity", result.stdout)
+        self.assertIn("page-policy", result.stdout)
 
     def test_profile_and_skip_unavailable(self):
         plan = json_plan(

@@ -60,16 +60,33 @@ class MakefileContractTests(unittest.TestCase):
         probe = make("-n", "probe", "PROBE_ARGS=list targets")
         probe_help = make("-n", "probe-help")
         phase1_check = make("-n", "phase1-check")
+        doctor = make("-n", "doctor")
+        phase2_check = make("-n", "phase2-check")
 
         self.assertEqual(help_result.returncode, 0, help_result.stderr)
-        for target in ("probe", "probe-help", "phase1-check"):
+        for target in ("probe", "probe-help", "phase1-check", "doctor", "phase2-check", "sync", "clean-venv"):
             with self.subTest(target=target):
                 self.assertIn(target, help_result.stdout)
-        self.assertEqual(probe.stdout.strip(), "./probe list targets")
-        self.assertEqual(probe_help.stdout.strip(), "./probe --help")
-        self.assertIn("python3 -m unittest discover", phase1_check.stdout)
-        self.assertIn("python3 scripts/legacy_manifest.py verify", phase1_check.stdout)
+        # Probe/doctor wrappers now route through `uv run` against the
+        # pinned CPython 3.13.13 interpreter.
+        self.assertIn("uv run --no-sync python ./probe list targets", probe.stdout)
+        self.assertIn("uv run --no-sync python ./probe --help", probe_help.stdout)
+        self.assertIn("uv run --no-sync python -m unittest discover", phase1_check.stdout)
+        self.assertIn("uv run --no-sync python scripts/legacy_manifest.py verify", phase1_check.stdout)
         self.assertNotIn("build/bin", phase1_check.stdout)
+        self.assertIn("uv run --no-sync python ./probe doctor", doctor.stdout)
+        self.assertIn("uv run --no-sync python -m unittest discover", phase2_check.stdout)
+        self.assertIn("uv run --no-sync python scripts/legacy_manifest.py verify", phase2_check.stdout)
+        self.assertNotIn("build/bin", phase2_check.stdout)
+        self.assertNotIn("sudo", phase2_check.stdout)
+        self.assertNotIn("/sys/", phase2_check.stdout)
+        # The legacy raw-python3 entry points must be gone.
+        for forbidden in (
+            "python3 -m unittest",
+            "python3 scripts/legacy_manifest.py",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, phase1_check.stdout + phase2_check.stdout)
 
     def test_show_targets_lists_exact_supported_probe_mappings(self):
         result = make("show-targets")

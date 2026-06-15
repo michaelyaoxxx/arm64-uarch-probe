@@ -19,6 +19,7 @@ SCHEMA_REQUIRED = {
         "defaults",
         "description",
         "display_name",
+        "environment_defaults",
         "id",
         "measurement_support",
         "representative_cpus",
@@ -34,6 +35,7 @@ SCHEMA_REQUIRED = {
     "case.schema.json": (
         "cpu",
         "dst_cpu",
+        "execution_requirements",
         "id",
         "parameters",
         "platform_id",
@@ -59,11 +61,44 @@ SCHEMA_REQUIRED = {
         "toolchain",
     ),
     "environment.schema.json": (
+        "active_controller",
         "after",
+        "applied",
+        "backend_id",
         "before",
+        "created_at",
         "effective",
+        "failures",
+        "platform_id",
+        "repository_id",
         "requested",
         "restoration_status",
+        "schema_version",
+        "state",
+        "transaction_id",
+        "updated_at",
+    ),
+    "environment-requirement.schema.json": (
+        "capability_id",
+        "id",
+        "mutation",
+        "requires_privilege",
+        "scope",
+        "values",
+    ),
+    "capability-observation.schema.json": (
+        "capability_id",
+        "evidence",
+        "hint",
+        "permits_formal_measurement",
+        "status",
+        "values",
+    ),
+    "doctor-report.schema.json": (
+        "backend_id",
+        "journals",
+        "observations",
+        "platform_id",
     ),
     "sample.schema.json": (
         "case_id",
@@ -110,6 +145,18 @@ class PublicSchemaTests(unittest.TestCase):
                 self.assertTrue(set(required).issubset(payload["properties"]))
 
     def test_current_model_keys_match_public_schemas(self):
+        from arm64_probe.domain.models import EnvironmentRequirement
+        from tests.unit.test_environment_models import build_environment_models
+
+        _, _, observation, _, journal, report = build_environment_models()
+        requirement = EnvironmentRequirement(
+            "cpu-frequency",
+            "linux.cpufreq",
+            "host",
+            (("governor", "performance"),),
+            True,
+            True,
+        )
         models = {
             "capability.schema.json": self.catalog.capabilities()[0],
             "platform.schema.json": self.catalog.platforms()[0],
@@ -117,6 +164,10 @@ class PublicSchemaTests(unittest.TestCase):
             "profile.schema.json": self.catalog.profiles()[0],
             "case.schema.json": self.plan.cases[0],
             "plan.schema.json": self.plan,
+            "environment-requirement.schema.json": requirement,
+            "capability-observation.schema.json": observation,
+            "doctor-report.schema.json": report,
+            "environment.schema.json": journal,
         }
         for filename, model in models.items():
             with self.subTest(filename=filename):
