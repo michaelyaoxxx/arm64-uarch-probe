@@ -4,6 +4,15 @@ from dataclasses import dataclass
 JsonScalar = str | int | float | bool | None
 
 
+def _validate_mapping(
+    values: tuple[tuple[str, JsonScalar], ...],
+    label: str,
+) -> None:
+    keys = tuple(key for key, _ in values)
+    if keys != tuple(sorted(set(keys))):
+        raise ValueError(f"{label} must have sorted unique keys")
+
+
 @dataclass(frozen=True)
 class NamedCpuSet:
     id: str
@@ -30,6 +39,21 @@ class ResolvedValue:
 
 
 @dataclass(frozen=True)
+class EnvironmentRequirement:
+    id: str
+    capability_id: str
+    scope: str
+    values: tuple[tuple[str, JsonScalar], ...]
+    mutation: bool
+    requires_privilege: bool
+
+    def __post_init__(self) -> None:
+        if self.scope not in {"host", "case"}:
+            raise ValueError(f"unsupported environment requirement scope: {self.scope}")
+        _validate_mapping(self.values, "environment requirement values")
+
+
+@dataclass(frozen=True)
 class Platform:
     id: str
     display_name: str
@@ -40,6 +64,7 @@ class Platform:
     core_groups: tuple[NamedCpuSet, ...]
     representative_cpus: tuple[tuple[str, int], ...]
     defaults: tuple[tuple[str, JsonScalar], ...]
+    environment_defaults: tuple[tuple[str, JsonScalar], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -79,13 +104,26 @@ class Case:
     dst_cpu: int | None
     selectors: tuple[tuple[str, ResolvedValue], ...]
     parameters: tuple[tuple[str, ResolvedValue], ...]
+    execution_requirements: tuple[EnvironmentRequirement, ...] = ()
 
 
 @dataclass(frozen=True)
 class EnvironmentPhase:
     id: str
     case_ids: tuple[str, ...]
-    requirements: tuple[tuple[str, JsonScalar], ...]
+    host_requirements: tuple[EnvironmentRequirement, ...]
+
+    @property
+    def requirements(self) -> tuple[tuple[str, JsonScalar], ...]:
+        """Expose the Phase 1 scalar view until planning migrates in Task 3."""
+        result: list[tuple[str, JsonScalar]] = []
+        for requirement in self.host_requirements:
+            if len(requirement.values) != 1 or requirement.values[0][0] != "value":
+                raise ValueError(
+                    f"requirement {requirement.id} has no Phase 1 scalar view"
+                )
+            result.append((requirement.id, requirement.values[0][1]))
+        return tuple(result)
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,13 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/doctor-report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "backend_id": {"type": "string"},
+    "journals": {"items": {"$ref": "environment.schema.json"}, "type": "array"},
+    "observations": {"items": {"$ref": "capability-observation.schema.json"}, "type": "array"},
+    "platform_id": {"type": ["string", "null"]}
+  },
+  "required": ["backend_id", "journals", "observations", "platform_id"],
+  "type": "object"
+}

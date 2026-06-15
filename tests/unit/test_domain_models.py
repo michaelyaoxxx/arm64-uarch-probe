@@ -5,6 +5,7 @@ from arm64_probe.domain.models import (
     Capability,
     Case,
     EnvironmentPhase,
+    EnvironmentRequirement,
     Experiment,
     NamedCpuSet,
     ParameterSpec,
@@ -31,6 +32,7 @@ def build_models():
         core_groups=(NamedCpuSet("x925", (0, 1)),),
         representative_cpus=(("c0.x925", 0),),
         defaults=(("samples", 7),),
+        environment_defaults=(),
     )
     scenario = Scenario(
         id="cache-latency.l1-latency",
@@ -58,11 +60,30 @@ def build_models():
         dst_cpu=None,
         selectors=(("cpu", ResolvedValue(0, "platform-selector:x925")),),
         parameters=(("samples", resolved),),
+        execution_requirements=(
+            EnvironmentRequirement(
+                "cpu-affinity",
+                "cpu-binding",
+                "case",
+                (("selection", "cpu-0"),),
+                False,
+                False,
+            ),
+        ),
     )
     phase = EnvironmentPhase(
         "default",
         (case.id,),
-        (("page-policy", "default"),),
+        (
+            EnvironmentRequirement(
+                "cpu-frequency",
+                "linux.cpufreq",
+                "host",
+                (("governor", "performance"),),
+                True,
+                True,
+            ),
+        ),
     )
     plan = Plan(platform.id, profile.id, (scenario.id,), (case,), (phase,), False)
     return (
@@ -75,6 +96,7 @@ def build_models():
         experiment,
         profile,
         case,
+        case.execution_requirements[0],
         phase,
         plan,
     )

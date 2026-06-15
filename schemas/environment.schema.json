@@ -3,12 +3,56 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "after": {"type": "object"},
-    "before": {"type": "object"},
-    "effective": {"type": "object"},
-    "requested": {"type": "object"},
-    "restoration_status": {"type": "string"}
+    "active_controller": {"type": ["string", "null"]},
+    "after": {"items": {"$ref": "#/$defs/controller_state"}, "type": "array"},
+    "applied": {"items": {"type": "string"}, "type": "array"},
+    "backend_id": {"type": "string"},
+    "before": {"items": {"$ref": "#/$defs/controller_state"}, "type": "array"},
+    "created_at": {"type": "string"},
+    "effective": {"items": {"$ref": "#/$defs/controller_state"}, "type": "array"},
+    "failures": {"items": {"$ref": "#/$defs/failure"}, "type": "array"},
+    "platform_id": {"type": "string"},
+    "repository_id": {"type": "string"},
+    "requested": {"items": {"$ref": "#/$defs/controller_request"}, "type": "array"},
+    "restoration_status": {"type": "string"},
+    "schema_version": {"const": 1},
+    "state": {"enum": ["created", "applying", "prepared", "restoring", "restored", "restore-failed"]},
+    "transaction_id": {"type": "string"},
+    "updated_at": {"type": "string"}
   },
-  "required": ["after", "before", "effective", "requested", "restoration_status"],
-  "type": "object"
+  "required": ["active_controller", "after", "applied", "backend_id", "before", "created_at", "effective", "failures", "platform_id", "repository_id", "requested", "restoration_status", "schema_version", "state", "transaction_id", "updated_at"],
+  "type": "object",
+  "$defs": {
+    "controller_request": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_id": {"type": "string"},
+        "values": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"}
+      },
+      "required": ["controller_id", "values"],
+      "type": "object"
+    },
+    "controller_state": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_id": {"type": "string"},
+        "evidence": {"items": {"type": "string"}, "type": "array"},
+        "status": {"enum": ["available", "unsupported", "permission-denied", "degraded", "unavailable"]},
+        "values": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"}
+      },
+      "required": ["controller_id", "evidence", "status", "values"],
+      "type": "object"
+    },
+    "failure": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {"type": "string"},
+        "message": {"type": "string"},
+        "stage": {"type": "string"}
+      },
+      "required": ["category", "message", "stage"],
+      "type": "object"
+    },
+    "scalar": {"type": ["string", "integer", "number", "boolean", "null"]}
+  }
 }

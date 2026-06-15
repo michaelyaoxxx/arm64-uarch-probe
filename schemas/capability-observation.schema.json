@@ -1,0 +1,18 @@
+{
+  "$id": "https://arm64-uarch-probe.dev/schemas/capability-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "capability_id": {"type": "string"},
+    "evidence": {"items": {"type": "string"}, "type": "array"},
+    "hint": {"type": ["string", "null"]},
+    "permits_formal_measurement": {"type": "boolean"},
+    "status": {"enum": ["available", "unsupported", "permission-denied", "degraded", "unavailable"]},
+    "values": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"}
+  },
+  "required": ["capability_id", "evidence", "hint", "permits_formal_measurement", "status", "values"],
+  "type": "object",
+  "$defs": {
+    "scalar": {"type": ["string", "integer", "number", "boolean", "null"]}
+  }
+}

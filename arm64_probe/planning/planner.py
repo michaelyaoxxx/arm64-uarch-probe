@@ -4,6 +4,7 @@ from arm64_probe.domain.ids import build_case_id
 from arm64_probe.domain.models import (
     Case,
     EnvironmentPhase,
+    EnvironmentRequirement,
     JsonScalar,
     ParameterSpec,
     Plan,
@@ -345,7 +346,17 @@ class Planner:
             EnvironmentPhase(
                 id=f"phase-{index}",
                 case_ids=tuple(case_ids),
-                requirements=requirements,
+                host_requirements=tuple(
+                    EnvironmentRequirement(
+                        id=key,
+                        capability_id=key,
+                        scope="host",
+                        values=(("value", value),),
+                        mutation=False,
+                        requires_privilege=False,
+                    )
+                    for key, value in requirements
+                ),
             )
             for index, (requirements, case_ids) in enumerate(
                 sorted(groups.items(), key=lambda item: repr(item[0])),

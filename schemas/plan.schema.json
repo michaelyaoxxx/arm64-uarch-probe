@@ -9,10 +9,10 @@
         "additionalProperties": false,
         "properties": {
           "case_ids": {"items": {"type": "string"}, "type": "array"},
-          "id": {"type": "string"},
-          "requirements": {"type": "object"}
+          "host_requirements": {"items": {"$ref": "environment-requirement.schema.json"}, "type": "array"},
+          "id": {"type": "string"}
         },
-        "required": ["case_ids", "id", "requirements"],
+        "required": ["case_ids", "host_requirements", "id"],
         "type": "object"
       },
       "type": "array"
