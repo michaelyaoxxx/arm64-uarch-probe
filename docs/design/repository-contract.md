@@ -25,6 +25,7 @@ analysis dependencies and must be installed through repository-owned metadata.
 
 - `make help`: list accurate supported targets.
 - `make show-targets`: show source-to-binary mappings and platform support.
+- `make sync`: provision or refresh the local `.venv/` from `uv.lock`.
 - `make build`: build probes supported on the current host.
 - `make build-linux`: build all Linux probes; reject non-Linux hosts.
 - `make check`: run repository policy, legacy integrity, Makefile contract, and
@@ -32,6 +33,11 @@ analysis dependencies and must be installed through repository-owned metadata.
 - `make phase1-check` and `make phase2-check`: run the full Python test
   discovery and the legacy manifest verification.
 - `make doctor`: thin wrapper around `./probe doctor` for host inspection.
+
+All Python invocations under this Makefile go through `uv run --no-sync`.
+The repository is pinned to CPython 3.13.13 via `.python-version` and
+`pyproject.toml`; do not invoke the system `python3` directly. See
+`AGENTS.md` for the full toolchain description.
 
 ## Repository Layout
 

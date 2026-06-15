@@ -2,8 +2,10 @@
 
 ## Entry Points
 
-Use `./probe` immediately after checkout. `python3 -m arm64_probe` is the
-equivalent module entry point for debugging and automation.
+Use `./probe` immediately after checkout. The Makefile routes this
+through `uv run` against the pinned CPython 3.13.13 interpreter (see
+`AGENTS.md`); after `make sync` a developer can also run
+`uv run python -m arm64_probe` directly for debugging and automation.
 
 Phase 1 exposes side-effect-free discovery and planning commands:
 

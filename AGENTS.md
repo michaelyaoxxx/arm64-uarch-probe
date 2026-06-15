@@ -22,15 +22,30 @@ contracts and deterministic plans; Mac measurements are not GB10 baselines.
 Versioned `runner/run_pmu*.sh` scripts and tracked `data/` files are frozen
 legacy evidence. Do not modify them for new features.
 
+## Python Toolchain
+
+The repository is pinned to **CPython 3.13.13** and managed by `uv`.
+`.python-version`, `pyproject.toml`, and `uv.lock` together fix the
+interpreter, the workspace metadata, and the dependency resolution. Every
+Python invocation in this repository goes through `uv run --no-sync` (the
+`--no-sync` flag keeps the Makefile targets from racing a `uv lock`
+during CI). After a fresh checkout run `make sync` to provision
+`.venv/`. Do not invoke the system `python3`, Homebrew CPython, or the
+Anaconda interpreter directly — `uv run` is the single source of truth,
+and the contract tests in `tests/test_makefile_contract.py` enforce that
+the Makefile targets and the legacy `python3` literals stay aligned.
+
 ## Build, Test & Development Commands
 
 - `make help`: list supported repository targets.
+- `make sync`: provision or refresh the local `.venv/` from `uv.lock`.
+- `make clean-venv`: remove `.venv/` (re-run `make sync` to rebuild).
 - `./probe list targets`: discover canonical experiments and scenarios.
 - `./probe plan --platform gb10 --profile smoke -o json`: produce a read-only plan.
 - `./probe doctor -o json`: read-only host inspection.
 - `./probe restore --journal <path> --allow-mutation`: replay a managed journal.
 - `make phase1-check` and `make phase2-check`: run all Python tests and
-  legacy verification.
+  legacy verification through the uv-managed interpreter.
 - `make doctor PROBE_ARGS='-o json'`: thin wrapper around `probe doctor`.
 - `make probe PROBE_ARGS='show gb10 -o json'`: convenience CLI wrapper.
 - `make build`: build probes supported by the current host.

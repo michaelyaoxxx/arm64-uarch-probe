@@ -10,9 +10,21 @@ Phase 2 is now complete on the `codex/phase2-backends-environment-design` branch
 
 When picking up Phase 3, read the active handoff in `docs/superpowers/handoffs/` for current scope and Task ordering.
 
+## Python Toolchain
+
+The repository is pinned to **CPython 3.13.13** and managed by `uv`.
+`.python-version`, `pyproject.toml`, and `uv.lock` together fix the
+interpreter and dependency resolution. After a fresh checkout run
+`make sync` to provision `.venv/`. All Python invocations under
+`Makefile` and `./probe` go through `uv run`; do not invoke the system
+`python3`, Homebrew CPython, or the Anaconda interpreter directly.
+`uv run --no-sync` is used inside Makefile targets to avoid racing a
+`uv lock` during CI.
+
 ## Common Commands
 
 ```sh
+make sync                            # provision or refresh .venv via uv
 make help                            # list all targets
 make phase2-check                    # Python tests + legacy manifest verification (Phase 2 gate)
 make phase1-check                    # equivalent to phase2-check today
@@ -22,6 +34,7 @@ make build-linux                     # force all Linux probes; rejects non-Linux
 make show-targets                    # source→binary mapping with platform support
 make doctor PROBE_ARGS='-o json'     # thin wrapper around `./probe doctor`
 make clean                           # remove build/ (safety-checked)
+make clean-venv                      # remove .venv/ (re-run `make sync` to rebuild)
 
 ./probe --help                       # CLI help
 ./probe help restore                 # restore subcommand help
@@ -32,15 +45,16 @@ make clean                           # remove build/ (safety-checked)
 ./probe doctor -o json               # read-only host inspection
 ./probe restore --journal <path> --allow-mutation   # replay a managed journal
 make probe PROBE_ARGS='show gb10 -o json'    # convenience wrapper
-python3 -m arm64_probe help plan     # module entry point (debugging)
+uv run python -m arm64_probe help plan    # module entry point (debugging)
 ```
 
-To run a single test file or test case:
+To run a single test file or test case (all go through the uv-managed
+interpreter via `uv run`):
 
 ```sh
-python3 -m unittest tests.unit.test_domain_models -v
-python3 -m unittest tests.unit.test_planner_selection.PlannerSelectionTests.test_expand_experiment -v
-python3 -m unittest tests.contract.test_phase2_acceptance -v
+uv run python -m unittest tests.unit.test_domain_models -v
+uv run python -m unittest tests.unit.test_planner_selection.PlannerSelectionTests.test_expand_experiment -v
+uv run python -m unittest tests.contract.test_phase2_acceptance -v
 ```
 
 ## Repository Layout
@@ -143,7 +157,7 @@ Entry points: `./probe` and `python3 -m arm64_probe` (identical). Commands: `lis
 - Use `unittest` (not pytest). Add a failing test before changing behavior (TDD).
 - Run `make phase2-check`, `make check`, `make build`, and `git diff --check` before submitting changes.
 - For unit tests needing a host filesystem, use `tests/support/host_fixture.py` (`HostFixture` builds a temp `PathHostFilesystem` and refuses symlink/path-escape writes). For transactions/recovery, use `tests/support/fake_controllers.py` (`FakeController`, `FakeBackend(controllers=..., backend_id=...)`). Never touch the real host in unit tests.
-- **Python 3.14 gotcha**: a `with lock:` block that catches and re-raises a `ProbeError` cannot survive — `contextlib.contextmanager.__exit__` calls `gen.throw(value)` which sets `__traceback__` on the frozen `ProbeError` and raises `FrozenInstanceError`. Use a custom context-manager class (see `_LockContext` in `coordinator.py` / `recovery.py`) that delegates `__exit__` directly to the lock's `__exit__` instead of using a generator.
+- **Python 3.14+ gotcha** (kept as a historical note): a `with lock:` block that catches and re-raises a `ProbeError` cannot survive `@contextmanager` rethrows on newer interpreters that set `__traceback__` on the frozen `ProbeError` and raise `FrozenInstanceError`. Phase 2 is pinned to CPython 3.13.13 to avoid the issue, but the lock wrappers (`_LockContext` in `coordinator.py` / `recovery.py`) are written as plain context-manager classes that delegate `__exit__` directly to the lock's `__exit__`, which keeps the code correct on any future Python version.
 
 ## Commits, Branches, and PRs
 

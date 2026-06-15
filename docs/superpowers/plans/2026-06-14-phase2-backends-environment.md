@@ -6,7 +6,7 @@
 
 **Architecture:** Static platform facts and semantic CPU resolution remain separate from live OS backends. Small Linux controllers implement one mutation capability each behind injectable host-I/O protocols, while a platform-independent coordinator owns locking, versioned journals, deterministic apply order, reverse restoration, and signal-safe recovery. `probe doctor` is read-only, `probe restore` only replays managed journals, and `probe plan` remains deterministic.
 
-**Tech Stack:** Python 3.10+ standard library (`argparse`, `dataclasses`, `enum`, `fcntl`, `json`, `os`, `pathlib`, `signal`, `subprocess`, `unittest`), Linux sysfs/procfs, strict JSON schemas, Make, Git.
+**Tech Stack:** Python 3.10+ standard library (`argparse`, `dataclasses`, `enum`, `fcntl`, `json`, `os`, `pathlib`, `signal`, `subprocess`, `unittest`), Linux sysfs/procfs, strict JSON schemas, Make, Git. The repository is pinned to **CPython 3.13.13** and managed by `uv`; `.python-version`, `pyproject.toml`, and `uv.lock` together enforce the toolchain. See `AGENTS.md` for the full Python-toolchain description.
 
 ---
 
