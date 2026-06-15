@@ -60,9 +60,11 @@ class MakefileContractTests(unittest.TestCase):
         probe = make("-n", "probe", "PROBE_ARGS=list targets")
         probe_help = make("-n", "probe-help")
         phase1_check = make("-n", "phase1-check")
+        doctor = make("-n", "doctor")
+        phase2_check = make("-n", "phase2-check")
 
         self.assertEqual(help_result.returncode, 0, help_result.stderr)
-        for target in ("probe", "probe-help", "phase1-check"):
+        for target in ("probe", "probe-help", "phase1-check", "doctor", "phase2-check"):
             with self.subTest(target=target):
                 self.assertIn(target, help_result.stdout)
         self.assertEqual(probe.stdout.strip(), "./probe list targets")
@@ -70,6 +72,12 @@ class MakefileContractTests(unittest.TestCase):
         self.assertIn("python3 -m unittest discover", phase1_check.stdout)
         self.assertIn("python3 scripts/legacy_manifest.py verify", phase1_check.stdout)
         self.assertNotIn("build/bin", phase1_check.stdout)
+        self.assertEqual(doctor.stdout.strip(), "./probe doctor")
+        self.assertIn("python3 -m unittest discover", phase2_check.stdout)
+        self.assertIn("python3 scripts/legacy_manifest.py verify", phase2_check.stdout)
+        self.assertNotIn("build/bin", phase2_check.stdout)
+        self.assertNotIn("sudo", phase2_check.stdout)
+        self.assertNotIn("/sys/", phase2_check.stdout)
 
     def test_show_targets_lists_exact_supported_probe_mappings(self):
         result = make("show-targets")

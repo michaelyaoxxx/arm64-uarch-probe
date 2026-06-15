@@ -29,6 +29,9 @@ analysis dependencies and must be installed through repository-owned metadata.
 - `make build-linux`: build all Linux probes; reject non-Linux hosts.
 - `make check`: run repository policy, legacy integrity, Makefile contract, and
   shell-syntax checks.
+- `make phase1-check` and `make phase2-check`: run the full Python test
+  discovery and the legacy manifest verification.
+- `make doctor`: thin wrapper around `./probe doctor` for host inspection.
 
 ## Repository Layout
 
@@ -54,3 +57,30 @@ figures under `docs/assets/<version>/`.
 Every GB10 run records the exact Git commit or tag. GB10 result branches include
 the selected profile/scenarios, environment state, commands, failures, and
 restoration status. Release-candidate runs use immutable RC tags.
+
+## Host Mutation Safety
+
+The production Linux state root is fixed at `/var/lib/arm64-uarch-probe`. The
+host-wide `MutationLock` is the only public mutation surface; `probe restore`
+is the only public mutating CLI command and requires both `--allow-mutation`
+and the caller's privilege. The CLI never invokes `sudo` and never accepts a
+public `--state-root` override. Recoverable environment transactions persist
+journals before any host write, restore in reverse order, restore a recorded
+`active_controller` first, and convert `SIGINT`/`SIGTERM` into automatic
+restoration. Unhandleable process termination leaves a durable journal for
+explicit recovery via `probe restore`.
+
+## Platform Responsibilities
+
+- Mac: development, unit/contract/integration tests, offline analysis, and docs.
+  Mac measurements are not GB10 baselines.
+- Linux ARM64: Linux build, host backend behavior checks, and integration tests
+  using temporary Linux sysfs/procfs fixture trees.
+- GB10: authoritative hardware measurements and release gates.
+
+## Phase Boundaries
+
+Phase 1 and Phase 2 require no GB10. Phase 3 begins the unified measurement
+runner; remind the user to prepare GB10 access when Phase 3 starts. The
+public announcement of Gate 1 readiness is gated on the unified runner,
+the transaction/recovery flow, and a minimal smoke workflow all passing.

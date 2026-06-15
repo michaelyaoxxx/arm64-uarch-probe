@@ -27,7 +27,7 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check clean help
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check doctor clean help
 
 all: build
 
@@ -79,7 +79,14 @@ probe:
 probe-help:
 	./probe --help
 
+doctor:
+	./probe doctor $(PROBE_ARGS)
+
 phase1-check:
+	python3 -m unittest discover -s tests -p 'test_*.py' -v
+	python3 scripts/legacy_manifest.py verify
+
+phase2-check:
 	python3 -m unittest discover -s tests -p 'test_*.py' -v
 	python3 scripts/legacy_manifest.py verify
 
@@ -99,5 +106,7 @@ help:
 	@echo "  show-targets  Show source, output, and platform support"
 	@echo "  probe         Run ./probe with PROBE_ARGS"
 	@echo "  probe-help    Show the Phase 1 control-interface help"
+	@echo "  doctor        Run ./probe doctor with PROBE_ARGS"
 	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification"
+	@echo "  phase2-check  Run Phase 2 Python tests and legacy verification"
 	@echo "  clean         Remove build products"
