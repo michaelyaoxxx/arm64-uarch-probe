@@ -2,7 +2,7 @@ import argparse
 
 
 OUTPUT_CHOICES = ("table", "json")
-COMMANDS = ("list", "show", "plan", "doctor")
+COMMANDS = ("list", "show", "plan", "doctor", "restore")
 
 
 def _add_output_option(parser: argparse.ArgumentParser) -> None:
@@ -101,6 +101,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="optional registered platform context label",
     )
     _add_output_option(doctor_parser)
+
+    restore_parser = subparsers.add_parser(
+        "restore",
+        help="replay a managed environment journal to restore host state",
+        allow_abbrev=False,
+    )
+    restore_parser.add_argument(
+        "--journal",
+        required=True,
+        help="path to a managed journal under STATE_ROOT/journals/",
+    )
+    restore_parser.add_argument(
+        "--allow-mutation",
+        action="store_true",
+        help="acknowledge that this command will mutate host state",
+    )
+    _add_output_option(restore_parser)
     return parser
 
 

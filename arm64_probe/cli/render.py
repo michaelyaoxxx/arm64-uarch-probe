@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from arm64_probe.domain.models import Plan
-from arm64_probe.environment.models import DoctorReport
+from arm64_probe.environment.models import DoctorReport, EnvironmentJournal
 from arm64_probe.errors import ProbeError
 from arm64_probe.registry.catalog import Catalog
 from arm64_probe.serialization.json_io import dump_json
@@ -208,3 +208,22 @@ def render_error(error: ProbeError, output: str) -> str:
     if error.hint:
         lines.append(f"hint: {error.hint}")
     return "\n".join(lines) + "\n"
+
+
+def render_restore(journal: EnvironmentJournal, output: str) -> str:
+    if output == "json":
+        return dump_json(to_data(journal))
+    summary = _table(
+        ("FIELD", "VALUE"),
+        (
+            ("transaction", journal.transaction_id),
+            ("state", journal.state),
+            ("backend", journal.backend_id),
+            ("platform", journal.platform_id),
+            ("restoration_status", journal.restoration_status),
+            ("applied", ",".join(journal.applied) or ""),
+            ("active", journal.active_controller or ""),
+            ("updated", journal.updated_at),
+        ),
+    )
+    return summary

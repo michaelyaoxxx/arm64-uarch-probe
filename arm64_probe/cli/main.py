@@ -10,11 +10,13 @@ from arm64_probe.cli.render import (
     render_error,
     render_list,
     render_plan,
+    render_restore,
     render_show,
 )
 from arm64_probe.diagnostics.doctor import Doctor
 from arm64_probe.environment.constants import REPOSITORY_ID, STATE_ROOT
 from arm64_probe.environment.journal import JournalStore
+from arm64_probe.environment.recovery import EnvironmentRecovery
 from arm64_probe.errors import ExitCode, ProbeError
 from arm64_probe.planning.planner import Planner
 from arm64_probe.planning.request import PlanRequest
@@ -115,6 +117,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "plan":
             plan = Planner(catalog).plan(_plan_request(args))
             result = render_plan(plan, args.output)
+        elif args.command == "restore":
+            journal_path = Path(args.journal)
+            transaction_id = journal_path.stem
+            store = JournalStore(STATE_ROOT, repository_id=REPOSITORY_ID)
+            recovery = EnvironmentRecovery(
+                journal_factory=lambda: (STATE_ROOT, store, 0, REPOSITORY_ID)
+            )
+            final = recovery.restore(
+                transaction_id,
+                select_backend(),
+                allow_mutation=args.allow_mutation,
+            )
+            result = render_restore(final, args.output)
         else:
             platform_id = (
                 catalog.get_platform(args.platform).id

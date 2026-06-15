@@ -107,13 +107,19 @@ class FakeController:
 
 
 class FakeBackend:
-    def __init__(self, controllers: Iterable[FakeController], observations: tuple[CapabilityObservation, ...] = ()):
+    def __init__(
+        self,
+        controllers: Iterable[FakeController],
+        observations: tuple[CapabilityObservation, ...] = (),
+        backend_id: str = "fake-backend",
+    ):
         self._controllers = tuple(controllers)
         self._observations = tuple(sorted(observations, key=lambda item: item.capability_id))
+        self._id = backend_id
 
     @property
     def id(self) -> str:
-        return "fake-backend"
+        return self._id
 
     def inspect(self) -> tuple[CapabilityObservation, ...]:
         return self._observations
