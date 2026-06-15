@@ -40,6 +40,9 @@
   },
   "description": "NVIDIA GB10 authoritative v1.0 measurement platform",
   "display_name": "NVIDIA GB10",
+  "environment_defaults": {
+    "hugepage-size-kb": 2048
+  },
   "id": "gb10",
   "measurement_support": "supported",
   "representative_cpus": {

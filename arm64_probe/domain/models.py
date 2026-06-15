@@ -113,18 +113,6 @@ class EnvironmentPhase:
     case_ids: tuple[str, ...]
     host_requirements: tuple[EnvironmentRequirement, ...]
 
-    @property
-    def requirements(self) -> tuple[tuple[str, JsonScalar], ...]:
-        """Expose the Phase 1 scalar view until planning migrates in Task 3."""
-        result: list[tuple[str, JsonScalar]] = []
-        for requirement in self.host_requirements:
-            if len(requirement.values) != 1 or requirement.values[0][0] != "value":
-                raise ValueError(
-                    f"requirement {requirement.id} has no Phase 1 scalar view"
-                )
-            result.append((requirement.id, requirement.values[0][1]))
-        return tuple(result)
-
 
 @dataclass(frozen=True)
 class Plan:

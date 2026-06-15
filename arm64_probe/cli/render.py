@@ -112,7 +112,45 @@ def render_plan(plan: Plan, output: str) -> str:
             for case in plan.cases
         ),
     )
-    return summary + "\n" + cases
+    host_requirements = _table(
+        ("PHASE", "REQUIREMENT", "CAPABILITY", "VALUES", "MUTATION", "PRIVILEGE"),
+        (
+            (
+                phase.id,
+                requirement.id,
+                requirement.capability_id,
+                _compact(dict(requirement.values)),
+                requirement.mutation,
+                requirement.requires_privilege,
+            )
+            for phase in plan.environment_phases
+            for requirement in phase.host_requirements
+        ),
+    )
+    case_requirements = _table(
+        ("CASE", "REQUIREMENT", "CAPABILITY", "VALUES", "MUTATION", "PRIVILEGE"),
+        (
+            (
+                case.id,
+                requirement.id,
+                requirement.capability_id,
+                _compact(dict(requirement.values)),
+                requirement.mutation,
+                requirement.requires_privilege,
+            )
+            for case in plan.cases
+            for requirement in case.execution_requirements
+        ),
+    )
+    return (
+        summary
+        + "\nHOST REQUIREMENTS\n"
+        + host_requirements
+        + "\nCASES\n"
+        + cases
+        + "\nCASE REQUIREMENTS\n"
+        + case_requirements
+    )
 
 
 def render_error(error: ProbeError, output: str) -> str:

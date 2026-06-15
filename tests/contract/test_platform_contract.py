@@ -40,6 +40,8 @@ class PlatformContractTests(unittest.TestCase):
         self.assertEqual(self.m4.measurement_support, "contract-only")
         self.assertIn("cpu-binding", self.gb10.capabilities)
         self.assertNotIn("cpu-binding", self.m4.capabilities)
+        self.assertEqual(dict(self.gb10.environment_defaults), {"hugepage-size-kb": 2048})
+        self.assertEqual(self.m4.environment_defaults, ())
 
     def test_semantic_and_explicit_single_cpu_resolution(self):
         self.assertEqual(

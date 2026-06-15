@@ -9,11 +9,12 @@
     "defaults": {"additionalProperties": {"$ref": "#/$defs/scalar"}, "type": "object"},
     "description": {"minLength": 1, "type": "string"},
     "display_name": {"minLength": 1, "type": "string"},
+    "environment_defaults": {"$ref": "#/$defs/environment_defaults"},
     "id": {"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "type": "string"},
     "measurement_support": {"enum": ["contract-only", "supported"]},
     "representative_cpus": {"additionalProperties": {"minimum": 0, "type": "integer"}, "type": "object"}
   },
-  "required": ["capabilities", "clusters", "core_groups", "defaults", "description", "display_name", "id", "measurement_support", "representative_cpus"],
+  "required": ["capabilities", "clusters", "core_groups", "defaults", "description", "display_name", "environment_defaults", "id", "measurement_support", "representative_cpus"],
   "type": "object",
   "$defs": {
     "cpu_set": {
@@ -23,6 +24,18 @@
         "id": {"type": "string"}
       },
       "required": ["cpus", "id"],
+      "type": "object"
+    },
+    "environment_defaults": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu-governor": {"minLength": 1, "type": "string"},
+        "cpu-max-frequency-khz": {"minimum": 1, "type": "integer"},
+        "cpu-min-frequency-khz": {"minimum": 1, "type": "integer"},
+        "hugepage-size-kb": {"minimum": 1, "type": "integer"},
+        "hugepages": {"minimum": 0, "type": "integer"},
+        "transparent-hugepage": {"minLength": 1, "type": "string"}
+      },
       "type": "object"
     },
     "scalar": {"type": ["string", "integer", "number", "boolean", "null"]}

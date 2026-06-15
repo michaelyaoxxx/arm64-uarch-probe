@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from arm64_probe.errors import ExitCode, ProbeError
-from arm64_probe.registry.validation import load_capabilities, load_platform
+from arm64_probe.registry.validation import load_capabilities, load_platform, load_profile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +21,17 @@ def valid_platform_payload() -> dict[str, object]:
         "core_groups": [{"id": "performance", "cpus": [0, 1]}],
         "representative_cpus": {"c0.performance": 0},
         "defaults": {"samples": 1, "page-policy": "default"},
+        "environment_defaults": {},
+    }
+
+
+def valid_profile_payload() -> dict[str, object]:
+    return {
+        "id": "test-profile",
+        "display_name": "Test Profile",
+        "selections": ["cache-latency"],
+        "overrides": {},
+        "environment": {},
     }
 
 
@@ -39,6 +50,7 @@ class RegistryValidationTests(unittest.TestCase):
         self.assertEqual(capabilities[0].id, "arm64")
         self.assertEqual(gb10.id, "gb10")
         self.assertIsInstance(gb10.capabilities, tuple)
+        self.assertEqual(dict(gb10.environment_defaults)["hugepage-size-kb"], 2048)
 
     def test_rejects_unknown_fields(self):
         path = ROOT / "tests" / "fixtures" / "platforms" / "invalid-extra-field.json"
@@ -96,6 +108,56 @@ class RegistryValidationTests(unittest.TestCase):
             load_platform(self.write_payload(payload))
 
         self.assertEqual(error.exception.code, ExitCode.CONFIG)
+
+    def test_platform_environment_defaults_are_required_and_typed(self):
+        missing = valid_platform_payload()
+        del missing["environment_defaults"]
+        with self.assertRaises(ProbeError):
+            load_platform(self.write_payload(missing))
+
+        invalid = (
+            ("cpu-governor", ""),
+            ("cpu-min-frequency-khz", 0),
+            ("cpu-max-frequency-khz", True),
+            ("hugepages", -1),
+            ("hugepage-size-kb", 0),
+            ("transparent-hugepage", ""),
+            ("cpu-frequency-policy", "performance"),
+        )
+        for key, value in invalid:
+            with self.subTest(key=key, value=value):
+                payload = valid_platform_payload()
+                payload["environment_defaults"] = {key: value}
+                with self.assertRaises(ProbeError):
+                    load_platform(self.write_payload(payload))
+
+    def test_profile_environment_rejects_invalid_policy_combinations(self):
+        invalid = (
+            {"cpu-frequency-policy": "performance"},
+            {"hugepage-size-kb": 2048},
+            {"cpu-min-frequency-khz": 2000, "cpu-max-frequency-khz": 1000},
+        )
+        for environment in invalid:
+            with self.subTest(environment=environment):
+                payload = valid_profile_payload()
+                payload["environment"] = environment
+                with self.assertRaises(ProbeError):
+                    load_profile(self.write_payload(payload))
+
+    def test_profile_environment_accepts_exact_supported_policy_types(self):
+        payload = valid_profile_payload()
+        payload["environment"] = {
+            "cpu-governor": "performance",
+            "cpu-min-frequency-khz": 1000,
+            "cpu-max-frequency-khz": 2000,
+            "hugepages": 8,
+            "hugepage-size-kb": 2048,
+            "transparent-hugepage": "never",
+        }
+
+        profile = load_profile(self.write_payload(payload))
+
+        self.assertEqual(dict(profile.environment), payload["environment"])
 
 
 if __name__ == "__main__":

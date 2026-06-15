@@ -19,6 +19,7 @@ SCHEMA_REQUIRED = {
         "defaults",
         "description",
         "display_name",
+        "environment_defaults",
         "id",
         "measurement_support",
         "representative_cpus",

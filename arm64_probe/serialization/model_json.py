@@ -68,6 +68,7 @@ def to_data(value: object) -> Any:
             "core_groups": to_data(value.core_groups),
             "representative_cpus": _mapping(value.representative_cpus),
             "defaults": _mapping(value.defaults),
+            "environment_defaults": _mapping(value.environment_defaults),
         }
     if isinstance(value, Scenario):
         return {
