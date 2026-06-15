@@ -12,7 +12,9 @@ from arm64_probe.cli.render import (
     render_plan,
     render_show,
 )
-from arm64_probe.diagnostics.doctor import Doctor, EmptyJournalReader
+from arm64_probe.diagnostics.doctor import Doctor
+from arm64_probe.environment.constants import REPOSITORY_ID, STATE_ROOT
+from arm64_probe.environment.journal import JournalStore
 from arm64_probe.errors import ExitCode, ProbeError
 from arm64_probe.planning.planner import Planner
 from arm64_probe.planning.request import PlanRequest
@@ -119,7 +121,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 if args.platform is not None
                 else None
             )
-            report = Doctor(select_backend(), EmptyJournalReader()).inspect(platform_id)
+            report = Doctor(
+                select_backend(),
+                JournalStore(STATE_ROOT, repository_id=REPOSITORY_ID),
+            ).inspect(platform_id)
             result = render_doctor(report, args.output)
         print(result, end="")
         return ExitCode.SUCCESS
