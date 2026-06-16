@@ -4,6 +4,15 @@
   "additionalProperties": false,
   "properties": {
     "environment": {"type": "object"},
+    "journal_transactions": {
+      "description": "Transaction IDs of the EnvironmentJournal records written during this run, in execution order. Empty array when the runner did not invoke any host-mutating controller (e.g. all cases were 'skipped' or the platform has no mutation controllers).",
+      "items": {
+        "description": "32-hex lowercase transaction ID, matching EnvironmentJournal.transaction_id.",
+        "pattern": "^[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "type": "array"
+    },
     "plan": {"$ref": "plan.schema.json"},
     "run_id": {"type": "string"},
     "samples": {"items": {"$ref": "sample.schema.json"}, "type": "array"},
