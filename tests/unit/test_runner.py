@@ -269,6 +269,64 @@ elapsed=3568832 ns  accesses=819200
 
         self.assertTrue(captured_args["allow_mutation"])
 
+    def test_runner_handles_phase_with_no_host_requirements(self):
+        """Runner with coordinator=None executes cases directly when
+        a real environment phase has empty host_requirements (smoke profile)."""
+        from arm64_probe.domain.models import EnvironmentPhase, ResolvedValue
+
+        executor = MockCommandExecutor(
+            stdout="""=== chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=50  seed=42  hugepage=0
+elapsed=3568832 ns  accesses=819200
+>>> latency = 4.36 ns/access  (sink=0x437530c3e000)
+""")
+
+        case = Case(
+            id="test-case-nomut",
+            scenario_id="cache-latency.l1-latency",
+            platform_id="test-platform",
+            status="ready",
+            reason=None,
+            cpu=0,
+            src_cpu=None,
+            dst_cpu=None,
+            selectors=(),
+            parameters=(
+                ("working-set", ResolvedValue("1MB", "platform-default")),
+                ("page-policy", ResolvedValue("default", "platform-default")),
+            ),
+        )
+
+        phase = EnvironmentPhase(
+            id="phase-1",
+            case_ids=("test-case-nomut",),
+            host_requirements=(),  # empty — smoke profile pattern
+        )
+
+        plan = Plan(
+            platform_id="test-platform",
+            profile_id="test-profile",
+            selections=("cache-latency.l1-latency",),
+            cases=(case,),
+            environment_phases=(phase,),
+            skip_unavailable=False,
+        )
+
+        # Explicitly pass coordinator=None — the real GB10 smoke scenario
+        runner = Runner(
+            coordinator=None,
+            result_store=self.result_store,
+            adapters=self.adapters,
+            command_executor=executor,
+        )
+
+        # Must not raise AttributeError: 'NoneType' object has no attribute 'execute'
+        result = runner.run(plan, allow_mutation=False)
+
+        self.assertIsInstance(result, RunResult)
+        self.assertEqual(len(result.samples), 1)
+        self.assertEqual(result.samples[0].status, "ok")
+
 
 class RunnerProvenanceTests(unittest.TestCase):
     """Test that Runner records provenance fields in RunResult summary."""

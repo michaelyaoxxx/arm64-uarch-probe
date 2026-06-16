@@ -249,7 +249,6 @@ class Runner:
 
         # Handle default phase (no environment changes)
         if phase_id == "default":
-            # Execute cases directly without coordinator
             for case in cases:
                 sample = self._execute_case(run_id, case)
                 samples.append(sample)
@@ -267,6 +266,14 @@ class Runner:
 
         # Build controller requests for this phase
         requests = self._build_requests_for_phase(phase)
+
+        # When there are no host-scoped requirements, skip the coordinator
+        # and execute cases directly — no mutation lock or journal needed.
+        if not requests:
+            for case in cases:
+                sample = self._execute_case(run_id, case)
+                samples.append(sample)
+            return samples
 
         # Define the work function that executes cases
         def work():
