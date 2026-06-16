@@ -52,19 +52,23 @@ Error: Invalid working set size
         self.assertIsInstance(result, ProbeError)
 
     def test_build_argv_basic(self):
-        """Build basic chase_pmu arguments."""
+        """Build basic chase_pmu arguments (positional per C probe CLI)."""
         argv = self.adapter.build_argv(
             cpu=0,
             working_set_kb=1024,
             warm_passes=5,
-            measure_passes=50,
+            force_rounds=0,
             seed=42,
+            hugepage=True,
         )
 
-        self.assertIn("1024", argv)
-        self.assertIn("5", argv)
-        self.assertIn("50", argv)
-        self.assertIn("42", argv)
+        # Positional: <size_kb> <warm> <force_rounds> <seed> <clflush> <hugepage>
+        self.assertEqual(argv[0], "1024")
+        self.assertEqual(argv[1], "5")
+        self.assertEqual(argv[2], "0")    # force_rounds
+        self.assertEqual(argv[3], "42")
+        self.assertEqual(argv[4], "0")    # clflush
+        self.assertEqual(argv[5], "1")    # hugepage
 
     def test_characterize_output(self):
         """Characterize chase_pmu output."""
@@ -114,15 +118,15 @@ Error: Failed to allocate memory
         self.assertIsInstance(result, ProbeError)
 
     def test_build_argv_basic(self):
-        """Build basic evict_slc arguments."""
+        """Build basic evict_slc arguments (--evict_mb=N syntax per C probe)."""
         argv = self.adapter.build_argv(
             cpu=0,
             working_set_kb=32 * 1024,  # 32MB
             seed=42,
         )
 
-        self.assertIn("32", argv)
-        self.assertIn("42", argv)
+        self.assertEqual(argv[0], "--evict_mb=32")
+        self.assertEqual(argv[1], "--seed=42")
 
     def test_characterize_output(self):
         """Characterize evict_slc output."""
