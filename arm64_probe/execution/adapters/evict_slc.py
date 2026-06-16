@@ -41,16 +41,13 @@ class EvictSlcAdapter(ProbeAdapter):
             seed: Random seed
             hugepage: Not used for evict_slc
         """
-        # evict_slc uses evict_mb parameter (in MB)
+        # evict_slc uses evict_mb parameter (in MB), with = syntax per C probe
         evict_mb = max(1, working_set_kb // 1024)  # Convert KB to MB, minimum 1MB
 
-        argv = [
-            "evict_slc",
-            "--evict_mb", str(evict_mb),
-            "--seed", str(seed),
+        return [
+            f"--evict_mb={evict_mb}",
+            f"--seed={seed}",
         ]
-
-        return argv
 
     def parse_output(self, stdout: str, stderr: str) -> ProbeOutput | ProbeError:
         """Parse evict_slc output."""

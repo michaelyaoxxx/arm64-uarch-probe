@@ -34,28 +34,33 @@ class ChaseMigrateAdapter(ProbeAdapter):
         """
         Build command-line arguments for chase_migrate.
 
+        The C probe signature is::
+
+            chase_migrate --src-cpu N --dst-cpu N --size-kb N [options]
+
         Args:
-            cpu: Not used for chase_migrate (use src_cpu/dst_cpu instead)
-            working_set_kb: Working set size in KB
-            warm_passes: Number of warmup passes
-            measure_passes: Number of measurement passes
-            force_rounds: Not used for chase_migrate
-            seed: Random seed
-            hugepage: Not used for chase_migrate
-            src_cpu: Source CPU for migration
-            dst_cpu: Destination CPU for migration
+            cpu: Not used for chase_migrate (use src_cpu/dst_cpu instead).
+            working_set_kb: Working set size in KB (--size-kb).
+            warm_passes: Source warm passes (--warm-src, default 5).
+            measure_passes: Measurement rounds (--measure-rounds, default 1).
+            force_rounds: Not used by chase_migrate v1.0.
+            seed: PRNG seed (--seed, default 42).
+            hugepage: Use 2MB MAP_HUGETLB (--hugepage 0|1, default 1).
+            src_cpu: Source CPU for allocation/init/warm.
+            dst_cpu: Destination CPU for post-migration measurement.
         """
         if src_cpu is None or dst_cpu is None:
             raise ValueError("chase_migrate requires both src_cpu and dst_cpu")
 
         argv = [
-            "chase_migrate",
-            "--src_cpu", str(src_cpu),
-            "--dst_cpu", str(dst_cpu),
-            "--size", str(working_set_kb),
-            "--warm", str(warm_passes),
-            "--measure", str(measure_passes),
+            "--src-cpu", str(src_cpu),
+            "--dst-cpu", str(dst_cpu),
+            "--size-kb", str(working_set_kb),
+            "--warm-src", str(warm_passes),
+            "--measure-rounds", str(measure_passes),
             "--seed", str(seed),
+            "--hugepage", "1" if hugepage else "0",
+            "--strict-hugepage", "1" if hugepage else "0",
         ]
 
         return argv

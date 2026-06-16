@@ -30,31 +30,29 @@ class ChasePmuAdapter(ProbeAdapter):
         **kwargs
     ) -> list[str]:
         """
-        Build command-line arguments for chase_pmu.
+        Build positional command-line arguments for chase_pmu.
+
+        The C probe signature is::
+
+            chase_pmu <size_kb> <warm> [force_rounds] [seed] [clflush] [hugepage]
 
         Args:
-            cpu: CPU affinity
-            working_set_kb: Working set size in KB
-            warm_passes: Number of warmup passes (0 for cold measurement)
-            measure_passes: Number of measurement passes
-            force_rounds: Force specific number of rounds
-            seed: Random seed
-            hugepage: Use hugepages
+            cpu: CPU affinity (applied externally, not via argv).
+            working_set_kb: Working set size in KB (positional arg 1).
+            warm_passes: Number of warmup passes (positional arg 2).
+            measure_passes: (unused by v2.7.3 C probe).
+            force_rounds: Force specific number of rounds (positional arg 3).
+            seed: Random seed (positional arg 4).
+            hugepage: Use hugepages (positional arg 6).
         """
-        argv = [
-            "chase_pmu",
-            "--cpu", str(cpu),
-            "--size", str(working_set_kb),
-            "--warm", str(warm_passes),
-            "--measure", str(measure_passes),
-            "--rounds", str(force_rounds),
-            "--seed", str(seed),
+        return [
+            str(working_set_kb),
+            str(warm_passes),
+            str(force_rounds if force_rounds > 0 else 0),
+            str(seed),
+            "0",                         # clflush
+            "1" if hugepage else "0",    # hugepage
         ]
-
-        if hugepage:
-            argv.append("--hugepage")
-
-        return argv
 
     def parse_output(self, stdout: str, stderr: str) -> ProbeOutput | ProbeError:
         """Parse chase_pmu output."""
