@@ -35,19 +35,6 @@ class FakeController:
     @property
     def id(self) -> str:
         return self.controller_id
-    inspect_values: tuple[tuple[str, object], ...] = ()
-    before_values: tuple[tuple[str, object], ...] = ()
-    applied_values: tuple[tuple[str, object], ...] = ()
-    request_handler: Callable[[ControllerRequest], None] | None = None
-    apply_handler: Callable[[ControllerRequest], None] | None = None
-    verify_handler: Callable[[ControllerRequest], ControllerState] | None = None
-    restore_handler: Callable[[ControllerState], None] | None = None
-    events: list[tuple[str, str]] = field(default_factory=list)
-    raise_on_validate: Exception | None = None
-    raise_on_apply: Exception | None = None
-    raise_on_verify: Exception | None = None
-    raise_on_restore: Exception | None = None
-    raise_on_verify_restored: Exception | None = None
 
     def record(self, label: str) -> None:
         self.events.append((label, self.controller_id))
