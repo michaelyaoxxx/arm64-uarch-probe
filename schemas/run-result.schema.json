@@ -14,8 +14,11 @@
       "type": "array"
     },
     "plan": {"$ref": "plan.schema.json"},
+    "prior_run_id": {"type": ["string", "null"]},
+    "resume_kind": {"type": ["string", "null"]},
     "run_id": {"type": "string"},
     "samples": {"items": {"$ref": "sample.schema.json"}, "type": "array"},
+    "schema_version": {"type": "integer"},
     "summary": {"type": "object"}
   },
   "required": ["environment", "plan", "run_id", "samples", "summary"],

@@ -39,7 +39,7 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check doctor clean clean-venv sync help
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check phase3-check smoke doctor clean clean-venv sync help
 
 all: build
 
@@ -102,6 +102,17 @@ phase2-check:
 	$(UV_RUN) python -m unittest discover -s tests -p 'test_*.py' -v
 	$(UV_RUN) python scripts/legacy_manifest.py verify
 
+phase3-check:
+	$(UV_RUN) python -m unittest discover -s tests -p 'test_*.py' -v
+	$(UV_RUN) python scripts/legacy_manifest.py verify
+	$(UV_RUN) python -m unittest tests.contract.test_phase3_acceptance -v
+
+smoke:
+	@mkdir -p $(BUILD_DIR)/smoke-runs
+	$(UV_RUN) python ./probe plan --platform gb10 --profile smoke -o json > $(BUILD_DIR)/smoke-plan.json
+	$(UV_RUN) python ./probe run --platform gb10 --profile smoke --allow-mutation \
+	    --output-dir $(BUILD_DIR)/smoke-runs
+
 clean:
 	@test "$(BUILD_DIR)" = "build" || { \
 		echo "[ERROR] refusing to clean unexpected directory: $(BUILD_DIR)" >&2; \
@@ -127,6 +138,8 @@ help:
 	@echo "  doctor        Run ./probe doctor with PROBE_ARGS (uv-managed)"
 	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification (uv-managed)"
 	@echo "  phase2-check  Run Phase 2 Python tests and legacy verification (uv-managed)"
+	@echo "  phase3-check  Run Phase 3 Python tests and acceptance checks (uv-managed)"
+	@echo "  smoke         Run minimal smoke workflow (plan + run) (uv-managed)"
 	@echo "  sync          Provision or refresh the .venv via uv"
 	@echo "  clean         Remove build products"
 	@echo "  clean-venv    Remove the local .venv (re-run 'make sync' to rebuild)"

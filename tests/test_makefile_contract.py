@@ -185,5 +185,50 @@ class MakefileContractTests(unittest.TestCase):
                 self.assertEqual(output.count(source), 1, output)
 
 
+class Phase3MakefileContractTests(unittest.TestCase):
+    """Phase 3 Makefile targets must be thin uv-managed wrappers."""
+
+    def test_phase3_targets_exist_and_are_uv_managed(self):
+        """make smoke and make phase3-check must exist and use uv run."""
+        help_result = make("help")
+        self.assertEqual(help_result.returncode, 0, help_result.stderr)
+        self.assertIn("smoke", help_result.stdout)
+        self.assertIn("phase3-check", help_result.stdout)
+
+        for target in ("smoke", "phase3-check"):
+            result = make("-n", target)
+            with self.subTest(target=target):
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("uv run --no-sync python", result.stdout)
+
+    def test_phase3_targets_have_no_parsing_or_mutation_logic(self):
+        """smoke and phase3-check recipes must contain no platform branch or parsing."""
+        for target in ("smoke", "phase3-check"):
+            result = make("-n", target)
+            with self.subTest(target=target):
+                output = result.stdout + result.stderr
+                for forbidden in (
+                    "ifdef",
+                    "ifeq",
+                    "ifndef",
+                    "python3 ",
+                    "sudo",
+                    "/sys/",
+                    "awk",
+                    "jq",
+                ):
+                    self.assertNotIn(
+                        forbidden, output,
+                        f"{target} recipe contains forbidden token: {forbidden!r}"
+                    )
+
+    def test_phase3_help_advertises_targets(self):
+        """make help should mention phase3-check and smoke."""
+        result = make("help")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("phase3-check", result.stdout)
+        self.assertIn("smoke", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

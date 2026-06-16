@@ -2,7 +2,7 @@ import argparse
 
 
 OUTPUT_CHOICES = ("table", "json")
-COMMANDS = ("list", "show", "plan", "doctor", "restore")
+COMMANDS = ("list", "show", "plan", "doctor", "restore", "run", "resume")
 
 
 def _add_output_option(parser: argparse.ArgumentParser) -> None:
@@ -118,6 +118,79 @@ def build_parser() -> argparse.ArgumentParser:
         help="acknowledge that this command will mutate host state",
     )
     _add_output_option(restore_parser)
+
+    run_parser = subparsers.add_parser(
+        "run",
+        help="execute a measurement plan and collect results",
+        description="Execute a measurement plan, collect results, and store them atomically.",
+        allow_abbrev=False,
+    )
+    run_parser.add_argument(
+        "--platform",
+        default="auto",
+        help="platform ID; auto supports Darwin ARM64 only in Phase 1",
+    )
+    run_parser.add_argument("--profile", help="profile ID")
+    run_parser.add_argument(
+        "--select",
+        action="append",
+        default=[],
+        help="experiment or scenario ID; repeat to combine selections",
+    )
+    run_parser.add_argument("--cluster", help="semantic cluster ID")
+    run_parser.add_argument("--core-group", help="semantic core-group ID")
+    run_parser.add_argument("--cpu", type=int, help="explicit single-case CPU")
+    run_parser.add_argument("--src-cpu", type=int, help="explicit migration source CPU")
+    run_parser.add_argument(
+        "--dst-cpu",
+        type=int,
+        help="explicit migration destination CPU",
+    )
+    run_parser.add_argument("--samples", type=int, help="sample-count override")
+    run_parser.add_argument("--working-set", help="working-set size override")
+    run_parser.add_argument(
+        "--page-policy",
+        choices=("default", "hugepage"),
+        help="page-policy override",
+    )
+    run_parser.add_argument(
+        "--skip-unavailable",
+        action="store_true",
+        help="record that unavailable cases should be skipped at execution time",
+    )
+    run_parser.add_argument(
+        "--allow-mutation",
+        action="store_true",
+        help="acknowledge that this command will mutate host state",
+    )
+    run_parser.add_argument(
+        "--output-dir",
+        help="directory to write run results (default: results/runs/)",
+    )
+    _add_output_option(run_parser)
+
+    resume_parser = subparsers.add_parser(
+        "resume",
+        help="resume a prior run, re-executing only failed cases",
+        description="Read a prior RunResult, and re-execute only failed or missing cases.",
+        allow_abbrev=False,
+    )
+    resume_parser.add_argument(
+        "--run",
+        required=True,
+        help="path to a prior RunResult JSON file",
+    )
+    resume_parser.add_argument(
+        "--output-dir",
+        help="directory to write run results (default: results/runs/)",
+    )
+    resume_parser.add_argument(
+        "--allow-mutation",
+        action="store_true",
+        help="acknowledge that this command will mutate host state",
+    )
+    _add_output_option(resume_parser)
+
     return parser
 
 

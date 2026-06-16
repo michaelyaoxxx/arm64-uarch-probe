@@ -147,6 +147,17 @@ class RunResult:
     summary: tuple[tuple[str, JsonScalar], ...]
     environment: tuple[tuple[str, JsonScalar], ...]
     journal_transactions: tuple[str, ...] = ()
+    schema_version: int = 2
+    prior_run_id: str | None = None
+    resume_kind: str | None = None
+
+
+@dataclass(frozen=True)
+class ToolchainEvidence:
+    python_version: str
+    uv_version: str
+    cc: str
+    host_os: str
 
 
 def make_run_result(

@@ -1,0 +1,5 @@
+=== chase_pmu v2.7.3 ===
+size=1024 KB  n_lines=16384  warm=5  meas_rounds=50  seed=42  hugepage=0
+Warming 5 pass(es)...
+elapsed=3568832 ns  accesses=819200
+>>> latency = 4.36 ns/access  (sink=0x437530c3e000)

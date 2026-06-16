@@ -70,6 +70,21 @@ class Phase2ArchitectureBoundariesTests(unittest.TestCase):
                 for forbidden in platform_only_forbidden:
                     self.assertNotIn(forbidden, text)
 
+    def test_execution_modules_have_no_platform_branches(self):
+        """Phase 3 execution modules must be platform-independent."""
+        import glob
+        execution_files = [
+            p.relative_to(ROOT).as_posix()
+            for p in (ROOT / "arm64_probe/execution").rglob("*.py")
+            if p.name != "__pycache__"
+        ]
+        platform_only_forbidden = ("gb10", "m4", "taskset", "sudo ")
+        for relative in execution_files:
+            text = _read(relative)
+            with self.subTest(file=relative):
+                for forbidden in platform_only_forbidden:
+                    self.assertNotIn(forbidden, text)
+
     def test_configs_contain_no_sysfs_proc_shell_or_runner_logic(self):
         for path in sorted(ROOT.joinpath("configs").rglob("*.json")):
             payload = json.loads(path.read_text())

@@ -43,6 +43,8 @@ validate contracts and report unsupported cases; they are not measurements.
 | `12` | Environment apply or verification failure; restoration succeeded |
 | `13` | Environment restoration or recovery failure |
 | `14` | Active lock or unfinished journal prevents mutation |
+| `15` | Probe execution failure (timeout, signal, nonzero exit, or invalid output) |
+| `16` | Run-result read, validation, compatibility, or persistence failure |
 
 The implementation in `arm64_probe/errors.py` is the single source for these
 values. Contract tests keep this table aligned with it.
@@ -75,6 +77,41 @@ code `14` when the host-wide lock is already held.
 in-flight transaction and automatically restore the host before exit.
 Unhandleable process termination leaves a durable journal for explicit
 recovery via `probe restore`.
+
+Phase 3 adds the mutating `probe run` and the resumptive `probe resume`.
+
+```text
+probe run [--platform <id>] [--profile <id>] [--select <id> ...]
+          [--cluster <id>] [--core-group <id>]
+          [--cpu <int>] [--src-cpu <int>] [--dst-cpu <int>]
+          [--samples <int>] [--working-set <size>]
+          [--page-policy default|hugepage]
+          [--case <stable-case-id>]
+          [--output-dir <path>]
+          [--allow-mutation]
+          [-o table|json]
+          [<target> ...]
+
+probe resume --run <path-to-run-result-json>
+             [--output-dir <path>]
+             [--allow-mutation]
+             [-o table|json]
+```
+
+`probe run` executes cases selected identically to `probe plan` and writes
+a schema-valid `RunResult` (schema v2) under `results/runs/` (git-ignored).
+It groups cases by environment phase, executes each phase through
+`EnvironmentCoordinator`, and records provenance including
+`case_definitions_signature`, `repository_commit`, and `dirty_tree`.
+Exit code `0` when all cases succeed; `15` on probe execution failure;
+`16` on result persistence failure; `11`–`14` per the existing transaction
+exit-code ladder.
+
+`probe resume` reads a prior `RunResult`, validates schema/platform/case-definition
+compatibility (rejecting with `16` on mismatch), carries over `ok` samples,
+re-executes `error` cases, drops `skipped` cases, and writes a new `RunResult`
+with `prior_run_id` and `resume_kind`. Repeated resume on a fully successful
+result is an idempotent no-op.
 
 GB10 is first required at Phase 3 Gate 1 after the unified runner, environment
 recovery, and minimal smoke workflow receive an explicit ready notice.

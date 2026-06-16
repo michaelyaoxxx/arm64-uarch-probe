@@ -14,6 +14,18 @@ the recoverable environment transaction coordinator, the durable managed
 journal, the host-wide mutation lock, the signal-aware transaction scope,
 and the public `probe restore` recovery command.
 
+Phase 3 added normalized probe adapters (`ProbeAdapter` protocol with
+`ChasePmuAdapter`, `EvictSlcAdapter`, `ChaseMigrateAdapter`), the unified
+`Runner` that groups cases by environment phase and executes through
+`EnvironmentCoordinator`, the atomic `RunResult` persistence layer
+(`ResultStore` with schema v2), the `ResumeService` for re-executing
+failed cases, and two new public commands: `probe run` and `probe resume`.
+
+See `docs/superpowers/specs/2026-06-15-phase3-probes-runner-design.md` for
+the detailed design, `docs/superpowers/plans/2026-06-15-phase3-probes-runner.md`
+for the implementation plan, and `docs/superpowers/handoffs/2026-06-15-phase3-handoff.md`
+for the AC1–AC9 acceptance criteria.
+
 See `docs/design/repository-layout.md` for the authoritative frozen,
 transitional, and v1.0-owned path boundaries.
 
@@ -43,9 +55,12 @@ the Makefile targets and the legacy `python3` literals stay aligned.
 - `./probe list targets`: discover canonical experiments and scenarios.
 - `./probe plan --platform gb10 --profile smoke -o json`: produce a read-only plan.
 - `./probe doctor -o json`: read-only host inspection.
+- `./probe run --platform gb10 --profile smoke --allow-mutation`: execute probes.
+- `./probe resume --run <path-to-run-result>`: re-execute failed cases.
 - `./probe restore --journal <path> --allow-mutation`: replay a managed journal.
-- `make phase1-check` and `make phase2-check`: run all Python tests and
-  legacy verification through the uv-managed interpreter.
+- `make phase1-check`, `make phase2-check`, and `make phase3-check`: run all
+  Python tests and legacy verification through the uv-managed interpreter.
+- `make smoke`: run the minimal smoke workflow (plan + run).
 - `make doctor PROBE_ARGS='-o json'`: thin wrapper around `probe doctor`.
 - `make probe PROBE_ARGS='show gb10 -o json'`: convenience CLI wrapper.
 - `make build`: build probes supported by the current host.
