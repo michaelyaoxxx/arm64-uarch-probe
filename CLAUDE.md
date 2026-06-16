@@ -168,6 +168,43 @@ Entry points: `./probe` and `python3 -m arm64_probe` (identical). Commands: `lis
 - For unit tests needing a host filesystem, use `tests/support/host_fixture.py` (`HostFixture` builds a temp `PathHostFilesystem` and refuses symlink/path-escape writes). For transactions/recovery, use `tests/support/fake_controllers.py` (`FakeController`, `FakeBackend(controllers=..., backend_id=...)`). Never touch the real host in unit tests.
 - **Python 3.14+ gotcha** (kept as a historical note): a `with lock:` block that catches and re-raises a `ProbeError` cannot survive `@contextmanager` rethrows on newer interpreters that set `__traceback__` on the frozen `ProbeError` and raise `FrozenInstanceError`. Phase 2 is pinned to CPython 3.13.13 to avoid the issue, but the lock wrappers (`_LockContext` in `coordinator.py` / `recovery.py`) are written as plain context-manager classes that delegate `__exit__` directly to the lock's `__exit__`, which keeps the code correct on any future Python version.
 
+## C↔Python Interface Contract (mandatory synchronization)
+
+The C probe CLI is the **authoritative source of truth**. The Python adapters
+(`arm64_probe/execution/adapters/`) must match it exactly. Three layers enforce
+this contract — they must all pass before merging any C or adapter change:
+
+| Layer | Test file | Runs on | Catches |
+|-------|-----------|---------|---------|
+| Unit | `tests/unit/test_probe_adapters.py::test_build_argv_*` | Everywhere | Argument values, ordering |
+| Structural | `tests/integration/test_probe_cli_contract.py::ProbeAdapterArgvContractTests` | Everywhere | Argument *style* (positional vs named, hyphens vs underscores, equals vs space, no binary name in argv) |
+| Integration | `tests/integration/test_probe_cli_contract.py::ProbeCliContractTests` | After `make build` | Actual probe binary accepts adapter's argv (no `Usage:`, `unrecognized option`, `size too small` in stderr) |
+
+**Rules for any C probe CLI change:**
+1. Update the adapter's `build_argv` to match.
+2. Update `tests/unit/test_probe_adapters.py` (unit-level argv assertions).
+3. If the argument *style* changed (e.g., positional→named), update `ProbeAdapterArgvContractTests`.
+4. Run `make build` (which auto-runs `check-cli-contracts`) — every compiled probe is invoked with its adapter's argv.
+
+**Rules for any adapter `build_argv` change:**
+1. Verify the C probe still accepts the new argv (`make build`).
+2. All three layers of tests must stay green.
+
+**Rules for new adapter methods or optional parameters:**
+- Every parameter typed `X | None` must have a test with `None` passed.
+- Every dependency that can be `None` must be guarded at the call site, not at a distant "default" shortcut.
+
+**Rules for new sysfs/procfs paths:**
+- Never hardcode a path that varies across hardware. Use runtime discovery: canonical path first, glob fallback second.
+- Add tests with both the canonical and the variant path (see `tests/unit/test_linux_inspector.py`).
+
+**Rules for OS-specific test behavior:**
+- Tests that only apply to one OS must use `@unittest.skipUnless(platform.system() == "...", ...)`.
+- Tests that parse subprocess output must strip platform-specific noise (see `_MAKE_DIR_LINE` regex in `tests/test_makefile_contract.py`).
+
+All documented error patterns live in `docs/superpowers/handoffs/2026-06-16-error-patterns-and-prevention.md`.
+Every new bug that reaches GB10 must be added there with its prevention mechanism.
+
 ## Commits, Branches, and PRs
 
 - Imperative, focused commit messages (e.g. `Add recoverable environment transaction coordinator`).
