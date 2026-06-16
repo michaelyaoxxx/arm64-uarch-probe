@@ -91,6 +91,27 @@ class LinuxInspectorTests(unittest.TestCase):
         self.assertEqual(dict(by_id["host.pmu"].values)["pmu-type"], 5)
         self.assertEqual(by_id["host.load"].status, "available")
 
+    def test_discovers_numbered_pmu_device_on_gb10_like_platforms(self):
+        """Inspector should fall back to armv8_pmuv3_N/type when the canonical
+        armv8_pmuv3/type path is absent (GB10 pattern)."""
+        with HostFixture() as fixture:
+            # Write the generic Linux paths EXCEPT the canonical PMU line
+            fixture.write("/sys/devices/system/cpu/online", "0-3\n")
+            fixture.write("/proc/sys/kernel/perf_event_paranoid", "2\n")
+            # Simulate GB10 numbered PMU: no armv8_pmuv3/type, but armv8_pmuv3_0/type
+            fixture.write("/sys/bus/event_source/devices/armv8_pmuv3_0/type", "7\n")
+
+            observations = LinuxArm64Inspector(
+                fixture.filesystem,
+                FakeRuntime(),
+            ).inspect()
+
+        by_id = {obs.capability_id: obs for obs in observations}
+        self.assertEqual(by_id["host.pmu"].status, "available")
+        self.assertEqual(dict(by_id["host.pmu"].values)["pmu-type"], 7)
+        # kernel-interfaces should also report PMU as available
+        self.assertTrue(dict(by_id["host.kernel-interfaces"].values)["pmu"])
+
     def test_missing_permission_denied_and_malformed_files_are_observations(self):
         with HostFixture() as fixture:
             missing = LinuxArm64Inspector(fixture.filesystem, FakeRuntime()).inspect()
