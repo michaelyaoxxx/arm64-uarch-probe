@@ -9,7 +9,9 @@ CPU_ONLINE = "/sys/devices/system/cpu/online"
 TOPOLOGY_CLUSTER_GLOB = "/sys/devices/system/cpu/cpu*/topology/cluster_id"
 CACHE_LEVEL_GLOB = "/sys/devices/system/cpu/cpu*/cache/index*/level"
 PERF_EVENT_PARANOID = "/proc/sys/kernel/perf_event_paranoid"
-ARMV8_PMU_TYPE = "/sys/bus/event_source/devices/armv8_pmuv3/type"
+_PMU_DEVICES = "/sys/bus/event_source/devices"
+_PMU_CANONICAL = f"{_PMU_DEVICES}/armv8_pmuv3/type"
+_PMU_NUMBERED_GLOB = f"{_PMU_DEVICES}/armv8_pmuv3_*/type"
 CPUFREQ_POLICY_GLOB = "/sys/devices/system/cpu/cpufreq/policy*"
 HUGEPAGE_POOL_GLOB = "/sys/kernel/mm/hugepages/hugepages-*"
 THP_ENABLED = "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -185,13 +187,32 @@ class LinuxArm64Inspector:
             None if status == "available" else "inspect CPU cache interfaces",
         )
 
+    def _discover_pmu_type_path(self) -> str:
+        """Return a readable PMU type path.
+
+        Some platforms expose numbered PMU devices like
+        ``armv8_pmuv3_0`` while others expose a single unnumbered node.
+        The canonical path is tried first; if missing we glob for a
+        numbered variant and return the first match.
+        """
+        if self.filesystem.exists(_PMU_CANONICAL):
+            return _PMU_CANONICAL
+        try:
+            paths = self.filesystem.glob(_PMU_NUMBERED_GLOB)
+            if paths:
+                return paths[0]
+        except (OSError, ValueError):
+            pass
+        return _PMU_CANONICAL
+
     def _pmu(self) -> CapabilityObservation:
         values: list[tuple[str, JsonScalar]] = []
         evidence: list[str] = []
         errors: list[Exception] = []
+        pmu_type_path = self._discover_pmu_type_path()
         for key, path in (
             ("perf-event-paranoid", PERF_EVENT_PARANOID),
-            ("pmu-type", ARMV8_PMU_TYPE),
+            ("pmu-type", pmu_type_path),
         ):
             try:
                 value = int(self.filesystem.read_text(path).strip())
@@ -214,7 +235,7 @@ class LinuxArm64Inspector:
             ("cpu-frequency-policy", CPUFREQ_POLICY_GLOB, True),
             ("explicit-hugepage-pools", HUGEPAGE_POOL_GLOB, True),
             ("online-cpus", CPU_ONLINE, False),
-            ("pmu", ARMV8_PMU_TYPE, False),
+            ("pmu", self._discover_pmu_type_path(), False),
             ("transparent-hugepage", THP_ENABLED, False),
         )
         values: list[tuple[str, JsonScalar]] = []
