@@ -146,6 +146,7 @@ class RunResult:
     samples: tuple[Sample, ...]
     summary: tuple[tuple[str, JsonScalar], ...]
     environment: tuple[tuple[str, JsonScalar], ...]
+    journal_transactions: tuple[str, ...] = ()
 
 
 def make_run_result(
@@ -154,6 +155,7 @@ def make_run_result(
     samples: tuple[Sample, ...],
     summary: tuple[tuple[str, JsonScalar], ...],
     environment: tuple[tuple[str, JsonScalar], ...],
+    journal_transactions: tuple[str, ...] = (),
 ) -> RunResult:
     case_ids = {case.id for case in plan.cases}
     identities: set[tuple[str, int]] = set()
@@ -168,4 +170,4 @@ def make_run_result(
         if identity in identities:
             raise ValueError(f"duplicate sample identity: {identity}")
         identities.add(identity)
-    return RunResult(run_id, plan, samples, summary, environment)
+    return RunResult(run_id, plan, samples, summary, environment, journal_transactions)

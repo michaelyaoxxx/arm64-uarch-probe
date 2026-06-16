@@ -78,15 +78,66 @@ class ResultContractTests(unittest.TestCase):
         sample = self.sample()
         result = make_run_result(self.run_id, self.plan, (sample,), (), ())
 
+        # The required keys in the public schema are a strict subset of
+        # what `to_data` emits. New optional fields (`journal_transactions`)
+        # are checked separately; the schema file lists them in `properties`
+        # but not in `required`.
+        required_keys = set(SCHEMA_REQUIRED["run-result.schema.json"])
+        serialized_keys = set(to_data(result))
+        self.assertTrue(
+            required_keys.issubset(serialized_keys),
+            f"required schema keys {required_keys - serialized_keys} missing "
+            f"from serialized output {serialized_keys}",
+        )
         self.assertEqual(
             set(to_data(sample)),
             set(SCHEMA_REQUIRED["sample.schema.json"]),
         )
-        self.assertEqual(
-            set(to_data(result)),
-            set(SCHEMA_REQUIRED["run-result.schema.json"]),
-        )
         self.assertIsInstance(result, RunResult)
+
+    def test_run_result_journal_transactions_default_to_empty_tuple(self):
+        sample = self.sample()
+        result = make_run_result(self.run_id, self.plan, (sample,), (), ())
+
+        self.assertEqual(result.journal_transactions, ())
+        # The new field is serialized (possibly as an empty array).
+        self.assertIn("journal_transactions", to_data(result))
+        self.assertEqual(to_data(result)["journal_transactions"], [])
+
+    def test_run_result_journal_transactions_round_trip_through_schema(self):
+        sample = self.sample()
+        transaction_ids = (
+            "0123456789abcdef0123456789abcdef",
+            "fedcba9876543210fedcba9876543210",
+        )
+        result = make_run_result(
+            self.run_id, self.plan, (sample,), (), (),
+            journal_transactions=transaction_ids,
+        )
+
+        serialized = to_data(result)
+        self.assertEqual(
+            tuple(serialized["journal_transactions"]),
+            transaction_ids,
+        )
+
+    def test_run_result_journal_transactions_advertised_in_run_result_schema(self):
+        # The schema file lists the new optional field in `properties`
+        # even though it is not in `required`. This guarantees the
+        # schema contract documents the field so JSON-schema validators
+        # accept it on write without rejecting unknown properties.
+        import json
+
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parents[2] / "schemas" / "run-result.schema.json"
+        payload = json.loads(path.read_text())
+        self.assertIn("journal_transactions", payload["properties"])
+        journal_props = payload["properties"]["journal_transactions"]
+        self.assertEqual(journal_props["type"], "array")
+        self.assertIn("pattern", journal_props["items"])
+        # 32 lowercase hex chars, matching EnvironmentJournal.transaction_id.
+        self.assertEqual(journal_props["items"]["pattern"], "^[0-9a-f]{32}$")
 
 
 if __name__ == "__main__":

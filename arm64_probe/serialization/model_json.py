@@ -136,6 +136,7 @@ def to_data(value: object) -> Any:
             "samples": to_data(value.samples),
             "summary": _mapping(value.summary),
             "environment": _mapping(value.environment),
+            "journal_transactions": to_data(value.journal_transactions),
         }
     if isinstance(value, CapabilityObservation):
         return {
