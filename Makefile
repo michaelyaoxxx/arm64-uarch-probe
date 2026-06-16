@@ -39,12 +39,13 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check phase3-check smoke doctor clean clean-venv sync help
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check phase3-check smoke doctor clean clean-venv sync help check-cli-contracts
 
 all: build
 
 build: $(HOST_BINS)
 	@echo "[OK] Built probes supported on $(HOST_OS)"
+	@$(MAKE) --no-print-directory check-cli-contracts
 
 ifeq ($(HOST_OS),Linux)
 build-linux: $(LINUX_BINS)
@@ -107,6 +108,10 @@ phase3-check:
 	$(UV_RUN) python scripts/legacy_manifest.py verify
 	$(UV_RUN) python -m unittest tests.contract.test_phase3_acceptance -v
 
+check-cli-contracts:
+	@echo "[CLI-CONTRACT] Verifying adapter argv matches compiled probe binaries..."
+	$(UV_RUN) python -m unittest tests.integration.test_probe_cli_contract -v
+
 smoke:
 	@mkdir -p $(BUILD_DIR)/smoke-runs
 	$(UV_RUN) python ./probe plan --platform gb10 --profile smoke -o json > $(BUILD_DIR)/smoke-plan.json
@@ -140,6 +145,7 @@ help:
 	@echo "  phase2-check  Run Phase 2 Python tests and legacy verification (uv-managed)"
 	@echo "  phase3-check  Run Phase 3 Python tests and acceptance checks (uv-managed)"
 	@echo "  smoke         Run minimal smoke workflow (plan + run) (uv-managed)"
+	@echo "  check-cli-contracts  Verify adapter argv matches compiled probe CLI"
 	@echo "  sync          Provision or refresh the .venv via uv"
 	@echo "  clean         Remove build products"
 	@echo "  clean-venv    Remove the local .venv (re-run 'make sync' to rebuild)"
