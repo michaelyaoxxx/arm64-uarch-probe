@@ -30,8 +30,9 @@ analysis dependencies and must be installed through repository-owned metadata.
 - `make build-linux`: build all Linux probes; reject non-Linux hosts.
 - `make check`: run repository policy, legacy integrity, Makefile contract, and
   shell-syntax checks.
-- `make phase1-check` and `make phase2-check`: run the full Python test
-  discovery and the legacy manifest verification.
+- `make phase1-check`, `make phase2-check`, and `make phase3-check`: run the
+   full Python test discovery and the legacy manifest verification.
+- `make smoke`: run a minimal smoke workflow (plan + run) without host mutation.
 - `make doctor`: thin wrapper around `./probe doctor` for host inspection.
 
 All Python invocations under this Makefile go through `uv run --no-sync`.

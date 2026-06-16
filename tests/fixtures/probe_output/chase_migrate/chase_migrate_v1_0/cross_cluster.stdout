@@ -1,0 +1,6 @@
+=== chase_migrate v1.0 ===
+src_cpu=0  dst_cpu=10  size=1024 KB  n_lines=16384  warm_passes=5  measure_passes=50
+Migration from cpu0 to cpu10
+Before migration: elapsed=3568832 ns  accesses=819200  latency=4.36 ns/access
+After migration: elapsed=12582912 ns  accesses=819200  latency=15.36 ns/access
+>>> migration_penalty = 11.00 ns

@@ -11,6 +11,8 @@ from arm64_probe.cli.render import (
     render_list,
     render_plan,
     render_restore,
+    render_resume,
+    render_run,
     render_show,
 )
 from arm64_probe.diagnostics.doctor import Doctor
@@ -18,6 +20,7 @@ from arm64_probe.environment.constants import REPOSITORY_ID, STATE_ROOT
 from arm64_probe.environment.journal import JournalStore
 from arm64_probe.environment.recovery import EnvironmentRecovery
 from arm64_probe.errors import ExitCode, ProbeError
+from arm64_probe.execution.runner import Runner
 from arm64_probe.planning.planner import Planner
 from arm64_probe.planning.request import PlanRequest
 from arm64_probe.registry.catalog import Catalog
@@ -130,6 +133,77 @@ def main(argv: Sequence[str] | None = None) -> int:
                 allow_mutation=args.allow_mutation,
             )
             result = render_restore(final, args.output)
+        elif args.command == "run":
+            # Create plan
+            plan = Planner(catalog).plan(_plan_request(args))
+
+            # Determine output directory
+            output_dir = (
+                Path(args.output_dir) if args.output_dir else ROOT / "results" / "runs"
+            )
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # Create runner
+            from arm64_probe.execution.adapters import (
+                ChasePmuAdapter,
+                EvictSlcAdapter,
+                ChaseMigrateAdapter,
+            )
+            from arm64_probe.execution.result_store import ResultStore
+
+            adapters = {
+                "chase_pmu": ChasePmuAdapter(),
+                "evict_slc": EvictSlcAdapter(),
+                "chase_migrate": ChaseMigrateAdapter(),
+            }
+
+            result_store = ResultStore(output_dir)
+
+            # Create runner with required dependencies
+            runner = Runner(
+                coordinator=None,
+                result_store=result_store,
+                adapters=adapters,
+            )
+
+            # Execute run
+            run_result = runner.run(
+                plan,
+                allow_mutation=args.allow_mutation,
+            )
+
+            # Render result
+            result = render_run(run_result, args.output)
+        elif args.command == "resume":
+            from arm64_probe.execution.result_store import ResultStore
+            from arm64_probe.execution.resume import ResumeService
+
+            prior_path = Path(args.run)
+
+            # Determine output directory
+            output_dir = (
+                Path(args.output_dir) if args.output_dir else ROOT / "results" / "runs"
+            )
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # Read prior RunResult
+            store = ResultStore(output_dir)
+            prior = store.read(prior_path)
+
+            # Reconstruct the plan from the prior RunResult
+            plan = prior.plan
+
+            # Create resume service and execute
+            service = ResumeService(store)
+            resumed = service.resume(
+                prior,
+                plan=plan,
+                platform_id=plan.platform_id,
+                allow_mutation=args.allow_mutation,
+                output_dir=output_dir,
+            )
+
+            result = render_resume(resumed, args.output)
         else:
             platform_id = (
                 catalog.get_platform(args.platform).id

@@ -15,6 +15,7 @@ from arm64_probe.domain.models import (
     RunResult,
     Sample,
     Scenario,
+    ToolchainEvidence,
 )
 from arm64_probe.environment.models import (
     CapabilityObservation,
@@ -137,6 +138,9 @@ def to_data(value: object) -> Any:
             "summary": _mapping(value.summary),
             "environment": _mapping(value.environment),
             "journal_transactions": to_data(value.journal_transactions),
+            "schema_version": value.schema_version,
+            "prior_run_id": value.prior_run_id,
+            "resume_kind": value.resume_kind,
         }
     if isinstance(value, CapabilityObservation):
         return {
@@ -190,6 +194,13 @@ def to_data(value: object) -> Any:
             "platform_id": value.platform_id,
             "observations": to_data(value.observations),
             "journals": to_data(value.journals),
+        }
+    if isinstance(value, ToolchainEvidence):
+        return {
+            "python_version": value.python_version,
+            "uv_version": value.uv_version,
+            "cc": value.cc,
+            "host_os": value.host_os,
         }
     if isinstance(value, ProbeError):
         return {

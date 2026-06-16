@@ -1,0 +1,4 @@
+=== evict_slc v1.2 ===
+evict_mb=32  n_lines=524288  seed=42
+elapsed=4194304 ns  accesses=134217728
+>>> latency = 0.031 ns/access  (sink=0x7f5678000000)

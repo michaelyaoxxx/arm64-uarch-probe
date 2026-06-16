@@ -105,13 +105,13 @@ gates before GB10 can be physically touched are:
 | # | Gate | Status | Owner |
 |---|---|---|---|
 | 1 | Phase 2 PR reviewed and merged into `main` | ✅ done (local `--no-ff` merge, preserve-history) | user reviewed, agent merged |
-| 2 | Phase 3 plan written and accepted | not started | agent-led, blocks all Phase 3 work |
-| 3 | `probe run` / `probe resume` CLI + domain model | not started | Phase 3 implementation |
-| 4 | Probe normalization (named args, JSON output) | not started | Phase 3 implementation |
-| 5 | Unified runner + transactional integration with the existing `EnvironmentCoordinator` | not started | Phase 3 implementation |
-| 6 | Mac + Linux ARM64 fixture smoke workflow | not started | Phase 3 implementation |
+| 2 | Phase 3 plan written and accepted | ✅ done (`docs/superpowers/specs/2026-06-15-phase3-probes-runner-design.md`, `docs/superpowers/plans/2026-06-15-phase3-probes-runner.md`) | agent-led |
+| 3 | `probe run` / `probe resume` CLI + domain model | ✅ done (Task 18 + Task 19, 349 tests pass) | Phase 3 implementation |
+| 4 | Probe normalization (named args, JSON output) | ✅ done (Task 14 + Task 15, `ProbeAdapter` protocol + 3 concrete adapters) | Phase 3 implementation |
+| 5 | Unified runner + transactional integration with the existing `EnvironmentCoordinator` | ✅ done (Task 17, `Runner` groups cases by `EnvironmentPhase`, records provenance) | Phase 3 implementation |
+| 6 | Mac + Linux ARM64 fixture smoke workflow | ✅ done (Task 20, `make smoke` + `make phase3-check`, 349 tests) | Phase 3 implementation |
 | 7 | GB10 hardware on hand and reachable | not started | user must arrange |
-| 8 | `GB10 Gate 1 is ready to run` announcement | not started | agent, after items 1–6 |
+| 8 | `GB10 Gate 1 is ready to run` announcement | pending (runbook at `docs/superpowers/handoffs/2026-06-15-phase3-gate1-runbook.md`) | user, after item 7 |
 
 Items 1, 7, and 8 are user- or hardware-driven; the rest are
 agent-driven and depend on writing the Phase 3 plan first.
@@ -199,14 +199,20 @@ Until then, the working assumption is:
    done in this session.
 2. ✅ **User merged** the Phase 2 branch into `main` via local
    `--no-ff` merge — done in this session (see §4 below).
-3. **User arranges GB10 access** before Phase 3 implementation
-   begins, per the handoff rule.
-4. Agent writes the Phase 3 plan under
-   `docs/superpowers/plans/2026-MM-DD-phase3-probes-and-runner.md`.
-5. Agent implements `probe run` / `probe resume` / unified runner /
-   smoke workflow; only after the smoke workflow passes on the Mac
-   fixture can the next agent announce
-   `GB10 Gate 1 is ready to run`.
+3. **User arranges GB10 access** before Phase 3 Gate 1 execution,
+   per the handoff rule.
+4. ✅ Agent wrote and user approved the Phase 3 plan —
+   `docs/superpowers/specs/2026-06-15-phase3-probes-runner-design.md`
+   and `docs/superpowers/plans/2026-06-15-phase3-probes-runner.md`.
+5. ✅ Agent implemented Tasks 14–20 (`probe run` / `probe resume` /
+   unified runner / smoke workflow) on `codex/phase3-implementation`.
+   All 349 tests pass under the pinned CPython 3.13.13 toolchain.
+   `make smoke` runs end to end on Mac.
+6. **User executes** the GB10 Gate 1 runbook at
+   `docs/superpowers/handoffs/2026-06-15-phase3-gate1-runbook.md`
+   when GB10 hardware is available.
+7. **User announces** `GB10 Gate 1 is ready to run` after the runbook
+   completes successfully.
 
 ## 4. Merge record (executed in this session)
 

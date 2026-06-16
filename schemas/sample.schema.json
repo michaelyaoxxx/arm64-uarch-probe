@@ -7,7 +7,16 @@
     "metrics": {"additionalProperties": {"type": ["integer", "number", "string", "boolean", "null"]}, "type": "object"},
     "run_id": {"type": "string"},
     "sample_index": {"minimum": 0, "type": "integer"},
-    "status": {"type": "string"}
+    "status": {"type": "string"},
+    "toolchain": {
+      "type": "object",
+      "properties": {
+        "python_version": {"type": "string"},
+        "uv_version": {"type": "string"},
+        "cc": {"type": "string"},
+        "host_os": {"type": "string"}
+      }
+    }
   },
   "required": ["case_id", "metrics", "run_id", "sample_index", "status"],
   "type": "object"

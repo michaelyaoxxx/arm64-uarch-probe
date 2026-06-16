@@ -120,5 +120,41 @@ class DomainModelTests(unittest.TestCase):
         self.assertEqual(build_models(), build_models())
 
 
+class ToolchainEvidenceTests(unittest.TestCase):
+    """Test ToolchainEvidence frozen dataclass."""
+
+    def test_toolchain_evidence_is_frozen(self):
+        """ToolchainEvidence should be a frozen dataclass."""
+        import dataclasses
+        from arm64_probe.domain.models import ToolchainEvidence
+
+        evidence = ToolchainEvidence(
+            python_version="3.13.13",
+            uv_version="0.11.18",
+            cc="cc",
+            host_os="Darwin",
+        )
+        self.assertEqual(evidence.python_version, "3.13.13")
+        self.assertEqual(evidence.host_os, "Darwin")
+
+        with self.assertRaises(dataclasses.FrozenInstanceError):
+            evidence.python_version = "3.14.0"
+
+    def test_toolchain_evidence_uses_immutable_types(self):
+        """All ToolchainEvidence fields should be immutable (str)."""
+        import dataclasses
+        from arm64_probe.domain.models import ToolchainEvidence
+
+        evidence = ToolchainEvidence(
+            python_version="3.13.13",
+            uv_version="0.11.18",
+            cc="cc",
+            host_os="Darwin",
+        )
+        for field in dataclasses.fields(evidence):
+            value = getattr(evidence, field.name)
+            self.assertIsInstance(value, str)
+
+
 if __name__ == "__main__":
     unittest.main()

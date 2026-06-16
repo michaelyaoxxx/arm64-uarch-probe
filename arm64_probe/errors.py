@@ -13,6 +13,8 @@ class ExitCode(IntEnum):
     ENVIRONMENT_APPLY = 12
     ENVIRONMENT_RESTORE = 13
     ENVIRONMENT_BUSY = 14
+    PROBE_EXECUTION = 15
+    RUN_RESULT = 16
 
 
 @dataclass(frozen=True)
