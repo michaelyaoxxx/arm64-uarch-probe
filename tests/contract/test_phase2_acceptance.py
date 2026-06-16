@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -94,6 +95,7 @@ class Phase2ArchitectureBoundariesTests(unittest.TestCase):
 
 
 class Phase2FixtureWorkflowTests(unittest.TestCase):
+    @unittest.skipUnless(platform.system() == "Darwin", "requires Darwin ARM64 host")
     def test_darwin_probe_workflow_creates_no_state(self):
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)

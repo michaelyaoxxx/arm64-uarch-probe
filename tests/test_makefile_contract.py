@@ -1,5 +1,6 @@
 import os
 import platform
+import re
 import subprocess
 import tempfile
 import unittest
@@ -13,18 +14,35 @@ EXPECTED_TARGETS = [
     "src/chase_migrate/chase_migrate_v1.0.c -> build/bin/chase_migrate [Linux]",
 ]
 
+_MAKE_DIR_LINE = re.compile(r"^make\[[0-9]+\]: (?:Entering|Leaving) directory ")
+
 
 def make(
     *arguments: str,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    """Run make and strip recursive-make directory messages from stdout.
+
+    GNU Make prints ``make[1]: Entering directory '...'`` on every
+    ``$(MAKE)`` expansion, which differs from the macOS (BSD) make
+    output.  Stripping these lines keeps test assertions portable.
+    """
+    result = subprocess.run(
         ["make", *arguments],
         cwd=ROOT,
         env=env,
         text=True,
         capture_output=True,
     )
+    if result.stdout:
+        lines = result.stdout.splitlines()
+        result = subprocess.CompletedProcess(
+            args=result.args,
+            returncode=result.returncode,
+            stdout="\n".join(l for l in lines if not _MAKE_DIR_LINE.match(l)) + "\n",
+            stderr=result.stderr,
+        )
+    return result
 
 
 def make_with_uname(
