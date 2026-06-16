@@ -1,6 +1,12 @@
 === chase_migrate v1.0 ===
-src_cpu=0  dst_cpu=10  size=1024 KB  n_lines=16384  warm_passes=5  measure_passes=50
-Migration from cpu0 to cpu10
-Before migration: elapsed=3568832 ns  accesses=819200  latency=4.36 ns/access
-After migration: elapsed=12582912 ns  accesses=819200  latency=15.36 ns/access
->>> migration_penalty = 11.00 ns
+label=(none)
+src_cpu=0 dst_cpu=10 size=1024 KB n_lines=16384 warm_src=5 measure_rounds=50 measure_src=1 seed=42 hugepage=0 strict_hugepage=0 sleep_us=0
+[src] bound before alloc/init: requested=0 current=0
+[alloc] buf=0x7f8a3c000000 alloc_size=2048 KB chain_size=1024 KB hugepage_actual=0
+[src] warm elapsed=876543 ns accesses=81920
+[src] measure elapsed=3568832 ns accesses=819200 cpu_before=0 cpu_after=0
+>>> src_latency = 4.36 ns/access  (sink=0x7f8a3c0e0000)
+[dst] bound after migration: requested=10 current=10
+[dst] measure elapsed=12582912 ns accesses=819200 cpu_before=10 cpu_after=10
+>>> migrate_latency = 15.36 ns/access  (sink=0x7f8a3c0e0000)
+>>> migrate_penalty = 11.00 ns/access

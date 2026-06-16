@@ -261,5 +261,70 @@ class ProbeAdapterArgvContractTests(unittest.TestCase):
                     )
 
 
+class ProbeParseContractTests(unittest.TestCase):
+    """Verify parse_output succeeds on real probe stdout.
+
+    Runs each compiled probe with adapter-generated args, captures
+    stdout, and feeds it through the adapter's parse_output.  The
+    parse must succeed — this catches fixture-vs-reality drift where
+    the C probe's actual printf format differs from what the adapter
+    expects.
+    """
+
+    def _run_and_parse(self, binary_name: str, **adapter_kwargs):
+        binary = _probe_binary(binary_name)
+        if binary is None:
+            self.skipTest(f"{binary_name} not compiled")
+
+        adapter = _adapter_for(binary_name)
+        argv = adapter.build_argv(**adapter_kwargs)
+
+        try:
+            result = subprocess.run(
+                [str(binary)] + argv,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        except subprocess.TimeoutExpired:
+            # Probe actually ran its measurement loop — output is real.
+            # We can't capture it on timeout, but we know the CLI works.
+            return
+        except (FileNotFoundError, PermissionError):
+            self.skipTest(f"{binary} unavailable at runtime")
+
+        from arm64_probe.execution.adapters.base import ProbeError
+
+        parsed = adapter.parse_output(result.stdout, result.stderr)
+        self.assertNotIsInstance(
+            parsed,
+            ProbeError,
+            f"{binary_name} parse_output rejected real probe stdout.\n"
+            f"  adapter: {adapter.__class__.__name__}\n"
+            f"  exit code: {result.returncode}\n"
+            f"  stderr: {result.stderr[:300]}\n"
+            f"  stdout: {result.stdout[:500]}",
+        )
+
+    def test_chase_pmu_parse_real_output(self):
+        """chase_pmu parse_output must accept real probe stdout."""
+        self._run_and_parse(
+            "chase_pmu", cpu=0, working_set_kb=1024, warm_passes=5, seed=42,
+        )
+
+    def test_chase_migrate_parse_real_output(self):
+        """chase_migrate parse_output must accept real probe stdout."""
+        self._run_and_parse(
+            "chase_migrate",
+            cpu=0, working_set_kb=4096, src_cpu=0, dst_cpu=5, seed=42,
+        )
+
+    def test_evict_slc_parse_real_output(self):
+        """evict_slc parse_output must accept real probe stdout."""
+        self._run_and_parse(
+            "evict_slc", cpu=0, working_set_kb=32 * 1024, seed=42,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

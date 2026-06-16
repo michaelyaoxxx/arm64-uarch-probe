@@ -47,63 +47,70 @@ class EvictSlcAdapter(ProbeAdapter):
         return [
             f"--evict_mb={evict_mb}",
             f"--seed={seed}",
+            "--verbose",
         ]
 
     def parse_output(self, stdout: str, stderr: str) -> ProbeOutput | ProbeError:
-        """Parse evict_slc output."""
+        """Parse evict_slc output.
+
+        The C probe (v1.2) produces::
+
+            [evict_slc] version=v1.2 mode=random evict_mb=32 bytes=...
+            [evict_slc] touch_ms=2.555 evict_ms=4.872 approx_bw=6.41 GB/s sink=66846720
+            [evict_slc] done
+        """
+        # The C probe writes its performance output to stderr
+        combined = (stdout + stderr) if stdout or stderr else ""
         try:
-            # Look for the key output line
-            # Format: ">>> latency = 0.031 ns/access  (sink=0x7f5678000000)"
-            latency_match = re.search(
-                r">>>\s+latency\s*=\s*([\d.]+)\s*ns/access\s*\(sink=0x([0-9a-fA-F]+)\)",
-                stdout
-            )
-
-            # Look for elapsed and accesses
-            # Format: "elapsed=4194304 ns  accesses=134217728"
+            # Primary performance line
+            # Format: "[evict_slc] touch_ms=2.555 evict_ms=4.872 approx_bw=6.41 GB/s sink=66846720"
             perf_match = re.search(
-                r"elapsed\s*=\s*(\d+)\s*ns\s+accesses\s*=\s*(\d+)",
-                stdout
+                r"\[evict_slc\]\s+touch_ms\s*=\s*([\d.]+)\s+"
+                r"evict_ms\s*=\s*([\d.]+)\s+"
+                r"approx_bw\s*=\s*([\d.]+)\s*GB/s\s+"
+                r"sink\s*=\s*(\d+)",
+                combined,
             )
-
-            if not latency_match:
-                return ProbeError(
-                    error_type="parse_failure",
-                    message="Could not find latency in output",
-                    stderr=stderr
-                )
 
             if not perf_match:
                 return ProbeError(
                     error_type="parse_failure",
-                    message="Could not find elapsed/accesses in output",
-                    stderr=stderr
+                    message="Could not find evict_slc performance line in output",
+                    stderr=stderr,
                 )
 
-            latency_ns = float(latency_match.group(1))
-            sink_address = "0x" + latency_match.group(2)
-            elapsed_ns = int(perf_match.group(1))
-            accesses = int(perf_match.group(2))
+            touch_ms = float(perf_match.group(1))
+            evict_ms = float(perf_match.group(2))
+            approx_bw_gbs = float(perf_match.group(3))
+            sink_value = int(perf_match.group(4))
 
-            # Extract additional metrics
-            additional_metrics = {}
+            # Extract evict_mb from the version/config line
+            # Format: "[evict_slc] version=v1.2 mode=random evict_mb=32 bytes=..."
+            evict_mb_match = re.search(r"evict_mb\s*=\s*(\d+)", combined)
+            evict_mb = int(evict_mb_match.group(1)) if evict_mb_match else 0
 
-            # Look for evict_mb if present
-            evict_mb_match = re.search(r"evict_mb\s*=\s*(\d+)", stdout)
-            if evict_mb_match:
-                additional_metrics["evict_mb"] = int(evict_mb_match.group(1))
+            # Extract n_lines from the config line
+            n_lines_match = re.search(r"n_lines\s*=\s*(\d+)", combined)
+            n_lines = int(n_lines_match.group(1)) if n_lines_match else 0
 
-            # Look for n_lines if present
-            n_lines_match = re.search(r"n_lines\s*=\s*(\d+)", stdout)
-            if n_lines_match:
-                additional_metrics["n_lines"] = int(n_lines_match.group(1))
+            additional_metrics: dict[str, object] = {
+                "touch_ms": touch_ms,
+                "evict_ms": evict_ms,
+                "approx_bw_gbs": approx_bw_gbs,
+                "sink_value": sink_value,
+                "evict_mb": evict_mb,
+                "n_lines": n_lines,
+            }
+
+            # Convert evict_ms to ns as the primary latency
+            latency_ns = evict_ms * 1_000_000.0
 
             return ProbeOutput(
                 latency_ns=latency_ns,
-                accesses=accesses,
-                elapsed_ns=elapsed_ns,
-                sink_address=sink_address,
-                additional_metrics=additional_metrics
+                accesses=n_lines * 2,  # touch + evict
+                elapsed_ns=int((touch_ms + evict_ms) * 1_000_000),
+                sink_address=None,
+                additional_metrics=additional_metrics,
             )
 
         except Exception as e:
