@@ -12,6 +12,7 @@
 | P2 | Platform assumption in tests | 2026-06-16 | Layer C |
 | P3 | Null dependency not guarded | 2026-06-16 | Layer D |
 | P4 | Sysfs path hardcoding | 2026-06-16 | Layer E |
+| P5 | Fixture-vs-reality output format drift | 2026-06-16 | Layer F + G |
 
 ---
 
@@ -178,6 +179,108 @@ unnumbered path doesn't exist.
 - [ ] Is the path identical on all target platforms?
 - [ ] If not, is there a runtime discovery method?
 - [ ] Is there a test with both the canonical and the variant path?
+
+---
+
+## P5: Fixture-vs-Reality Output Format Drift
+
+### Symptoms
+
+```
+chase_migrate: "Could not find migration_penalty in output"
+evict_slc:     "Could not find evict_slc performance line in output"
+```
+
+### Root Cause
+
+Adapter `parse_output` implementations and their corresponding fixture files
+were **invented** — written against an expected/idealized output format rather
+than captured from actual C probe runs.  Two concrete mismatches:
+
+**chase_migrate (v1.0):**
+
+| Adapter/ Fixture Expected | C Probe Actually Prints |
+|---|---|
+| `migration_penalty` | `migrate_penalty` |
+| `Before migration:` / `After migration:` | `[src] measure` / `[dst] measure` |
+| `latency=` | `src_latency =` / `migrate_latency =` |
+
+**evict_slc (v1.2):**
+
+| Adapter/ Fixture Expected | C Probe Actually Prints |
+|---|---|
+| `>>> latency = X ns/access` (on stdout) | `[evict_slc] touch_ms=… evict_ms=… approx_bw=… GB/s sink=…` (on **stderr**) |
+| No `--verbose` flag | Requires `--verbose` for performance output |
+
+Additionally, the `evict_slc` adapter only parsed `stdout`, but the C probe
+writes its performance measurements to **stderr**.  The `combined = stdout +
+stderr` fix was needed.
+
+### Why This Was Missed Until GB10
+
+1. **Unit tests used inline strings, not fixture files.**  They validated the
+   adapter against the same person's mental model of the output, not against
+   the actual C probe.  `assertIn("migration_penalty", ...)` passed because
+   the test string was invented with the same mistake.
+
+2. **Fixture files (when they existed) were also invented, not captured.**
+   The content of `cross_cluster.stdout` was handwritten to match the
+   adapter's expectations, not copied from a real probe run.
+
+3. **No test ever ran the compiled probe and fed its actual stdout through
+   `parse_output`.**  The integration gap: CLI contract tests proved the
+   probe *accepts* the argv, but nothing proved the adapter *understands*
+   the probe's output.
+
+### Prevention (Layer F — single source of truth for fixtures)
+
+**All fixture files must be captured from real probe output**, not
+handwritten.  When adding a new fixture:
+
+1. Compile the probe: `make build`
+2. Run the probe with representative arguments, capturing stdout + stderr
+3. Copy the verbatim output to `tests/fixtures/probe_output/<probe>/<version>/<scenario>.stdout`
+4. Write the `parse_output` regex against the captured fixture
+5. Write the characterization test against the captured fixture
+
+**Never** invent a fixture to match an adapter's expectations.  The C
+probe's `printf` output is the authoritative source of truth.
+
+### Prevention (Layer G — parse contract verification)
+
+`tests/integration/test_probe_cli_contract.py::ProbeParseContractTests`
+(3 tests) run after `make build` and actually invoke each compiled probe
+binary, capture its stdout+stderr, and feed it through the adapter's
+`parse_output`.  The test fails if `parse_output` returns `ProbeError`.
+
+This catches **all** output format mismatches before they reach measurement
+hardware — wrong metric names, wrong line format, wrong stream (stdout vs
+stderr), missing required fields, and regex syntax errors.
+
+### Developer Contract
+
+**When changing a C probe's `printf` output format:**
+
+1. Run the probe and capture fresh output.
+2. Update the fixture file in `tests/fixtures/probe_output/<probe>/<version>/`.
+3. Update the adapter's `parse_output` regex to match.
+4. Update the corresponding characterization test assertions.
+5. Run `make build && make phase3-check`.  **Both** the fixture tests AND
+   the `ProbeParseContractTests` must pass.
+6. If the C probe is Linux-only, test on a Linux host before merging.
+
+**When writing a new adapter's `parse_output`:**
+
+1. Do NOT invent the expected format.  Compile and run the C probe first.
+2. Capture the real output → create the fixture → write the regex.
+3. The fixture is the **spec** for what `parse_output` must handle.
+
+### Checklist for adapter output changes
+- [ ] Were the fixture files captured from a real probe run (not handwritten)?
+- [ ] Does `parse_output` handle both stdout AND stderr (combined)?
+- [ ] Does `parse_output` regex match the exact metric names (`migrate_penalty`, not `migration_penalty`)?
+- [ ] Are the characterization tests asserting against fixture files?
+- [ ] Does `ProbeParseContractTests` pass after `make build`?
 
 ---
 

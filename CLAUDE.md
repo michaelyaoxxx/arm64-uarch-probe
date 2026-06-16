@@ -179,6 +179,7 @@ this contract — they must all pass before merging any C or adapter change:
 | Unit | `tests/unit/test_probe_adapters.py::test_build_argv_*` | Everywhere | Argument values, ordering |
 | Structural | `tests/integration/test_probe_cli_contract.py::ProbeAdapterArgvContractTests` | Everywhere | Argument *style* (positional vs named, hyphens vs underscores, equals vs space, no binary name in argv) |
 | Integration | `tests/integration/test_probe_cli_contract.py::ProbeCliContractTests` | After `make build` | Actual probe binary accepts adapter's argv (no `Usage:`, `unrecognized option`, `size too small` in stderr) |
+| Parse | `tests/integration/test_probe_cli_contract.py::ProbeParseContractTests` | After `make build` | Adapter `parse_output` accepts real probe stdout+stderr (fixture-vs-reality output format drift) |
 
 **Rules for any C probe CLI change:**
 1. Update the adapter's `build_argv` to match.
@@ -197,6 +198,14 @@ this contract — they must all pass before merging any C or adapter change:
 **Rules for new sysfs/procfs paths:**
 - Never hardcode a path that varies across hardware. Use runtime discovery: canonical path first, glob fallback second.
 - Add tests with both the canonical and the variant path (see `tests/unit/test_linux_inspector.py`).
+
+**Rules for fixture files and parse_output (P5 prevention):**
+- **All fixture files must be captured from real C probe output**, never handwritten. Compile and run the probe, then copy verbatim stdout+stderr to `tests/fixtures/probe_output/<probe>/<version>/<scenario>.stdout`.
+- The fixture is the **spec** for what `parse_output` must handle — write the regex against the fixture, not against memory.
+- `parse_output` must consume both `stdout` and `stderr` as `combined = (stdout + stderr)` — some C probes write performance output to stderr.
+- When changing a C probe's `printf` output: capture fresh output → update fixture → update adapter regex → run `make build && make phase3-check` (the `ProbeParseContractTests` must pass).
+- Characterization tests (`test_characterization.py`) must assert against fixture files, never inline strings.
+- Unit tests (`test_probe_adapters.py`) must use `characterize_output()` fixtures, never hand-crafted stdout strings.
 
 **Rules for OS-specific test behavior:**
 - Tests that only apply to one OS must use `@unittest.skipUnless(platform.system() == "...", ...)`.

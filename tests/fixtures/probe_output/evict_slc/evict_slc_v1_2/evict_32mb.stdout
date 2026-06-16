@@ -1,4 +1,3 @@
-=== evict_slc v1.2 ===
-evict_mb=32  n_lines=524288  seed=42
-elapsed=4194304 ns  accesses=134217728
->>> latency = 0.031 ns/access  (sink=0x7f5678000000)
+[evict_slc] version=v1.2 mode=random evict_mb=32 bytes=33554432 n_lines=524288 seed=42 touch_init=1
+[evict_slc] touch_ms=2.555 evict_ms=4.872 approx_bw=6.41 GB/s sink=66846720
+[evict_slc] done
