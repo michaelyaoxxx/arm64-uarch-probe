@@ -11,6 +11,14 @@ execution layer. It **never** acquires `MutationLock`, writes journals, or
 invokes `sudo`. All analysis consumes structured `RunResult` or
 `LegacyImporter`-adapted records; no code reads legacy text directly.
 
+**Why no `sudo`?** Phase 3 (`probe run`) is the **measurement** phase — it
+requires `sudo` for `cpufreq` governor control and hugepage configuration via
+the `EnvironmentCoordinator`. Phase 4 is the **consumer** phase — it reads
+pre-collected `RunResult` JSON files that already contain the measurement data.
+Analysis, statistics, figures, and reports are pure computation with zero host
+mutation. The boundary is intentional: collect once with privilege, analyze
+anywhere without it.
+
 ### 1.1 Data Flow
 
 ```
@@ -18,7 +26,7 @@ RunResult JSON ──→ ResultIngester ──→ StatisticsEngine ──→ Ana
                          │
 Legacy text ──→ LegacyImporter ──→ ImportedRecord ────────┘
                          │
-ComparisonEngine ←── (--baseline flag)
+ComparisonEngine ←── (--baseline flag)   [Phase 5: full implementation]
                          │
 FigureGenerator ──→ PNG figures + FigureManifest
                          │
@@ -28,7 +36,8 @@ BaselinePromoter ──→ results/baselines/v1.0/   (Python API, no CLI)
 ```
 
 1. `probe analyze --run <result.json> ...` loads `RunResult` files, runs
-   statistics and comparison engines, persists `AnalysisSummary` JSON.
+   statistics engine, persists `AnalysisSummary` JSON. The `--baseline` flag
+   is accepted but cross-run comparison is deferred to Phase 5.
 2. `probe report --analysis <analysis.json>` loads `AnalysisSummary`, runs
    figure and report generation, writes figures + Markdown report.
 3. Candidate baseline promotion is a reviewed action via Python API.
@@ -41,7 +50,7 @@ arm64_probe/analysis/                  ← new top-level package (read-only)
     models.py                          ← 8 frozen dataclasses
     store.py                           ← AnalysisStore (atomic persistence)
     statistics.py                      ← StatisticsEngine (pure functions)
-    comparison.py                      ← ComparisonEngine (cross-run)
+    comparison.py                      ← ComparisonEngine (Phase 4 stub; implementation → Phase 5)
     ingestion.py                       ← ResultIngester + LegacyImporter protocol
     figures.py                         ← FigureGenerator (matplotlib → PNG)
     report.py                          ← ReportGenerator (deterministic Markdown)
@@ -70,6 +79,70 @@ docs/
   Requires `pyproject.toml` dependency, `uv.lock` update, and contract tests
   that validate figure metadata (not pixel-perfect equality).
 - No other new dependencies.
+
+### 1.4 Baseline Collection Matrix
+
+Phase 4's analysis pipeline consumes data collected by Phase 3's `probe run`.
+A complete GB10 baseline (`--profile baseline`) covers the matrix below,
+aligning with the measurement scope established by legacy runs in
+`data/20260611_v2.7.*/`. The profile is a Phase 4 deliverable defined in
+`configs/profiles/baseline.json`.
+
+GB10 topology (see `docs/arch/cpu_topology.md`):
+
+| Cluster | CPUs | Core Type | L1D | L2 | Shared L3 |
+|---------|------|-----------|-----|-----|-----------|
+| C0 | 0-4 | A725 | 64KB | 512KB | 8MB |
+| C0 | 5-9 | X925 | 64KB | 2MB | 8MB |
+| C1 | 10-14 | A725 | 64KB | 512KB | 16MB |
+| C1 | 15-19 | X925 | 64KB | 2MB | 16MB |
+
+SLC: 16MB shared. DRAM: 128GB.
+
+**4 representative CPUs:** cpu0 (C0/A725), cpu5 (C0/X925), cpu10 (C1/A725), cpu15 (C1/X925).
+
+#### Cache Latency (chase_pmu probe)
+
+| Level | CPUs | working-set | page-policy | Rationale |
+|-------|------|------------|-------------|-----------|
+| L1 | 0, 5, 10, 15 | 32KiB | default (4K) | Fits in 64KB L1; 4K matches legacy L1 scans |
+| L2 | 0, 10 (A725) | 256KiB | hugepage | Fits in 512KB A725 L2 |
+| L2 | 5, 15 (X925) | 1MiB | hugepage | Fits in 2MB X925 L2 |
+| L3 | 0, 5 (C0) | 4MiB | hugepage | Fits in 8MB C0 L3 |
+| L3 | 10, 15 (C1) | 8MiB | hugepage | Fits in 16MB C1 L3 |
+
+#### SLC and DRAM
+
+| Level | CPUs | Method | page-policy |
+|-------|------|--------|-------------|
+| SLC | 0, 5, 10, 15 | evict_slc eviction → chase_pmu cold (warm=0) | hugepage |
+| DRAM | 0, 5, 10, 15 | chase_pmu cold (warm=0) 64MiB | hugepage |
+
+#### Migration Latency (chase_migrate probe, all hugepage)
+
+9 migration pairs × 6 sizes (512K, 2M, 8M, 16M, 32M, 64M),
+matching the legacy v2.7.11 measurement scope:
+
+| # | Label | src | dst | Meaning |
+|---|-------|-----|-----|---------|
+| 1 | C0-A725 local | 0 | 0 | same-core baseline |
+| 2 | C0-X925 local | 5 | 5 | same-core baseline |
+| 3 | C1-A725 local | 10 | 10 | same-core baseline |
+| 4 | C1-X925 local | 15 | 15 | same-core baseline |
+| 5 | A725 C0→C1 | 0 | 10 | cross-cluster, same core type |
+| 6 | A725 C1→C0 | 10 | 0 | reverse direction |
+| 7 | X925 C0→C1 | 5 | 15 | cross-cluster, same core type |
+| 8 | X925 C1→C0 | 15 | 5 | reverse direction |
+| 9 | A725→X925 C0 | 0 | 5 | cross-core-type, same cluster |
+| 10 | X925→A725 C0 | 5 | 0 | reverse (asymmetric per legacy) |
+| 11 | A725→X925 C1 | 10 | 15 | cross-core-type, same cluster |
+| 12 | X925→A725 C1 | 15 | 10 | reverse (asymmetric per legacy) |
+
+#### Summary
+
+- **Cache latency:** 4 (L1) + 4 (L2) + 4 (L3) + 4 (SLC) + 4 (DRAM) = **20 unique cases** × 5 samples = 100 samples
+- **Migration latency:** 12 pairs × 6 sizes = **72 unique cases** × 1 measure_round = 72 samples
+- **Total: ~92 unique cases, ~172 samples**
 
 ## 2. Domain Models
 
@@ -253,26 +326,36 @@ class StatisticsEngine:
 
 ### 3.2 ComparisonEngine (`comparison.py`)
 
+**Phase 4 scope: Protocol definition + documentation stub.**
+Implementation deferred to Phase 5 (release freeze), where before/after
+comparison becomes meaningful.
+
 ```python
 class ComparisonEngine:
+    """Protocol for cross-run comparison. Phase 4 defines the interface;
+    full implementation with classify_delta logic is deferred to Phase 5."""
+
     @staticmethod
     def compare_runs(
         baseline: CaseAnalysis, current: CaseAnalysis, tolerance_pct: float = 5.0
-    ) -> CrossRunComparison: ...
+    ) -> CrossRunComparison:
+        """Phase 4 stub: returns CrossRunComparison with classification
+        'incompatible' and note 'cross-run comparison deferred to Phase 5'."""
+        ...
 
-    @staticmethod
-    def classify_delta(
-        baseline_val: float | None, current_val: float | None, tolerance_pct: float
-    ) -> str:
-        """→ 'unchanged' | 'improved' | 'regressed' | 'missing'"""
+
+# Phase 5 implementation will populate these classification rules:
+# - Both present, delta within ±5% → "unchanged"
+# - Both present, current < baseline by >5% → "improved"
+# - Both present, current > baseline by >5% → "regressed"
+# - One missing → "missing"
+# - Different platform/scenario → "incompatible"
 ```
 
-Classification rules (latency-centric; lower = better):
-- Both present, delta within ±5% → `"unchanged"`
-- Both present, current < baseline by >5% → `"improved"`
-- Both present, current > baseline by >5% → `"regressed"`
-- One missing → `"missing"`
-- Different platform/scenario → `"incompatible"`
+`CrossRunComparison` and `CrossRunMetricDelta` models remain in `models.py`
+so that `AnalysisSummary` can carry an empty comparison tuple. The
+`--baseline` flag on `probe analyze` is accepted but produces a note
+"cross-run comparison deferred to Phase 5" rather than an error.
 
 ### 3.3 ResultIngester + LegacyImporter (`ingestion.py`)
 
@@ -463,7 +546,7 @@ Add corresponding `_dict_to_*` deserialization branches in the same module.
 | `tests/unit/test_analysis_models.py` | Frozen invariants, round-trip serialization, schema validation |
 | `tests/unit/test_statistics.py` | All stat computations, unit inference, all 5 anomaly rules, edge cases (empty, single, all-error) |
 | `tests/unit/test_ingestion.py` | `ResultIngester` multi-run, duplicate rejection, `LegacyImporter` protocol conformance |
-| `tests/unit/test_comparison.py` | All 5 classifications, tolerance edge cases, missing/incompatible |
+| `tests/unit/test_comparison.py` | Phase 4 stub: returns "incompatible" note, model round-trip; full classification tests deferred to Phase 5 |
 | `tests/unit/test_analysis_store.py` | Atomic write/read, oversize rejection, schema version validation |
 | `tests/unit/test_figures.py` | Figure generation determinism, manifest completeness, PNG output validation |
 | `tests/unit/test_report.py` | Deterministic output, section structure, claim traceability, edge cases (empty/partial/failed/incompatible) |
@@ -532,3 +615,6 @@ phase4-check:
 | 8 | New schemas: `analysis-summary` v1, `baseline-manifest` v1 | Schema evolution independent of `RunResult` v2 |
 | 9 | Report sections are deterministic | Same input → same output; tested via string equality on known fixtures |
 | 10 | C&C comparison as framework + qualitative | Numeric data deferred to Phase 5 after v1.0 baseline collected |
+| 11 | ComparisonEngine deferred to Phase 5 | Protocol + documentation stub in Phase 4; before/after comparison needs two baselines, which only exist at release time |
+| 12 | Baseline matrix: 4 CPUs × 5 cache levels × 2 page policies + 12 migration pairs × 6 sizes | ~92 unique cases, ~172 samples; defined as `--profile baseline`; aligns with legacy v2.7.3–v2.7.11 scope |
+| 13 | Memory bandwidth in X925/A725 roadmap | Referenced in `docs/roadmap/x925-a725-deep-dive.md`; links to Chips and Cheese GB10 memory subsystem analysis (https://chipsandcheese.com/p/inside-nvidia-gb10s-memory-subsystem) |
