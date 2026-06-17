@@ -224,6 +224,27 @@ Every new bug that reaches GB10 must be added there with its prevention mechanis
 - Reviewed evidence lives under `results/baselines/<version>/`; publication figures under `docs/assets/<version>/`. `results/runs/` is git-ignored.
 - Do not merge to `main`, push, or open a PR without an explicit user request.
 
+### Branch strategy
+
+```
+main                          ← stable, Phase-verified releases only
+  └── codex/phase3-implementation  ← active development + GB10 testing
+```
+
+**GB10 测试不需要经过 `main`。** GB10 直接 clone 仓库后 checkout
+`codex/phase3-implementation` 即可运行最新的开发代码。
+
+| 动作 | 触发条件 |
+|------|---------|
+| 提交 + 推送 `codex/phase3-implementation` | 每个 bug 修复 / task 完成后 |
+| 合并到 `main` | **整个 Phase 全部验收通过后，一次性合并** |
+| 推送 `main` 到远程 | 合并后 |
+
+**反例（不要做）：**
+- ❌ 每修完一个 bug 就 merge 到 `main` → 产生无意义的 merge commit 链
+- ❌ 在 `main` 上直接推送 → 绕过验收
+- ❌ 让 GB10 测试使用 `main` 分支 → `main` 应滞后于开发分支，GB10 测试应在最新代码上进行
+
 ## Phase Boundaries (don't cross)
 
 - Phase 1 and Phase 2 require **no GB10**; do not execute C probes or modify the real Mac/GB10 environment.
