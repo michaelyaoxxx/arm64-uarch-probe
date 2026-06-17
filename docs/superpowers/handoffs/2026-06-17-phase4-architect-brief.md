@@ -3,7 +3,7 @@
 > **To:** Phase 4 architect agent
 > **From:** Phase 3 implementation agent
 > **Date:** 2026-06-17
-> **Action:** Produce `docs/superpowers/handoffs/2026-06-XX-phase4-handoff.md`
+> **Action:** Produce `docs/superpowers/handoffs/2026-06-17-phase4-handoff.md`
 
 ## 1. Current State
 
@@ -50,28 +50,34 @@ From `docs/superpowers/handoffs/2026-06-15-phase3-handoff.md` §1:
 
 ## 4. Required Deliverable
 
-One file:
+**One file:**
 
 ```
-docs/superpowers/handoffs/2026-06-XX-phase4-handoff.md
+docs/superpowers/handoffs/2026-06-17-phase4-handoff.md
 ```
 
 Follow the format of `docs/superpowers/handoffs/2026-06-15-phase3-handoff.md`.
 
-Must include:
+**Must include:**
 
 | Section | Content |
 |---------|---------|
 | §1 Objective and Scope | What Phase 4 delivers and what it defers to Phase 5+ |
-| §2 Locked Architecture Decisions | Non-negotiable constraints (include the above + add Phase 4 specifics) |
+| §2 Locked Architecture Decisions | Non-negotiable constraints (include §2 from this brief + add Phase 4 specifics) |
 | §3 Required Public Behavior | CLI forms, exit codes, output formats |
 | §4 Acceptance Criteria (AC1-ACn) | Each requiring automated evidence, never narrative alone |
 | §5 Quality-Control Strategy | Test pyramid, per-task gate, phase completion gate |
-| §6 Recommended Work Order | Dependency order for implementation agents |
+| §6 AC-to-Task-to-Test Implementation Map | **Must explicitly map each AC to: files to create/modify, test files, commit boundary, and verification command.** This is the blueprint the implementation agent uses to produce SPEC + PLAN. |
+| §7 Recommended Work Order | Dependency order for implementation agents |
 
-After the handoff is approved:
-- The implementation agent (me) writes the detailed SPEC and PLAN
+**After the handoff is approved by the user:**
+- The implementation agent writes the detailed SPEC and PLAN files
 - Then implements task-by-task with TDD
+
+**Handoff quality bar (Phase 3 reference):**
+- `docs/superpowers/handoffs/2026-06-15-phase3-handoff.md` — 9 ACs, 6 tasks, each task maps AC → file → test → commit
+- `docs/superpowers/specs/2026-06-15-phase3-probes-runner-design.md` — detailed design (produced by implementation agent from handoff)
+- `docs/superpowers/plans/2026-06-15-phase3-probes-runner.md` — task-by-task implementation plan (produced by implementation agent from handoff)
 
 ## 5. Must-Read Documents
 
