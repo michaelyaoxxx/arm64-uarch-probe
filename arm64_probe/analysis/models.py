@@ -156,7 +156,10 @@ class ImportedRecord:
     loss_notes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "metrics", _to_tuple(self.metrics))
+        object.__setattr__(
+            self, "metrics",
+            tuple(sorted(_to_tuple(self.metrics), key=lambda x: x[0])),
+        )
         object.__setattr__(self, "loss_notes", _to_tuple(self.loss_notes))
 
 
