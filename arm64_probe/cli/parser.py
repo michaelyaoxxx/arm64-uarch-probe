@@ -2,7 +2,7 @@ import argparse
 
 
 OUTPUT_CHOICES = ("table", "json")
-COMMANDS = ("list", "show", "plan", "doctor", "restore", "run", "resume")
+COMMANDS = ("list", "show", "plan", "doctor", "restore", "run", "resume", "analyze")
 
 
 def _add_output_option(parser: argparse.ArgumentParser) -> None:
@@ -190,6 +190,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="acknowledge that this command will mutate host state",
     )
     _add_output_option(resume_parser)
+
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="analyze run results and produce analysis summary",
+        description="Load RunResult files, compute per-case statistics, and persist an AnalysisSummary.",
+        allow_abbrev=False,
+    )
+    analyze_parser.add_argument(
+        "--run",
+        required=True,
+        action="append",
+        dest="runs",
+        metavar="PATH",
+        help="RunResult JSON file (repeatable)",
+    )
+    analyze_parser.add_argument(
+        "--baseline",
+        default=None,
+        metavar="PATH",
+        help="prior analysis for cross-run comparison (Phase 5)",
+    )
+    analyze_parser.add_argument(
+        "--output-dir",
+        default="results/analysis/",
+        metavar="DIR",
+        help="output directory for analysis artifacts",
+    )
+    _add_output_option(analyze_parser)
 
     return parser
 

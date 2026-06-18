@@ -6,6 +6,7 @@ from pathlib import Path
 from arm64_probe.backends.select import select_backend
 from arm64_probe.cli.parser import build_parser, get_command_parser
 from arm64_probe.cli.render import (
+    render_analyze,
     render_doctor,
     render_error,
     render_list,
@@ -97,6 +98,94 @@ def _plan_request(args) -> PlanRequest:
         overrides=overrides,
         skip_unavailable=args.skip_unavailable,
     )
+
+
+def _run_analyze(args) -> tuple:
+    """Run the probe analyze command.
+
+    Loads RunResult files, computes per-case MetricStats via StatisticsEngine,
+    persists AnalysisSummary atomically via AnalysisStore.
+
+    Returns:
+        Tuple of (AnalysisSummary | None, Path | None).
+        On error summary is None indicating exit code 16.
+    """
+    import datetime
+    import uuid
+    from pathlib import Path as PathCls
+
+    from arm64_probe.analysis.ingestion import ResultIngester
+    from arm64_probe.analysis.statistics import StatisticsEngine
+    from arm64_probe.analysis.store import AnalysisStore
+    from arm64_probe.execution.result_store import ResultStore
+
+    run_paths = tuple(PathCls(p) for p in args.runs)
+    output_dir = PathCls(args.output_dir)
+
+    # ResultStore.read(path) reads from an arbitrary path; results_dir is
+    # unused for reads, so pass any existing directory to satisfy the ctor.
+    store = ResultStore(results_dir=output_dir)
+    ingester = ResultIngester(store)
+    try:
+        results = ingester.ingest(run_paths)
+    except (FileNotFoundError, ValueError, KeyError, OSError) as e:
+        print(f"analyze error: {e}", file=sys.stderr)
+        return None, None
+
+    # Use the first result's summary for top-level metadata.
+    summary_dict = dict(results[0].summary)
+    plat_id = summary_dict.get("platform_id", "unknown")
+    repo_id = summary_dict.get("repository_id", "unknown")
+    commit = summary_dict.get("repository_commit", "unknown")
+    dirty = bool(summary_dict.get("dirty_tree", False))
+
+    # Group samples by case_id across all run results.
+    all_samples_by_case: dict[str, list] = {}
+    for r in results:
+        for s in r.samples:
+            all_samples_by_case.setdefault(s.case_id, []).append(s)
+
+    # Build a lookup: case_id -> scenario_id by scanning all plans.
+    scenario_by_case: dict[str, str] = {}
+    for r in results:
+        for c in r.plan.cases:
+            scenario_by_case.setdefault(c.id, c.scenario_id)
+
+    # Compute per-case analysis.
+    case_analyses = []
+    for case_id in sorted(all_samples_by_case):
+        samples = tuple(all_samples_by_case[case_id])
+        ca = StatisticsEngine.compute_case_analysis(
+            case_id=case_id,
+            samples=samples,
+            scenario_id=scenario_by_case.get(case_id, "unknown"),
+            platform_id=plat_id,
+        )
+        case_analyses.append(ca)
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    analysis_id = now.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+
+    from arm64_probe.analysis.models import AnalysisSummary
+
+    analysis = AnalysisSummary(
+        analysis_id=analysis_id,
+        schema_version=1,
+        source_runs=tuple(r.run_id for r in results),
+        platform_id=plat_id,
+        repository_id=repo_id,
+        repository_commit=commit,
+        dirty_tree=dirty,
+        toolchain=(("python", "3.13.13"),),
+        case_analyses=tuple(case_analyses),
+        cross_run_comparisons=(),
+        anomalies=(),
+        generated_at=now.isoformat(),
+    )
+
+    analysis_store = AnalysisStore(analysis_dir=output_dir)
+    out_path = analysis_store.write_analysis(analysis)
+    return analysis, out_path
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -204,6 +293,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
 
             result = render_resume(resumed, args.output)
+        elif args.command == "analyze":
+            summary, path = _run_analyze(args)
+            if summary is None:
+                return ExitCode.RUN_RESULT
+            result = render_analyze(summary, path, args.output)
         else:
             platform_id = (
                 catalog.get_platform(args.platform).id

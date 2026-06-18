@@ -1,8 +1,10 @@
 import json
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 from arm64_probe.domain.models import Plan, RunResult
+from arm64_probe.analysis.models import AnalysisSummary
 from arm64_probe.environment.models import DoctorReport, EnvironmentJournal
 from arm64_probe.errors import ProbeError
 from arm64_probe.registry.catalog import Catalog
@@ -345,4 +347,36 @@ def render_resume(result: RunResult, output: str) -> str:
             if "latency_ns" in metrics_dict:
                 lines.append(f"    Latency: {metrics_dict['latency_ns']:.2f} ns")
 
+    return "\n".join(lines) + "\n"
+
+
+def render_analyze(summary: AnalysisSummary, output_path: Path | None, output: str) -> str:
+    """Render an AnalysisSummary for display.
+
+    Args:
+        summary: The AnalysisSummary to render
+        output_path: Path where the analysis was written (may be None on error)
+        output: Output format ("json" or "table")
+
+    Returns:
+        Formatted string representation
+    """
+    if output == "json":
+        return dump_json(to_data(summary))
+
+    lines = [
+        f"Analysis: {summary.analysis_id}",
+        f"Written: {output_path or '(not written)'}",
+        f"Platform: {summary.platform_id}",
+        f"Cases analyzed: {len(summary.case_analyses)}",
+        f"Source runs: {', '.join(summary.source_runs)}",
+        "",
+    ]
+    for ca in summary.case_analyses:
+        metric_names = ", ".join(k for k, _ in ca.metric_stats)
+        lines.append(
+            f"  {ca.case_id}: {ca.status} "
+            f"({ca.ok_samples}/{ca.total_samples} ok) "
+            f"[{metric_names}]"
+        )
     return "\n".join(lines) + "\n"
