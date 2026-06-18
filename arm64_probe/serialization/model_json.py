@@ -253,9 +253,7 @@ def to_data(value: object) -> Any:
             "case_id": value.case_id,
             "runs_compared": to_data(value.runs_compared),
             "classification": value.classification,
-            "metric_deltas": _mapping(
-                tuple((d.metric_name, d) for d in value.metric_deltas)
-            ),
+            "metric_deltas": _mapping(value.metric_deltas),
             "note": value.note,
         }
     if isinstance(value, AnalysisSummary):
@@ -375,15 +373,15 @@ def _dict_to_case_analysis(data: dict) -> CaseAnalysis:
 
 def _dict_to_cross_run_comparison(data: dict) -> CrossRunComparison:
     metric_deltas = tuple(
-        _dict_to_cross_run_metric_delta(v)
-        for v in data.get("metric_deltas", {}).values()
+        (k, _dict_to_cross_run_metric_delta(v))
+        for k, v in data.get("metric_deltas", {}).items()
     )
     return CrossRunComparison(
         case_id=data["case_id"],
         runs_compared=tuple(data.get("runs_compared", ("", ""))),
         classification=data["classification"],
         metric_deltas=metric_deltas,
-        note=data.get("note", ""),
+        note=data.get("note"),
     )
 
 
@@ -423,4 +421,41 @@ def _dict_to_baseline_manifest(data: dict) -> BaselineManifest:
         toolchain=tuple(tuple(p) for p in data.get("toolchain", ())),
         promoted_at=data.get("promoted_at", ""),
         approved_by=data.get("approved_by"),
+    )
+
+
+def _dict_to_figure_manifest(data: dict) -> FigureManifest:
+    return FigureManifest(
+        figure_id=data["figure_id"],
+        path=data["path"],
+        caption=data["caption"],
+        source_analysis_id=data["source_analysis_id"],
+        regeneration_command=data.get("regeneration_command", ""),
+    )
+
+
+def _dict_to_report_manifest(data: dict) -> ReportManifest:
+    return ReportManifest(
+        report_id=data["report_id"],
+        report_path=data["report_path"],
+        source_analysis_id=data["source_analysis_id"],
+        figure_manifests=tuple(
+            _dict_to_figure_manifest(fm) for fm in data.get("figure_manifests", ())
+        ),
+        claim_count=data.get("claim_count", 0),
+        section_count=data.get("section_count", 0),
+        generated_at=data.get("generated_at", ""),
+        regeneration_command=data.get("regeneration_command", ""),
+    )
+
+
+def _dict_to_imported_record(data: dict) -> ImportedRecord:
+    return ImportedRecord(
+        source_path=data["source_path"],
+        parser_version=data["parser_version"],
+        format=data["format"],
+        case_id=data.get("case_id"),
+        platform_id=data.get("platform_id"),
+        metrics=tuple(tuple(m) for m in data.get("metrics", ())),
+        loss_notes=tuple(data.get("loss_notes", ())),
     )

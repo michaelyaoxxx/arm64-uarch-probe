@@ -42,12 +42,12 @@
         "sample_count": { "type": "integer" },
         "success_count": { "type": "integer" },
         "error_count": { "type": "integer" },
-        "min_value": { "type": "number" },
-        "max_value": { "type": "number" },
-        "median": { "type": "number" },
-        "mad": { "type": "number" },
-        "mean": { "type": "number" },
-        "stddev": { "type": "number" }
+        "min_value": { "type": ["number", "null"] },
+        "max_value": { "type": ["number", "null"] },
+        "median": { "type": ["number", "null"] },
+        "mad": { "type": ["number", "null"] },
+        "mean": { "type": ["number", "null"] },
+        "stddev": { "type": ["number", "null"] }
       }
     },
     "case_analysis": {
@@ -84,13 +84,13 @@
             "properties": {
               "metric_name": { "type": "string" },
               "unit": { "type": "string" },
-              "baseline_value": { "type": "number" },
-              "current_value": { "type": "number" },
-              "delta_pct": { "type": "number" }
+              "baseline_value": { "type": ["number", "null"] },
+              "current_value": { "type": ["number", "null"] },
+              "delta_pct": { "type": ["number", "null"] }
             }
           }
         },
-        "note": { "type": "string" }
+        "note": { "type": ["string", "null"] }
       }
     }
   }

@@ -13,7 +13,7 @@
     "version": { "type": "string" },
     "source_run_ids": { "type": "array", "items": { "type": "string" } },
     "analysis_id": { "type": "string" },
-    "report_id": { "type": "string" },
+    "report_id": { "type": ["string", "null"] },
     "figure_ids": { "type": "array", "items": { "type": "string" } },
     "commands": { "type": "array", "items": { "type": "string" } },
     "repository_commit": { "type": "string" },
@@ -23,6 +23,6 @@
       "items": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 2 }
     },
     "promoted_at": { "type": "string", "format": "date-time" },
-    "approved_by": { "type": "string" }
+    "approved_by": { "type": ["string", "null"] }
   }
 }

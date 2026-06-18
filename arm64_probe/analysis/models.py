@@ -77,8 +77,8 @@ class CrossRunComparison:
     case_id: str
     runs_compared: tuple[str, str]
     classification: str  # "unchanged" | "improved" | "regressed" | "missing" | "incompatible"
-    metric_deltas: tuple[CrossRunMetricDelta, ...] = ()
-    note: str = ""
+    metric_deltas: tuple[tuple[str, CrossRunMetricDelta], ...] = ()
+    note: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "runs_compared", _to_tuple(self.runs_compared))
@@ -147,7 +147,7 @@ class ImportedRecord:
     format: str
     case_id: str | None = None
     platform_id: str | None = None
-    metrics: tuple[tuple[str, float | int], ...] = ()
+    metrics: tuple[tuple[str, str | int | float | bool | None], ...] = ()
     loss_notes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:

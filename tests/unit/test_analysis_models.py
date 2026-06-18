@@ -74,6 +74,9 @@ class SerializationRoundTripTests(unittest.TestCase):
             to_data,
             _dict_to_analysis_summary,
             _dict_to_baseline_manifest,
+            _dict_to_figure_manifest,
+            _dict_to_report_manifest,
+            _dict_to_imported_record,
         )
         data = to_data(value)
         json_str = json.dumps(data, sort_keys=True)
@@ -82,6 +85,12 @@ class SerializationRoundTripTests(unittest.TestCase):
             result = _dict_to_analysis_summary(reloaded_data)
         elif expected_type is BaselineManifest:
             result = _dict_to_baseline_manifest(reloaded_data)
+        elif expected_type is FigureManifest:
+            result = _dict_to_figure_manifest(reloaded_data)
+        elif expected_type is ReportManifest:
+            result = _dict_to_report_manifest(reloaded_data)
+        elif expected_type is ImportedRecord:
+            result = _dict_to_imported_record(reloaded_data)
         else:
             self.skipTest(f"no _dict_to_* for {expected_type}")
         self.assertEqual(value, result)
