@@ -5,6 +5,7 @@ from pathlib import Path
 
 from arm64_probe.analysis.models import AnalysisSummary
 from arm64_probe.analysis.store import AnalysisStore
+from arm64_probe.errors import ProbeError
 
 
 class AnalysisStoreTests(unittest.TestCase):
@@ -60,8 +61,14 @@ class AnalysisStoreTests(unittest.TestCase):
     def test_read_corrupted_json_raises(self):
         bad_path = self.tmpdir / "corrupt.json"
         bad_path.write_text("not valid json")
-        with self.assertRaises(Exception):
+        with self.assertRaises(ProbeError):
             self.store.read_analysis("corrupt")
+
+    def test_rejects_oversize_file(self):
+        big_path = self.tmpdir / "big.json"
+        big_path.write_text("x" * (2 * 1024 * 1024 + 1))  # > 2 MiB
+        with self.assertRaises(ValueError):
+            self.store.read_analysis("big")
 
     def test_analysis_dir_is_created_if_missing(self):
         new_dir = self.tmpdir / "new_analysis"
