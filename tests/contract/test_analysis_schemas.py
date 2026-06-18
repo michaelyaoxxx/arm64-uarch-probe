@@ -21,10 +21,13 @@ class AnalysisSummarySchemaTests(unittest.TestCase):
 
     def test_required_fields_present(self):
         schema = json.loads(self.schema_path.read_text())
-        required = schema["required"]
-        for field in ("analysis_id", "schema_version", "source_runs",
-                       "platform_id", "repository_commit"):
-            self.assertIn(field, required)
+        self.assertEqual(
+            schema["required"],
+            [
+                "analysis_id", "schema_version", "source_runs", "platform_id",
+                "repository_id", "repository_commit", "dirty_tree", "toolchain",
+            ],
+        )
 
     def test_schema_version_const_is_1(self):
         schema = json.loads(self.schema_path.read_text())
@@ -153,10 +156,10 @@ class BaselineManifestSchemaTests(unittest.TestCase):
 
     def test_required_fields_present(self):
         schema = json.loads(self.schema_path.read_text())
-        required = schema["required"]
-        for field in ("baseline_id", "version", "source_run_ids", "analysis_id",
-                       "commands", "repository_commit"):
-            self.assertIn(field, required)
+        self.assertEqual(
+            schema["required"],
+            ["baseline_id", "version", "source_run_ids", "analysis_id"],
+        )
 
     def test_validates_minimal_example(self):
         """Verify a minimal valid BaselineManifest JSON passes schema validation."""

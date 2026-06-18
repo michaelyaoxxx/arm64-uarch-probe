@@ -54,7 +54,12 @@ class CaseAnalysis:
     source_run_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "metric_stats", _to_tuple(self.metric_stats))
+        # Sort metric_stats by metric name for deterministic ordering (SPEC requirement).
+        raw = _to_tuple(self.metric_stats)
+        object.__setattr__(
+            self, "metric_stats",
+            tuple(sorted(raw, key=lambda x: x[0])),
+        )
         object.__setattr__(self, "anomalies", _to_tuple(self.anomalies))
         object.__setattr__(self, "source_run_ids", _to_tuple(self.source_run_ids))
 

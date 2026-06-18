@@ -6,8 +6,7 @@
   "additionalProperties": false,
   "required": [
     "analysis_id", "schema_version", "source_runs", "platform_id",
-    "repository_id", "repository_commit", "dirty_tree", "toolchain",
-    "case_analyses", "cross_run_comparisons", "anomalies", "generated_at"
+    "repository_id", "repository_commit", "dirty_tree", "toolchain"
   ],
   "properties": {
     "analysis_id": { "type": "string" },

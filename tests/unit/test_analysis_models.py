@@ -44,7 +44,8 @@ class CaseAnalysisTests(unittest.TestCase):
         ca = CaseAnalysis(
             case_id="test@gb10.x", scenario_id="test", platform_id="gb10",
             status="ok", total_samples=1, ok_samples=1, error_samples=0,
-            metric_stats=(("accesses", m2), ("latency_ns", m1)),
+            # Pass in reverse alphabetical order to verify sorting.
+            metric_stats=(("latency_ns", m1), ("accesses", m2)),
             anomalies=(), source_run_ids=("run1",),
         )
         names = [k for k, _ in ca.metric_stats]
@@ -74,6 +75,7 @@ class SerializationRoundTripTests(unittest.TestCase):
             to_data,
             _dict_to_analysis_summary,
             _dict_to_baseline_manifest,
+            _dict_to_cross_run_comparison,
             _dict_to_figure_manifest,
             _dict_to_report_manifest,
             _dict_to_imported_record,
@@ -91,6 +93,8 @@ class SerializationRoundTripTests(unittest.TestCase):
             result = _dict_to_report_manifest(reloaded_data)
         elif expected_type is ImportedRecord:
             result = _dict_to_imported_record(reloaded_data)
+        elif expected_type is CrossRunComparison:
+            result = _dict_to_cross_run_comparison(reloaded_data)
         else:
             self.skipTest(f"no _dict_to_* for {expected_type}")
         self.assertEqual(value, result)
@@ -118,6 +122,52 @@ class SerializationRoundTripTests(unittest.TestCase):
             anomalies=(), generated_at="2026-06-17T12:00:00Z",
         )
         self._round_trip(summary, AnalysisSummary)
+
+    def test_figure_manifest_round_trip(self):
+        fm = FigureManifest(
+            figure_id="latency_comparison", path="latency_comparison.png",
+            caption="Test", source_analysis_id="analysis1",
+            regeneration_command="probe report --analysis test",
+        )
+        self._round_trip(fm, FigureManifest)
+
+    def test_report_manifest_round_trip(self):
+        fm = FigureManifest(
+            figure_id="f1", path="f1.png", caption="Fig",
+            source_analysis_id="a1", regeneration_command="cmd",
+        )
+        rm = ReportManifest(
+            report_id="r1", report_path="report.md",
+            source_analysis_id="a1", figure_manifests=(fm,),
+            claim_count=5, section_count=3,
+            generated_at="2026-06-17T12:00:00Z",
+            regeneration_command="cmd",
+        )
+        self._round_trip(rm, ReportManifest)
+
+    def test_imported_record_round_trip(self):
+        ir = ImportedRecord(
+            source_path="/tmp/test.log", parser_version="1.0",
+            format="chase_pmu_text", case_id="test@gb10",
+            platform_id="gb10",
+            metrics=(("latency_ns", 4.36),),
+            loss_notes=(),
+        )
+        self._round_trip(ir, ImportedRecord)
+
+    def test_cross_run_comparison_round_trip(self):
+        delta = CrossRunMetricDelta(
+            metric_name="latency_ns", unit="ns",
+            baseline_value=4.0, current_value=4.5, delta_pct=12.5,
+        )
+        crc = CrossRunComparison(
+            case_id="test@gb10",
+            runs_compared=("run1", "run2"),
+            classification="improved",
+            metric_deltas=(("latency_ns", delta),),
+            note=None,
+        )
+        self._round_trip(crc, CrossRunComparison)
 
 
 if __name__ == "__main__":

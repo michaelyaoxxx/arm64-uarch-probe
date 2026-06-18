@@ -5,8 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "baseline_id", "version", "source_run_ids", "analysis_id",
-    "commands", "repository_commit", "dirty_tree", "toolchain", "promoted_at"
+    "baseline_id", "version", "source_run_ids", "analysis_id"
   ],
   "properties": {
     "baseline_id": { "type": "string" },
