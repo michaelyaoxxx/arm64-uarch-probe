@@ -11,6 +11,7 @@ from arm64_probe.cli.render import (
     render_error,
     render_list,
     render_plan,
+    render_report,
     render_restore,
     render_resume,
     render_run,
@@ -188,6 +189,43 @@ def _run_analyze(args) -> tuple:
     return analysis, out_path
 
 
+def _run_report(args) -> tuple:
+    """Generate report from an analysis summary.
+
+    Loads AnalysisSummary, generates figures, writes deterministic
+    Markdown report, and returns (summary, manifest, figures).
+
+    Returns:
+        Tuple of (AnalysisSummary, ReportManifest, tuple[FigureManifest, ...]).
+        On error raises FileNotFoundError or ValueError.
+    """
+    from pathlib import Path as PathCls
+
+    from arm64_probe.analysis.figures import FigureGenerator
+    from arm64_probe.analysis.report import ReportGenerator
+    from arm64_probe.analysis.store import AnalysisStore
+
+    analysis_path = PathCls(args.analysis)
+    store = AnalysisStore(analysis_dir=analysis_path.parent)
+    analysis_id = analysis_path.stem
+    summary = store.read_analysis(analysis_id)
+
+    output_dir = PathCls(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    fig_gen = FigureGenerator(summary)
+    figures = fig_gen.generate_all(output_dir)
+
+    report_gen = ReportGenerator(summary, figures)
+    cmd = (
+        f"probe report --analysis {args.analysis} "
+        f"--output-dir {args.output_dir}"
+    )
+    manifest = report_gen.write(output_dir, cmd)
+
+    return summary, manifest, figures
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = tuple(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
@@ -298,6 +336,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             if summary is None:
                 return ExitCode.RUN_RESULT
             result = render_analyze(summary, path, args.output)
+        elif args.command == "report":
+            try:
+                summary, manifest, figures = _run_report(args)
+                result = render_report(summary, manifest, figures, args.output)
+            except (FileNotFoundError, ValueError) as e:
+                import sys as _sys
+                print(f"report error: {e}", file=_sys.stderr)
+                return ExitCode.RUN_RESULT
         else:
             platform_id = (
                 catalog.get_platform(args.platform).id

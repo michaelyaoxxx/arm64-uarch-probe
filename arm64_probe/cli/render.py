@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from arm64_probe.domain.models import Plan, RunResult
-from arm64_probe.analysis.models import AnalysisSummary
+from arm64_probe.analysis.models import AnalysisSummary, FigureManifest, ReportManifest
 from arm64_probe.environment.models import DoctorReport, EnvironmentJournal
 from arm64_probe.errors import ProbeError
 from arm64_probe.registry.catalog import Catalog
@@ -379,4 +379,33 @@ def render_analyze(summary: AnalysisSummary, output_path: Path | None, output: s
             f"({ca.ok_samples}/{ca.total_samples} ok) "
             f"[{metric_names}]"
         )
+    return "\n".join(lines) + "\n"
+
+
+def render_report(
+    summary: AnalysisSummary,
+    manifest: ReportManifest,
+    figures: tuple[FigureManifest, ...],
+    output: str,
+) -> str:
+    """Render a report generation result for display.
+
+    Args:
+        summary: The source AnalysisSummary.
+        manifest: The ReportManifest produced by ReportGenerator.write().
+        figures: Tuple of FigureManifests produced by FigureGenerator.
+        output: Output format ("json" or "table").
+
+    Returns:
+        Formatted string representation.
+    """
+    if output == "json":
+        return dump_json(to_data(manifest))
+
+    lines = [
+        f"Report: {manifest.report_path}",
+        f"Analysis: {summary.analysis_id}",
+        f"Figures: {len(figures)}",
+        f"Sections: {manifest.section_count}",
+    ]
     return "\n".join(lines) + "\n"
