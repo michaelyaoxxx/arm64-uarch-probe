@@ -23,6 +23,8 @@ EXPECTED_SCENARIOS = (
     "migration-latency.cross-cluster",
 )
 EXPECTED_SCHEMAS = (
+    "analysis-summary.schema.json",
+    "baseline-manifest.schema.json",
     "capability-observation.schema.json",
     "capability.schema.json",
     "case.schema.json",
