@@ -385,6 +385,11 @@ def _dict_to_cross_run_comparison(data: dict) -> CrossRunComparison:
     )
 
 
+def dict_to_analysis_summary(data: dict) -> AnalysisSummary:
+    """Public wrapper for _dict_to_analysis_summary."""
+    return _dict_to_analysis_summary(data)
+
+
 def _dict_to_analysis_summary(data: dict) -> AnalysisSummary:
     return AnalysisSummary(
         analysis_id=data["analysis_id"],

@@ -76,6 +76,31 @@ class ComputeMetricStatsTests(unittest.TestCase):
         stats4 = StatisticsEngine.compute_metric_stats(samples4, "read_bytes")
         self.assertEqual(stats4.unit, "bytes")
 
+    def test_mad_computation(self):
+        samples = (
+            _sample("c1", "r1", "ok", {"latency_ns": 1.0}),
+            _sample("c1", "r1", "ok", {"latency_ns": 2.0}),
+            _sample("c1", "r1", "ok", {"latency_ns": 3.0}),
+            _sample("c1", "r1", "ok", {"latency_ns": 4.0}),
+            _sample("c1", "r1", "ok", {"latency_ns": 100.0}),
+        )
+        stats = StatisticsEngine.compute_metric_stats(samples, "latency_ns")
+        # median=3.0, abs deviations = [2,1,0,1,97] -> sorted=[0,1,1,2,97] -> median of deviations = 1.0
+        self.assertAlmostEqual(stats.mad, 1.0)
+        self.assertAlmostEqual(stats.median, 3.0)
+
+    def test_empty_samples(self):
+        stats = StatisticsEngine.compute_metric_stats((), "latency_ns", "ns")
+        self.assertEqual(stats.sample_count, 0)
+        self.assertEqual(stats.success_count, 0)
+        self.assertEqual(stats.error_count, 0)
+        self.assertIsNone(stats.median)
+        self.assertIsNone(stats.min_value)
+        self.assertIsNone(stats.max_value)
+        self.assertIsNone(stats.mad)
+        self.assertIsNone(stats.mean)
+        self.assertIsNone(stats.stddev)
+
 
 class ComputeCaseAnalysisTests(unittest.TestCase):
     def test_compute_case_analysis_ok(self):
@@ -132,6 +157,24 @@ class ComputeCaseAnalysisTests(unittest.TestCase):
         )
         self.assertEqual(ca.source_run_ids, ("run1", "run2"))
 
+    def test_case_analysis_propagates_anomalies(self):
+        """Anomalies from individual metrics should appear in CaseAnalysis.anomalies."""
+        samples = (_sample("c1", "r1", "ok", {"latency_ns": 4.0}),)
+        ca = StatisticsEngine.compute_case_analysis(
+            case_id="c1", samples=samples,
+            scenario_id="test", platform_id="gb10",
+        )
+        self.assertIn("single_sample", ca.anomalies)
+
+    def test_case_analysis_deduplicates_anomalies(self):
+        """Same anomaly type across multiple metrics should be deduplicated."""
+        samples = (_sample("c1", "r1", "ok", {"latency_ns": 4.0, "accesses": 100}),)
+        ca = StatisticsEngine.compute_case_analysis(
+            case_id="c1", samples=samples,
+            scenario_id="test", platform_id="gb10",
+        )
+        self.assertEqual(ca.anomalies.count("single_sample"), 1)
+
 
 class AnomalyDetectionTests(unittest.TestCase):
     def test_single_sample(self):
@@ -142,7 +185,7 @@ class AnomalyDetectionTests(unittest.TestCase):
             mad=0.0, mean=4.0, stddev=0.0,
         )
         anomalies = StatisticsEngine.detect_anomalies(stats)
-        self.assertIn("single_sample", anomalies)
+        self.assertEqual(anomalies, ("single_sample",))
 
     def test_all_errors(self):
         stats = MetricStats(
@@ -152,7 +195,7 @@ class AnomalyDetectionTests(unittest.TestCase):
             mad=None, mean=None, stddev=None,
         )
         anomalies = StatisticsEngine.detect_anomalies(stats)
-        self.assertIn("all_errors", anomalies)
+        self.assertEqual(anomalies, ("all_errors",))
 
     def test_zero_variance(self):
         stats = MetricStats(
@@ -162,7 +205,7 @@ class AnomalyDetectionTests(unittest.TestCase):
             mad=0.0, mean=4.0, stddev=0.0,
         )
         anomalies = StatisticsEngine.detect_anomalies(stats)
-        self.assertIn("zero_variance", anomalies)
+        self.assertEqual(anomalies, ("zero_variance",))
 
     def test_high_variance(self):
         stats = MetricStats(
@@ -172,7 +215,7 @@ class AnomalyDetectionTests(unittest.TestCase):
             mad=5.0, mean=100.0, stddev=500.0,
         )
         anomalies = StatisticsEngine.detect_anomalies(stats)
-        self.assertIn("high_variance", anomalies)
+        self.assertEqual(anomalies, ("high_variance",))
 
     def test_extreme_outlier(self):
         stats = MetricStats(
@@ -182,7 +225,7 @@ class AnomalyDetectionTests(unittest.TestCase):
             mad=0.2, mean=5.0, stddev=1.0,
         )
         anomalies = StatisticsEngine.detect_anomalies(stats)
-        self.assertIn("extreme_outlier", anomalies)
+        self.assertEqual(anomalies, ("extreme_outlier",))
 
     def test_no_anomalies(self):
         stats = MetricStats(

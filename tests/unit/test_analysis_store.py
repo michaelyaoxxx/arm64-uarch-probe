@@ -1,4 +1,5 @@
 """Atomic persistence tests for AnalysisStore."""
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -12,6 +13,9 @@ class AnalysisStoreTests(unittest.TestCase):
     def setUp(self):
         self.tmpdir = Path(tempfile.mkdtemp())
         self.store = AnalysisStore(analysis_dir=self.tmpdir)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
 
     def _make_summary(self, analysis_id="20260617T120000Z-a1b2c3d4"):
         return AnalysisSummary(
@@ -75,6 +79,15 @@ class AnalysisStoreTests(unittest.TestCase):
         store = AnalysisStore(analysis_dir=new_dir)
         self.assertTrue(new_dir.exists())
         self.assertTrue(new_dir.is_dir())
+
+    def test_rejects_unsupported_schema_version(self):
+        bad_path = self.tmpdir / "bad_schema.json"
+        bad_path.write_text(
+            '{"schema_version": 2, "analysis_id": "bad_schema", '
+            '"platform_id": "gb10"}'
+        )
+        with self.assertRaises(ValueError):
+            self.store.read_analysis("bad_schema")
 
 
 if __name__ == "__main__":
