@@ -39,7 +39,7 @@ $(error [ERROR] unsupported host: $(HOST_OS))
 endif
 endif
 
-.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check phase3-check smoke doctor clean clean-venv sync help check-cli-contracts
+.PHONY: all build build-linux check legacy-check shell-check show-targets probe probe-help phase1-check phase2-check phase3-check phase4-check smoke doctor clean clean-venv sync help check-cli-contracts
 
 all: build
 
@@ -108,6 +108,13 @@ phase3-check:
 	$(UV_RUN) python scripts/legacy_manifest.py verify
 	$(UV_RUN) python -m unittest tests.contract.test_phase3_acceptance -v
 
+phase4-check:
+	$(UV_RUN) python -m unittest tests.unit.test_analysis_models tests.unit.test_analysis_store tests.unit.test_statistics tests.unit.test_ingestion tests.unit.test_comparison -v
+	$(UV_RUN) python -m unittest tests.unit.test_figures tests.unit.test_report tests.unit.test_baseline -v
+	$(UV_RUN) python -m unittest tests.contract.test_cli_analyze tests.contract.test_cli_report tests.contract.test_analysis_schemas tests.contract.test_phase4_acceptance -v
+	$(UV_RUN) python -m unittest tests.integration.test_phase4_analysis_workflow tests.integration.test_phase4_legacy_import -v
+	$(MAKE) phase3-check
+
 check-cli-contracts:
 	@echo "[CLI-CONTRACT] Verifying adapter argv matches compiled probe binaries..."
 	$(UV_RUN) python -m unittest tests.integration.test_probe_cli_contract -v
@@ -144,6 +151,7 @@ help:
 	@echo "  phase1-check  Run Phase 1 Python tests and legacy verification (uv-managed)"
 	@echo "  phase2-check  Run Phase 2 Python tests and legacy verification (uv-managed)"
 	@echo "  phase3-check  Run Phase 3 Python tests and acceptance checks (uv-managed)"
+	@echo "  phase4-check  Run Phase 4 analysis tests, CLI contracts, and acceptance checks (uv-managed)"
 	@echo "  smoke         Run minimal smoke workflow (plan + run) (uv-managed)"
 	@echo "  check-cli-contracts  Verify adapter argv matches compiled probe CLI"
 	@echo "  sync          Provision or refresh the .venv via uv"

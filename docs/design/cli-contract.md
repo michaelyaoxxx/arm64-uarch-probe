@@ -115,3 +115,22 @@ result is an idempotent no-op.
 
 GB10 is first required at Phase 3 Gate 1 after the unified runner, environment
 recovery, and minimal smoke workflow receive an explicit ready notice.
+
+## probe analyze
+
+`probe analyze --run <result.json> [--run <result.json> ...] [--baseline <path>] --output-dir <dir> [-o table|json]`
+
+Loads one or more schema v2 `RunResult` files, computes per-case summary
+statistics via `StatisticsEngine`, and persists an `AnalysisSummary` JSON
+artifact atomically.
+
+Exit codes: `0` success, `16` run-result persistence/compatibility failure.
+
+## probe report
+
+`probe report --analysis <analysis-summary.json> --output-dir <dir> [-o table|json]`
+
+Loads an `AnalysisSummary` artifact, generates PNG figures via matplotlib
+(`Agg` backend), and writes a deterministic Markdown report.
+
+Exit codes: `0` success, `16` analysis artifact compatibility failure.
