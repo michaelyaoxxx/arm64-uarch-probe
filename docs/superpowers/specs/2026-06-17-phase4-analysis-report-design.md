@@ -19,6 +19,15 @@ Analysis, statistics, figures, and reports are pure computation with zero host
 mutation. The boundary is intentional: collect once with privilege, analyze
 anywhere without it.
 
+**Phase 4 does not initiate new measurements.** `probe analyze` and `probe
+report` are strictly read-only consumers. They accept `RunResult` and
+`AnalysisSummary` JSON files that were already collected by `probe run` (Phase
+3). Phase 4 never invokes `Runner`, `EnvironmentCoordinator`, or any C probe
+binary. This is the fundamental contract between the collection phase and the
+analysis phase — Phase 3 collects; Phase 4 consumes. Any new measurement
+campaign (e.g., baseline refresh, bandwidth probe) requires a separate Phase 3
+invocation before Phase 4 can analyze its output.
+
 ### 1.1 Data Flow
 
 ```
