@@ -20,10 +20,12 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 
-# Runtime dependencies are empty: the control layer uses only the Python
-# standard library. Keeping an explicit empty list makes the boundary
-# machine-checkable.
-dependencies = []
+# Runtime dependencies: Phase 4 adds matplotlib for figure generation.
+# The control layer (planning, environment, execution) uses only the
+# Python standard library.
+dependencies = [
+    "matplotlib>=3.9",
+]
 
 [project.scripts]
 probe = "arm64_probe.cli.main:main"

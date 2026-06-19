@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arm64-uarch-probe/schemas/analysis-summary.schema.json",
+  "title": "AnalysisSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "analysis_id", "schema_version", "source_runs", "platform_id",
+    "repository_id", "repository_commit", "dirty_tree", "toolchain"
+  ],
+  "properties": {
+    "analysis_id": { "type": "string" },
+    "schema_version": { "const": 1 },
+    "source_runs": { "type": "array", "items": { "type": "string" } },
+    "platform_id": { "type": "string" },
+    "repository_id": { "type": "string" },
+    "repository_commit": { "type": "string" },
+    "dirty_tree": { "type": "boolean" },
+    "toolchain": {
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 2 }
+    },
+    "case_analyses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/case_analysis" }
+    },
+    "cross_run_comparisons": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/cross_run_comparison" }
+    },
+    "anomalies": { "type": "array", "items": { "type": "string" } },
+    "generated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "metric_stats": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metric_name", "unit", "sample_count", "success_count", "error_count"],
+      "properties": {
+        "metric_name": { "type": "string" },
+        "unit": { "type": "string" },
+        "sample_count": { "type": "integer" },
+        "success_count": { "type": "integer" },
+        "error_count": { "type": "integer" },
+        "min_value": { "type": ["number", "null"] },
+        "max_value": { "type": ["number", "null"] },
+        "median": { "type": ["number", "null"] },
+        "mad": { "type": ["number", "null"] },
+        "mean": { "type": ["number", "null"] },
+        "stddev": { "type": ["number", "null"] }
+      }
+    },
+    "case_analysis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "scenario_id", "platform_id", "status", "total_samples", "ok_samples", "error_samples", "metric_stats", "anomalies", "source_run_ids"],
+      "properties": {
+        "case_id": { "type": "string" },
+        "scenario_id": { "type": "string" },
+        "platform_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["ok", "partial", "failed"] },
+        "total_samples": { "type": "integer" },
+        "ok_samples": { "type": "integer" },
+        "error_samples": { "type": "integer" },
+        "metric_stats": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/metric_stats" }
+        },
+        "anomalies": { "type": "array", "items": { "type": "string" } },
+        "source_run_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "cross_run_comparison": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "runs_compared", "classification", "metric_deltas"],
+      "properties": {
+        "case_id": { "type": "string" },
+        "runs_compared": { "type": "array", "items": { "type": "string" } },
+        "classification": { "type": "string", "enum": ["unchanged", "improved", "regressed", "missing", "incompatible"] },
+        "metric_deltas": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object", "additionalProperties": false,
+            "required": ["metric_name", "unit"],
+            "properties": {
+              "metric_name": { "type": "string" },
+              "unit": { "type": "string" },
+              "baseline_value": { "type": ["number", "null"] },
+              "current_value": { "type": ["number", "null"] },
+              "delta_pct": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "note": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

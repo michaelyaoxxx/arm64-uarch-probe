@@ -60,13 +60,17 @@ class PythonVersionPinTests(unittest.TestCase):
             ],
         )
 
-    def test_pyproject_keeps_runtime_dependencies_empty(self):
+    def test_pyproject_allows_matplotlib_only(self):
+        """Phase 4 adds matplotlib for figure generation (Agg backend).
+
+        The control layer (planning, environment, execution) still uses
+        only the standard library. matplotlib is the sole allowed runtime
+        dependency, required by the analysis/report subsystem.
+        """
         payload = tomllib.loads((ROOT / "pyproject.toml").read_text())
-        self.assertEqual(
-            payload["project"]["dependencies"],
-            [],
-            "control layer must depend only on the standard library",
-        )
+        deps = payload["project"]["dependencies"]
+        self.assertEqual(len(deps), 1, f"expected exactly 1 dependency, got {len(deps)}")
+        self.assertIn("matplotlib", deps[0], f"unexpected dependency: {deps[0]}")
 
     def test_pyproject_pins_uv_managed_workspace(self):
         payload = tomllib.loads((ROOT / "pyproject.toml").read_text())
@@ -86,15 +90,21 @@ class UvLockfileTests(unittest.TestCase):
         self.assertIn('requires-python = "==3.13.13"', text)
         self.assertIn("arm64-uarch-probe", text)
 
-    def test_uv_lock_has_no_extra_packages(self):
+    def test_uv_lock_contains_matplotlib_and_its_dependencies(self):
+        """Phase 4 adds matplotlib; uv.lock now carries its dependency tree.
+
+        Only the workspace package name ('arm64-uarch-probe') and
+        matplotlib-related packages are expected. Any other addition must
+        be deliberate and reviewed.
+        """
         text = (ROOT / "uv.lock").read_text()
-        # Only the workspace package itself. Any added dependency must be
-        # deliberate and reviewed.
-        self.assertEqual(
-            text.count("name ="),
-            1,
-            "uv.lock must contain only the workspace package",
-        )
+        known = {"arm64-uarch-probe", "matplotlib", "contourpy", "cycler",
+                  "fonttools", "kiwisolver", "numpy", "packaging", "pillow",
+                  "pyparsing", "python-dateutil", "six"}
+        self.assertIn("matplotlib", text, "matplotlib must be in lockfile")
+        for pkg in known:
+            self.assertIn(f'name = "{pkg}"', text,
+                          f"expected package {pkg} in uv.lock")
 
 
 class MakefileUvIntegrationTests(unittest.TestCase):

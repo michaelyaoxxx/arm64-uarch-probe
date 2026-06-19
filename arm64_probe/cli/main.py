@@ -6,10 +6,12 @@ from pathlib import Path
 from arm64_probe.backends.select import select_backend
 from arm64_probe.cli.parser import build_parser, get_command_parser
 from arm64_probe.cli.render import (
+    render_analyze,
     render_doctor,
     render_error,
     render_list,
     render_plan,
+    render_report,
     render_restore,
     render_resume,
     render_run,
@@ -97,6 +99,131 @@ def _plan_request(args) -> PlanRequest:
         overrides=overrides,
         skip_unavailable=args.skip_unavailable,
     )
+
+
+def _run_analyze(args) -> tuple:
+    """Run the probe analyze command.
+
+    Loads RunResult files, computes per-case MetricStats via StatisticsEngine,
+    persists AnalysisSummary atomically via AnalysisStore.
+
+    Returns:
+        Tuple of (AnalysisSummary | None, Path | None).
+        On error summary is None indicating exit code 16.
+    """
+    import datetime
+    import uuid
+    from pathlib import Path as PathCls
+
+    from arm64_probe.analysis.ingestion import ResultIngester
+    from arm64_probe.analysis.statistics import StatisticsEngine
+    from arm64_probe.analysis.store import AnalysisStore
+    from arm64_probe.execution.result_store import ResultStore
+
+    run_paths = tuple(PathCls(p) for p in args.runs)
+    output_dir = PathCls(args.output_dir)
+
+    # ResultStore.read(path) reads from an arbitrary path; results_dir is
+    # unused for reads, so pass any existing directory to satisfy the ctor.
+    store = ResultStore(results_dir=output_dir)
+    ingester = ResultIngester(store)
+    try:
+        results = ingester.ingest(run_paths)
+    except (FileNotFoundError, ValueError, KeyError, OSError) as e:
+        print(f"analyze error: {e}", file=sys.stderr)
+        return None, None
+
+    # Use the first result's summary for top-level metadata.
+    summary_dict = dict(results[0].summary)
+    plat_id = summary_dict.get("platform_id", "unknown")
+    repo_id = summary_dict.get("repository_id", "unknown")
+    commit = summary_dict.get("repository_commit", "unknown")
+    dirty = bool(summary_dict.get("dirty_tree", False))
+
+    # Group samples by case_id across all run results.
+    all_samples_by_case: dict[str, list] = {}
+    for r in results:
+        for s in r.samples:
+            all_samples_by_case.setdefault(s.case_id, []).append(s)
+
+    # Build a lookup: case_id -> scenario_id by scanning all plans.
+    scenario_by_case: dict[str, str] = {}
+    for r in results:
+        for c in r.plan.cases:
+            scenario_by_case.setdefault(c.id, c.scenario_id)
+
+    # Compute per-case analysis.
+    case_analyses = []
+    for case_id in sorted(all_samples_by_case):
+        samples = tuple(all_samples_by_case[case_id])
+        ca = StatisticsEngine.compute_case_analysis(
+            case_id=case_id,
+            samples=samples,
+            scenario_id=scenario_by_case.get(case_id, "unknown"),
+            platform_id=plat_id,
+        )
+        case_analyses.append(ca)
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    analysis_id = now.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+
+    from arm64_probe.analysis.models import AnalysisSummary
+
+    analysis = AnalysisSummary(
+        analysis_id=analysis_id,
+        schema_version=1,
+        source_runs=tuple(r.run_id for r in results),
+        platform_id=plat_id,
+        repository_id=repo_id,
+        repository_commit=commit,
+        dirty_tree=dirty,
+        toolchain=(("python", "3.13.13"),),
+        case_analyses=tuple(case_analyses),
+        cross_run_comparisons=(),
+        anomalies=(),
+        generated_at=now.isoformat(),
+    )
+
+    analysis_store = AnalysisStore(analysis_dir=output_dir)
+    out_path = analysis_store.write_analysis(analysis)
+    return analysis, out_path
+
+
+def _run_report(args) -> tuple:
+    """Generate report from an analysis summary.
+
+    Loads AnalysisSummary, generates figures, writes deterministic
+    Markdown report, and returns (summary, manifest, figures).
+
+    Returns:
+        Tuple of (AnalysisSummary, ReportManifest, tuple[FigureManifest, ...]).
+        On error raises FileNotFoundError or ValueError.
+    """
+    from pathlib import Path as PathCls
+
+    from arm64_probe.analysis.figures import FigureGenerator
+    from arm64_probe.analysis.report import ReportGenerator
+    from arm64_probe.analysis.store import AnalysisStore
+
+    analysis_path = PathCls(args.analysis)
+    store = AnalysisStore(analysis_dir=analysis_path.parent)
+    analysis_id = analysis_path.stem
+    summary = store.read_analysis(analysis_id)
+
+    output_dir = PathCls(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    fig_gen = FigureGenerator(summary)
+    figures = fig_gen.generate_all(output_dir)
+
+    report_gen = ReportGenerator(summary, figures)
+    cmd = (
+        f"probe report --analysis {args.analysis} "
+        f"--output-dir {args.output_dir}"
+    )
+    manifest = report_gen.write(output_dir, cmd)
+
+    return summary, manifest, figures
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -204,6 +331,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
 
             result = render_resume(resumed, args.output)
+        elif args.command == "analyze":
+            summary, path = _run_analyze(args)
+            if summary is None:
+                return ExitCode.RUN_RESULT
+            result = render_analyze(summary, path, args.output)
+        elif args.command == "report":
+            try:
+                summary, manifest, figures = _run_report(args)
+                result = render_report(summary, manifest, figures, args.output)
+            except (FileNotFoundError, ValueError) as e:
+                import sys as _sys
+                print(f"report error: {e}", file=_sys.stderr)
+                return ExitCode.RUN_RESULT
         else:
             platform_id = (
                 catalog.get_platform(args.platform).id

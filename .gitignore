@@ -11,3 +11,6 @@ __pycache__/
 /results/runs/
 /results/.locks/
 /results/.recovery/
+/results/gate1-*/
+/results/analysis/
+/results/reports/
